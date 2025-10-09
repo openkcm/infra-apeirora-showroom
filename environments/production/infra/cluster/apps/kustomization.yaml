@@ -3,16 +3,8 @@ kind: Kustomization
 namespace: flux-system
 resources:
   - cert-manager.yaml
-  - cldis.yaml
-  - crossplane.yaml
-  - dnsfailover.yaml
-  - dynatrace-system.yaml
-  - external-secret.yaml
-  - iac.yaml
-  - iac-aws.yaml
   - kms-system.yaml
   - linkerd-identity-issuer-syncer.yaml
-  - monitoring.yaml
   - namespaces.yaml
   - service-account-issuer-discovery.yaml
 patches:
