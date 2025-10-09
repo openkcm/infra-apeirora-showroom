@@ -9,7 +9,7 @@ spec:
   - name: namespaces
   force: true
   interval: 10m0s
-  path: ./apps/canary/infra/kms-system/
+  path: ./apps/production/infra/kms-system/
   prune: true
   sourceRef:
     kind: GitRepository

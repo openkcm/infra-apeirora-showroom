@@ -8,7 +8,7 @@ spec:
   - name: namespaces
   force: true
   interval: 10m0s
-  path: ./apps/canary/infra/cert-manager/
+  path: ./apps/production/infra/cert-manager/
   prune: true
   sourceRef:
     kind: GitRepository
