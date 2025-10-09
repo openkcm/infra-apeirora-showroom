@@ -1,0 +1,10 @@
+resources:
+  service-checker-lb-https:
+    metadata:
+      annotations:
+        dns.gardener.cloud/dnsnames: checker.aweu-cmk-p-02.cmkc.kms.cloud.sap
+        service.beta.kubernetes.io/aws-load-balancer-nlb-target-type: instance
+        service.beta.kubernetes.io/aws-load-balancer-scheme: internet-facing
+        service.beta.kubernetes.io/aws-load-balancer-type: "nlb"
+    spec:
+      externalTrafficPolicy: Local

@@ -1,0 +1,37 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: flux-system
+resources:
+  - btp-pki-addon.yaml
+  - btp-system.yaml
+  - cert-manager.yaml
+  - cldis.yaml
+  - crossplane.yaml
+  - dnsfailover.yaml
+  - dynatrace-system.yaml
+  - external-secret.yaml
+  - iac.yaml
+  - iac-aws.yaml
+  - kms-system.yaml
+  - linkerd-identity-issuer-syncer.yaml
+  - monitoring.yaml
+  - namespaces.yaml
+  - service-account-issuer-discovery.yaml
+patches:
+  # patch to add `.spec.targetNamespace` in Flux KS resource
+  - target:
+      kind: Kustomization
+      group: kustomize.toolkit.fluxcd.io
+      version: v1
+    patch: |
+      - op: add
+        path: /spec/targetNamespace
+        value: flux-system
+  - target:
+      kind: Kustomization
+      group: kustomize.toolkit.fluxcd.io
+      version: v1
+      name: namespaces
+    patch: |
+      - op: remove
+        path: /spec/targetNamespace

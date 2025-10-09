@@ -1,0 +1,30 @@
+resources:
+  envoy-proxy-config:
+    apiVersion: gateway.envoyproxy.io/v1alpha1
+    kind: EnvoyProxy
+    metadata:
+      name: envoy-proxy-config
+    spec:
+      provider:
+        kubernetes:
+          envoyService:
+            annotations:
+              dns.gardener.cloud/dnsnames: ing.aweu-cmk-p-02.cmkc.kms.cloud.sap
+              cert.gardener.cloud/dnsnames: ing.aweu-cmk-p-02.cmkc.kms.cloud.sap,ing.aws-eu-01.cmkc.kms.cloud.sap
+              service.beta.kubernetes.io/aws-load-balancer-nlb-target-type: instance
+              service.beta.kubernetes.io/aws-load-balancer-scheme: internet-facing
+              service.beta.kubernetes.io/aws-load-balancer-type: "nlb"
+              service.beta.kubernetes.io/aws-load-balancer-healthcheck-protocol: "tcp"
+              service.beta.kubernetes.io/aws-load-balancer-healthcheck-port: "traffic-port"
+              service.beta.kubernetes.io/aws-load-balancer-healthcheck-interval: "10"
+              service.beta.kubernetes.io/aws-load-balancer-healthcheck-timeout: "5"
+              service.beta.kubernetes.io/aws-load-balancer-healthcheck-healthy-threshold: "3"
+              service.beta.kubernetes.io/aws-load-balancer-healthcheck-unhealthy-threshold: "3"
+              service.beta.kubernetes.io/aws-load-balancer-proxy-protocol: "*"
+              service.beta.kubernetes.io/aws-load-balancer-target-group-attributes: "proxy_protocol_v2.enabled=true"
+          envoyHpa:
+            minReplicas: 3
+            maxReplicas: 5
+          envoyDeployment:
+            replicas: 3
+

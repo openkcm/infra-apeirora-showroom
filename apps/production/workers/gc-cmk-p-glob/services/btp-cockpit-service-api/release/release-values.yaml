@@ -1,0 +1,15 @@
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: platform-extension-service
+spec:
+  chart:
+    spec:
+      version: '0.1.0'
+  storageNamespace: services
+  targetNamespace: services
+  dependsOn:
+    - name: btp-cockpit-service-api--pre-release
+  values:
+    image:
+      tag: v0.1.0-20250704164503-68f4a766591094e4ab12e8b9915b77c383c30a99

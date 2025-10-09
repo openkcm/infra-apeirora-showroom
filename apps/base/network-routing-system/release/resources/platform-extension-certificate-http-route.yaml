@@ -1,0 +1,38 @@
+resources:
+  platform-extension-certificate-http-route:
+    apiVersion: gateway.networking.k8s.io/v1
+    kind: HTTPRoute
+    metadata:
+      name: platform-extension-certificate-http-route
+    spec:
+      parentRefs:
+        - name: ingress-certificate-gateway
+          namespace: envoy-gateway-system
+      hostnames:
+        - "ing.cert.<replace>.<replace>.kms.cloud.sap"
+      rules:
+        - backendRefs:
+            - group: ""
+              kind: Service
+              name: platform-extension-service
+              namespace: services
+              port: 8888
+              weight: 1
+          matches:
+            - path:
+                type: PathPrefix
+                value: /v1/tenants
+            - path:
+                type: PathPrefix
+                value: /v1/link
+            - path:
+                type: PathPrefix
+                value: /v1/unlink
+            - path:
+                type: PathPrefix
+                value: /v1/linkedTenant
+          filters:
+            - type: ResponseHeaderModifier
+              responseHeaderModifier:
+                remove:
+                  - "L5d-Client-Id"

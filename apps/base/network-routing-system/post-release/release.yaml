@@ -1,0 +1,33 @@
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: network-routing-system--post-release
+spec:
+  interval: 1m
+  releaseName: network-routing-system--post-release
+  chart:
+    spec:
+      chart: ./tools/charts/generic
+      sourceRef:
+        kind: GitRepository
+        name: flux-system
+        namespace: flux-system
+  install:
+    createNamespace: false
+    remediation:
+      retries: -1
+      remediateLastFailure: true
+  upgrade:
+    remediation:
+      retries: -1
+      remediateLastFailure: true
+  valuesFrom:
+    # !! The sequence is important !!
+    # Always first **base** and **overlay** (if necessary) later.
+    ## base
+    - kind: ConfigMap
+      name: network-routing-system-base-post-release-values
+      valuesKey: ingress-certificate-gateway.yaml
+    - kind: ConfigMap
+      name: network-routing-system-base-post-release-values
+      valuesKey: ingress-gateway.yaml

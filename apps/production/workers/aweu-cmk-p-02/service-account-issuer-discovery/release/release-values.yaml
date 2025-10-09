@@ -1,0 +1,9 @@
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: service-account-issuer-discovery
+spec:
+  storageNamespace: service-account-issuer-discovery
+  targetNamespace: service-account-issuer-discovery
+  values:
+    hostname: oidc.aweu-cmk-p-02.cmkc.kms.cloud.sap

@@ -1,0 +1,11 @@
+resources:
+  extauthz-user-policies:
+    apiVersion: v1
+    kind: ConfigMap
+    metadata:
+      name: extauthz-user-policies
+    immutable: false
+    data:
+      users.cedar: |-
+        // Specific to this cluster should be added here
+        

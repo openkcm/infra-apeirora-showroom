@@ -1,0 +1,48 @@
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: kms-system--post-release
+spec:
+  storageNamespace: kms-system
+  targetNamespace: kms-system
+  dependsOn:
+    - name: kms-system--pre-release
+    - name: kms-system
+  values:
+    resources:
+      external-secret-kms-helm:
+        apiVersion: external-secrets.io/v1
+        kind: ClusterExternalSecret
+        metadata:
+          name: kms-helm
+        spec:
+          refreshTime: "60m"
+          externalSecretName: kms-helm
+          externalSecretSpec:
+            data:
+            - remoteRef:
+                key: fluxcd
+                property: REPO_TOKEN
+              secretKey: password
+            - remoteRef:
+                key: fluxcd
+                property: REPO_USER
+              secretKey: username
+            refreshInterval: 60m
+            secretStoreRef:
+              kind: ClusterSecretStore
+              name: vault-backend-common
+            target:
+              creationPolicy: Owner
+              deletionPolicy: Retain
+              name: kms-helm-secret
+          namespaceSelector:
+            matchExpressions:
+              - key: kubernetes.io/metadata.name
+                operator: In
+                values:
+                  - flux-system
+                  - gc-cmk-p-glob
+                  - gceu-cmk-p-01
+                  - aweu-cmk-p-02
+                  - awus-cmk-p-03

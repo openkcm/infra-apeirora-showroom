@@ -1,0 +1,9 @@
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: btp-pki-addon--post-release
+spec:
+  storageNamespace: security
+  targetNamespace: security
+  dependsOn:
+    - name: btp-pki-addon

@@ -1,0 +1,37 @@
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: kms-system
+spec:
+  storageNamespace: kms-system
+  targetNamespace: kms-system
+  dependsOn:
+    - name: kms-system--pre-release
+  values:
+    resources:
+      cluster-secret-store-vault-backend-cluster:
+        apiVersion: external-secrets.io/v1
+        kind: ClusterSecretStore
+        metadata:
+          name: vault-backend-cluster
+        spec:
+          provider:
+            vault:
+              namespace: "btp_se/kms/2.0/canary"
+              auth:
+                jwt:
+                  # Path where the JWT authentication backend is mounted
+                  path: "jwt/aweu-cmk-p-02"
+      cluster-secret-store-vault-backend-common:
+        apiVersion: external-secrets.io/v1
+        kind: ClusterSecretStore
+        metadata:
+          name: vault-backend-common
+        spec:
+          provider:
+            vault:
+              namespace: "btp_se/kms/2.0/common"
+              auth:
+                jwt:
+                  # Path where the JWT authentication backend is mounted
+                  path: "jwt/canary/aweu-cmk-p-02"

@@ -1,0 +1,24 @@
+resources:
+  ingress-gateway:
+    # JWT based Gateway
+    apiVersion: gateway.networking.k8s.io/v1
+    kind: Gateway
+    metadata:
+      name: ingress-gateway
+    spec:
+      gatewayClassName: ingress-gateway
+      listeners:
+        - name: https
+          protocol: HTTPS
+          hostname: ing.<replace>.kms20.shoot.canary.k8s-hana.ondemand.com
+          port: 443
+          allowedRoutes:
+            namespaces:
+              from: All
+          tls:
+            mode: Terminate
+            certificateRefs:
+              - kind: Secret
+                group: ""
+                name: ingress-gateway-secret
+                namespace: envoy-gateway-system

@@ -1,0 +1,26 @@
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: monitoring--pre-release
+spec:
+  storageNamespace: monitoring
+  targetNamespace: monitoring
+  values:
+    resources:
+        cloud-logging-secret:
+          spec:
+            target:
+              name: cloud-logging-secret-gc-cmk-p-glob
+            data:
+              - secretKey: ingest_otlp_cert
+                remoteRef:
+                  key: monitoring/cloud-logging/gc-cmk-p-glob
+                  property: ingest-otlp-cert
+              - secretKey: ingest_otlp_key
+                remoteRef:
+                  key: monitoring/cloud-logging/gc-cmk-p-glob
+                  property: ingest-otlp-key
+              - secretKey: ingest_otlp_endpoint
+                remoteRef:
+                  key: monitoring/cloud-logging/gc-cmk-p-glob
+                  property: ingest-otlp-endpoint

@@ -1,0 +1,37 @@
+resources:
+  client-traffic-policy-tls:
+    apiVersion: gateway.envoyproxy.io/v1alpha1
+    kind: ClientTrafficPolicy
+    metadata:
+      name: client-traffic-policy-tls
+    spec:
+      targetRefs:
+        - group: gateway.networking.k8s.io
+          kind: Gateway
+          name: ingress-gateway
+      proxyProtocol:
+        optional: true
+      tls:
+        alpnProtocols:
+          - h2
+          - http/1.1
+        clientValidation:
+          optional: true
+          caCertificateRefs:
+            - kind: ConfigMap
+              group: ""
+              name: sap-cloud-root-ca
+              namespace: envoy-gateway-system
+      headers:
+        enableEnvoyHeaders: false
+        disableRateLimitHeaders: false
+        preserveXRequestID: false
+        earlyRequestHeaders:
+          remove:
+            - "x-client-data"
+            - "x-client-data-signature"
+        xForwardedClientCert:
+          mode: SanitizeSet
+          certDetailsToAdd:
+            - Subject
+            - Cert

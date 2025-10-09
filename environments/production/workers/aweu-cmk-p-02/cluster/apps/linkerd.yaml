@@ -1,0 +1,17 @@
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: linkerd
+spec:
+  interval: 1m
+  retryInterval: 3m
+  timeout: 5m
+  sourceRef:
+    kind: GitRepository
+    name: flux-system
+    namespace: flux-system
+  path: ./apps/canary/workers/aweu-cmk-p-02/linkerd/
+  wait: true
+  prune: true
+  dependsOn:
+    - name: namespaces

@@ -1,0 +1,15 @@
+resources:
+  envoy-proxy-kms20cmk1-jwt-provider:
+    apiVersion: gateway.extensions.envoyproxy.io/v1alpha1
+    kind: JWTProvider
+    metadata:
+      name: kms20cmk1
+    spec:
+      targetRefs:
+        - kind: Gateway
+          name: ingress-gateway
+          group: gateway.networking.k8s.io
+      name: ias-kms20cmk1
+      issuer: https://kms20cmk1.accounts400.ondemand.com
+      remoteJwks:
+        uri: https://kms20cmk1.accounts400.ondemand.com/oauth2/certs

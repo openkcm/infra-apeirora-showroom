@@ -1,0 +1,9 @@
+apiVersion: source.toolkit.fluxcd.io/v1
+kind: OCIRepository
+metadata:
+  name: extauthz
+spec:
+  interval: 5m0s
+  url: oci://ghcr.io/openkcm/charts/extauthz
+  ref:
+    tag: 0.7.0

@@ -1,0 +1,79 @@
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: dynatrace-system--pre-release
+spec:
+  storageNamespace: dynatrace-system
+  targetNamespace: dynatrace-system
+  values:
+    resources:
+      dynakube-secret:
+        apiVersion: external-secrets.io/v1
+        kind: ExternalSecret
+        metadata:
+          name: dynakube-secret
+        spec:
+          refreshInterval: 5m
+          secretStoreRef:
+            name: vault-backend-cluster
+            kind: ClusterSecretStore
+          target:
+            name: dynakube-gc-cmk-p-glob
+            creationPolicy: Owner
+          data:
+            - secretKey: ".metadata"
+              remoteRef:
+                key: monitoring/dynatrace/dynakube-gc-cmk-p-glob
+                property: metadata
+            - secretKey: "apiToken"
+              remoteRef:
+                key: monitoring/dynatrace/dynakube-gc-cmk-p-glob
+                property: apiToken
+            - secretKey: "apitoken"
+              remoteRef:
+                key: monitoring/dynatrace/dynakube-gc-cmk-p-glob
+                property: apitoken
+            - secretKey: "apiurl"
+              remoteRef:
+                key: monitoring/dynatrace/dynakube-gc-cmk-p-glob
+                property: apiurl
+            - secretKey: "dataIngestToken"
+              remoteRef:
+                key: monitoring/dynatrace/dynakube-gc-cmk-p-glob
+                property: dataIngestToken
+            - secretKey: "environmentid"
+              remoteRef:
+                key: monitoring/dynatrace/dynakube-gc-cmk-p-glob
+                property: environmentid
+            - secretKey: "instance_guid"
+              remoteRef:
+                key: monitoring/dynatrace/dynakube-gc-cmk-p-glob
+                property: instance_guid
+            - secretKey: "instance_name"
+              remoteRef:
+                key: monitoring/dynatrace/dynakube-gc-cmk-p-glob
+                property: instance_name
+            - secretKey: "label"
+              remoteRef:
+                key: monitoring/dynatrace/dynakube-gc-cmk-p-glob
+                property: label
+            - secretKey: "plan"
+              remoteRef:
+                key: monitoring/dynatrace/dynakube-gc-cmk-p-glob
+                property: plan
+            - secretKey: "skiperrors"
+              remoteRef:
+                key: monitoring/dynatrace/dynakube-gc-cmk-p-glob
+                property: skiperrors
+            - secretKey: "tags"
+              remoteRef:
+                key: monitoring/dynatrace/dynakube-gc-cmk-p-glob
+                property: tags
+            - secretKey: "token_expiry"
+              remoteRef:
+                key: monitoring/dynatrace/dynakube-gc-cmk-p-glob
+                property: token_expiry
+            - secretKey: "type"
+              remoteRef:
+                key: monitoring/dynatrace/dynakube-gc-cmk-p-glob
+                property: type

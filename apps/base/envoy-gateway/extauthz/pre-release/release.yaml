@@ -1,0 +1,36 @@
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: extauthz--pre-release
+spec:
+  interval: 10m
+  releaseName: extauthz--pre-release
+  chart:
+    spec:
+      chart: ./tools/charts/generic
+      sourceRef:
+        kind: GitRepository
+        name: flux-system
+        namespace: flux-system
+  install:
+    createNamespace: false
+    remediation:
+      retries: -1
+      remediateLastFailure: true
+  upgrade:
+    remediation:
+      retries: -1
+      remediateLastFailure: true
+  valuesFrom:
+    # !! The sequence is important !!
+    # Always first **base** and **overlay** (if necessary) later.
+    ## base
+    - kind: ConfigMap
+      name: extauthz-base-pre-release-values
+      valuesKey: extauthz-system-policies.yaml
+    - kind: ConfigMap
+      name: extauthz-base-pre-release-values
+      valuesKey: extauthz-trusted-subjects.yaml
+    - kind: ConfigMap
+      name: extauthz-base-pre-release-values
+      valuesKey: extauthz-user-policies.yaml

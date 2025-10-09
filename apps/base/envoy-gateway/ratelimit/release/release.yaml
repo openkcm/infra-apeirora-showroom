@@ -1,0 +1,36 @@
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: ratelimit
+spec:
+  interval: 10m
+  releaseName: ratelimit
+  chart:
+    spec:
+      chart: ./tools/charts/generic
+      sourceRef:
+        kind: GitRepository
+        name: flux-system
+        namespace: flux-system
+  install:
+    createNamespace: false
+    remediation:
+      retries: -1
+      remediateLastFailure: true
+  upgrade:
+    remediation:
+      retries: -1
+      remediateLastFailure: true
+  valuesFrom:
+    # !! The sequence is important !!
+    # Always first **base** and **overlay** (if necessary) later.
+    ## base
+    - kind: ConfigMap
+      name: ratelimit-base-pre-release-values
+      valuesKey: release.yaml
+    - kind: ConfigMap
+      name: ratelimit-base-pre-release-values
+      valuesKey: service.yaml
+    - kind: ConfigMap
+      name: ratelimit-base-pre-release-values
+      valuesKey: config.yaml

@@ -1,0 +1,29 @@
+resources:
+  btp-callbacks-certificate-http-route:
+    apiVersion: gateway.networking.k8s.io/v1
+    kind: HTTPRoute
+    metadata:
+      name: btp-callbacks-certificate-http-route
+    spec:
+      parentRefs:
+        - name: ingress-certificate-gateway
+          namespace: envoy-gateway-system
+      hostnames:
+        - "ing.cert.<replace>.<replace>.kms.cloud.sap"
+      rules:
+        - backendRefs:
+            - group: ""
+              kind: Service
+              name: btp-callbacks
+              namespace: services
+              port: 8082
+              weight: 1
+          matches:
+            - path:
+                type: PathPrefix
+                value: /callback/v1/tenants
+          filters:
+            - type: ResponseHeaderModifier
+              responseHeaderModifier:
+                remove:
+                  - "L5d-Client-Id"

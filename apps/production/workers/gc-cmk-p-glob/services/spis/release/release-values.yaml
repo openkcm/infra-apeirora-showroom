@@ -1,0 +1,50 @@
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: spis
+spec:
+  chart:
+    spec:
+      version: '0.5.4'
+  storageNamespace: services
+  targetNamespace: services
+  dependsOn:
+    - name: spis--pre-release
+  values:
+    image:
+      tag:  v0.3.0-20250926095224-cae4a226231d7faedc6734778ed630165ba055af
+    config:
+      # SPFI
+      spfi:
+        identityProvider:
+          clientID: 64ebfe32-0c67-42fd-8536-0ce344d8e79c
+        endpoint:
+          application: "https://spfi-test.cert.cfapps.eu01-canary.hana.ondemand.com/"
+      # SPII
+      spii:
+        # See https://wiki.one.int.sap/wiki/x/FJexIQE for more details
+        iasProviderTenantDetailsPerRegion:
+          xaf:
+            clientID: 9c001544-853f-4f6d-9e80-222cdc25b8f9
+          xa1:
+            clientID: ecacf749-d5db-4d37-a33d-da1d0c1a2e4e
+          xgb:
+            clientID: 26d1b3ba-da68-49a3-82e1-aca39207a281
+    extraContainers:
+      - name: cloud-sql-proxy
+        image: gcr.io/cloud-sql-connectors/cloud-sql-proxy:2.15.2
+        ports:
+          - containerPort: 5432
+            name: cloudsql
+        args:
+          - "--private-ip"
+          - "--credentials-file=/secrets/credentials.json"
+          - "sap-kms:europe-west3:c-eu-global-p"
+        volumeMounts:
+          - name: cloudsql-creds
+            mountPath: /secrets
+            readOnly: true
+        resources:
+          limits:
+            cpu: 100m
+            memory: 128Mi

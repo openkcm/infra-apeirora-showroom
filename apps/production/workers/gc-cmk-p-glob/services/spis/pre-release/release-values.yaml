@@ -1,0 +1,7 @@
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: spis--pre-release
+spec:
+  storageNamespace: services
+  targetNamespace: services

@@ -1,0 +1,29 @@
+resources:
+  ingress-certificate-gateway:
+    # Certificate based Ingress Gateway
+    apiVersion: gateway.networking.k8s.io/v1
+    kind: Gateway
+    metadata:
+      name: ingress-certificate-gateway
+    spec:
+      gatewayClassName: ingress-certificate-gateway
+      listeners:
+        # Temporary hack to allow gardener to create ingress-gateway-secret certificate
+        # for https 443 listener, will be removed in the patches section
+        - name: tcp
+          protocol: TCP
+          port: 1
+        - name: https
+          protocol: HTTPS
+          hostname: ing.<replace>.kms20.shoot.canary.k8s-hana.ondemand.com
+          port: 443
+          allowedRoutes:
+            namespaces:
+              from: Same
+          tls:
+            mode: Terminate
+            certificateRefs:
+              - kind: Secret
+                group: ""
+                name: ingress-certificate-gateway-secret
+                namespace: envoy-gateway-system

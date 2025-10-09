@@ -1,0 +1,15 @@
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: checker
+spec:
+  chartRef:
+    kind: OCIRepository
+    name: checker
+  targetNamespace: checker
+  storageNamespace: checker
+  dependsOn:
+    - name: checker--pre-release
+  values:
+    image:
+      digest: sha256:395117cd22b8c62743aed3d0099b7870a397b2cb70e35a3aba3ef70c553833b9

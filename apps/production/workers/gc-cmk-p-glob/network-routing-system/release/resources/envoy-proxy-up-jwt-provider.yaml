@@ -1,0 +1,15 @@
+resources:
+  envoy-proxy-up-jwt-provider:
+    apiVersion: gateway.extensions.envoyproxy.io/v1alpha1
+    kind: JWTProvider
+    metadata:
+      name: up
+    spec:
+      targetRefs:
+        - kind: Gateway
+          name: ingress-gateway
+          group: gateway.networking.k8s.io
+      name: ias-up
+      issuer: https://up.accounts.ondemand.com
+      remoteJwks:
+        uri: https://up.accounts.ondemand.com/oauth2/certs

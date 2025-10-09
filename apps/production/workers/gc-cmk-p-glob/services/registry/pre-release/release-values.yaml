@@ -1,0 +1,20 @@
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: registry--pre-release
+spec:
+  storageNamespace: services
+  targetNamespace: services
+  values:
+    resources:
+      db-secret:
+        spec:
+          data:
+          - remoteRef:
+              key: databases/c-eu-global-p
+              property: password
+            secretKey: password
+          - remoteRef:
+              key: databases/c-eu-global-p
+              property: username
+            secretKey: username

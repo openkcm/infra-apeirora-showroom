@@ -1,0 +1,65 @@
+resources:
+  registry-grpc-route:
+    apiVersion: gateway.networking.k8s.io/v1
+    kind: GRPCRoute
+    metadata:
+      name: registry-grpc-route
+    spec:
+      parentRefs:
+        - name: ingress-gateway
+          namespace: envoy-gateway-system
+      hostnames:
+        - "ing.<replace>.<replace>.kms.cloud.sap"
+      rules:
+        - backendRefs:
+            - group: ""
+              kind: Service
+              name: registry
+              namespace: services
+              port: 9092
+              weight: 1
+          matches:
+            - method:
+                service: "kms.api.cmk.registry.system.v1.Service"
+                method: "RegisterSystem"
+            - method:
+                service: "kms.api.cmk.registry.system.v1.Service"
+                method: "ListSystems"
+            - method:
+                service: "kms.api.cmk.registry.system.v1.Service"
+                method: "DeleteSystem"
+            - method:
+                service: "kms.api.cmk.registry.system.v1.Service"
+                method: "UpdateSystemL1KeyClaim"
+            - method:
+                service: "kms.api.cmk.registry.system.v1.Service"
+                method: "UnlinkSystemsFromTenant"
+            - method:
+                service: "kms.api.cmk.registry.system.v1.Service"
+                method: "LinkSystemsToTenant"
+            - method:
+                service: "kms.api.cmk.registry.system.v1.Service"
+                method: "UpdateSystemStatus"
+        - backendRefs:
+            - group: ""
+              kind: Service
+              name: registry
+              namespace: services
+              port: 9092
+              weight: 1
+          matches:
+            - method:
+                service: "kms.api.cmk.registry.tenant.v1.Service"
+                method: "RegisterTenant"
+            - method:
+                service: "kms.api.cmk.registry.tenant.v1.Service"
+                method: "ListTenants"
+            - method:
+                service: "kms.api.cmk.registry.tenant.v1.Service"
+                method: "BlockTenant"
+            - method:
+                service: "kms.api.cmk.registry.tenant.v1.Service"
+                method: "UnblockTenant"
+            - method:
+                service: "kms.api.cmk.registry.tenant.v1.Service"
+                method: "TerminateTenant"

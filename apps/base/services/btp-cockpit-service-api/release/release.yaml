@@ -1,0 +1,22 @@
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: platform-extension-service
+spec:
+  interval: 10m
+  chart:
+    spec:
+      chart: platform-extension-service
+      version: '0.1.0'
+      sourceRef:
+        kind: HelmRepository
+        name: kms20
+      interval: 10m
+  targetNamespace: services
+  values:
+    image:
+      tag: v0.1.0-20250704164503-68f4a766591094e4ab12e8b9915b77c383c30a99
+    fullnameOverride: platform-extension-service
+    config:
+      registryService:
+        address: "registry:9092"

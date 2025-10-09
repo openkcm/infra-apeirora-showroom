@@ -1,0 +1,11 @@
+resources:
+  registry-certificate-grpc-route:
+    # Certificate based GRPCRoute
+    apiVersion: gateway.networking.k8s.io/v1
+    kind: GRPCRoute
+    metadata:
+      name: registry-certificate-grpc-route
+    spec:
+      hostnames:
+        - "ing.cert.gc-cmk-p-glob.cmkc.kms.cloud.sap"
+        - "ing.cert.mesh.cmkc.kms.cloud.sap"

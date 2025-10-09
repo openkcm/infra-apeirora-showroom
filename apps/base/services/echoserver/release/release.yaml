@@ -1,0 +1,78 @@
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: echoserver
+spec:
+  interval: 1m
+  releaseName: echoserver
+  chart:
+    spec:
+      chart: ./tools/charts/generic
+      sourceRef:
+        kind: GitRepository
+        name: flux-system
+        namespace: flux-system
+  install:
+    createNamespace: false
+    remediation:
+      retries: -1
+      remediateLastFailure: true
+  upgrade:
+    remediation:
+      retries: -1
+      remediateLastFailure: true
+  values:
+    resources:
+      service-account-echoserver:
+        apiVersion: v1
+        kind: ServiceAccount
+        metadata:
+          name: echoserver
+      service-echoserver:
+        apiVersion: v1
+        kind: Service
+        metadata:
+          name: echoserver
+          labels:
+            app: echoserver
+            service: echoserver
+        spec:
+          ports:
+            - name: http
+              port: 3000
+              targetPort: 3000
+          selector:
+            app: echoserver
+      deployment-echoserver:
+        apiVersion: apps/v1
+        kind: Deployment
+        metadata:
+          name: echoserver
+        spec:
+          replicas: 1
+          selector:
+            matchLabels:
+              app: echoserver
+              version: v1
+          template:
+            metadata:
+              labels:
+                app: echoserver
+                version: v1
+            spec:
+              serviceAccountName: echoserver
+              containers:
+                - image: gcr.io/k8s-staging-ingressconformance/echoserver:v20220815-e21d1a4
+                  imagePullPolicy: IfNotPresent
+                  name: echoserver
+                  ports:
+                    - containerPort: 3000
+                  env:
+                    - name: POD_NAME
+                      valueFrom:
+                        fieldRef:
+                          fieldPath: metadata.name
+                    - name: NAMESPACE
+                      valueFrom:
+                        fieldRef:
+                          fieldPath: metadata.namespace

@@ -1,0 +1,79 @@
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: dynatrace-system--pre-release
+spec:
+  storageNamespace: dynatrace-system
+  targetNamespace: dynatrace-system
+  values:
+    resources:
+      dynakube-secret:
+        apiVersion: external-secrets.io/v1
+        kind: ExternalSecret
+        metadata:
+          name: dynakube-secret
+        spec:
+          refreshInterval: 5m
+          secretStoreRef:
+            name: vault-backend-cluster
+            kind: ClusterSecretStore
+          target:
+            name: dynakube-aweu-cmk-p-02
+            creationPolicy: Owner
+          data:
+            - secretKey: ".metadata"
+              remoteRef:
+                key: monitoring/dynatrace/dynakube-aweu-cmk-p-02
+                property: metadata
+            - secretKey: "apiToken"
+              remoteRef:
+                key: monitoring/dynatrace/dynakube-aweu-cmk-p-02
+                property: apiToken
+            - secretKey: "apitoken"
+              remoteRef:
+                key: monitoring/dynatrace/dynakube-aweu-cmk-p-02
+                property: apitoken
+            - secretKey: "apiurl"
+              remoteRef:
+                key: monitoring/dynatrace/dynakube-aweu-cmk-p-02
+                property: apiurl
+            - secretKey: "dataIngestToken"
+              remoteRef:
+                key: monitoring/dynatrace/dynakube-aweu-cmk-p-02
+                property: dataIngestToken
+            - secretKey: "environmentid"
+              remoteRef:
+                key: monitoring/dynatrace/dynakube-aweu-cmk-p-02
+                property: environmentid
+            - secretKey: "instance_guid"
+              remoteRef:
+                key: monitoring/dynatrace/dynakube-aweu-cmk-p-02
+                property: instance_guid
+            - secretKey: "instance_name"
+              remoteRef:
+                key: monitoring/dynatrace/dynakube-aweu-cmk-p-02
+                property: instance_name
+            - secretKey: "label"
+              remoteRef:
+                key: monitoring/dynatrace/dynakube-aweu-cmk-p-02
+                property: label
+            - secretKey: "plan"
+              remoteRef:
+                key: monitoring/dynatrace/dynakube-aweu-cmk-p-02
+                property: plan
+            - secretKey: "skiperrors"
+              remoteRef:
+                key: monitoring/dynatrace/dynakube-aweu-cmk-p-02
+                property: skiperrors
+            - secretKey: "tags"
+              remoteRef:
+                key: monitoring/dynatrace/dynakube-aweu-cmk-p-02
+                property: tags
+            - secretKey: "token_expiry"
+              remoteRef:
+                key: monitoring/dynatrace/dynakube-aweu-cmk-p-02
+                property: token_expiry
+            - secretKey: "type"
+              remoteRef:
+                key: monitoring/dynatrace/dynakube-aweu-cmk-p-02
+                property: type

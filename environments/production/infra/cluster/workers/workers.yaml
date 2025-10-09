@@ -1,0 +1,33 @@
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: gc-cmk-p-glob
+  namespace: flux-system # Note this namespace, as it is init to worker/cluster apps creation it could be inside 'flux-system' ns.
+spec:
+  interval: 10m0s
+  sourceRef:
+    kind: GitRepository
+    name: flux-system
+    namespace: flux-system
+  path: ./environments/canary/workers/gc-cmk-p-glob/cluster
+  prune: true
+  wait: true
+  force: true
+  timeout: 5m0s
+# ---
+# apiVersion: kustomize.toolkit.fluxcd.io/v1
+# kind: Kustomization
+# metadata:
+#   name: aweu-cmk-p-02
+#   namespace: flux-system # Note this namespace, as it is init to worker/cluster apps creation it could be inside 'flux-system' ns.
+# spec:
+#   interval: 10m0s
+#   sourceRef:
+#     kind: GitRepository
+#     name: flux-system
+#     namespace: flux-system
+#   path: ./environments/canary/workers/aweu-cmk-p-02/cluster
+#   prune: true
+#   wait: true
+#   force: true
+#   timeout: 5m0s

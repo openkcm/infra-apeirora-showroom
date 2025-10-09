@@ -1,0 +1,33 @@
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: registry
+spec:
+  chart:
+    spec:
+      version: '0.0.5'
+  storageNamespace: services
+  targetNamespace: services
+  dependsOn:
+    - name: registry--pre-release
+  values:
+    image:
+      tag: v0.0.1-20250623105526-f5d001dcb01d4e4ce0f172cd2acef04dc9484544
+    extraContainers:
+      - name: cloud-sql-proxy
+        image: gcr.io/cloud-sql-connectors/cloud-sql-proxy:2.15.2
+        ports:
+          - containerPort: 5432
+            name: cloudsql
+        args:
+          - "--private-ip"
+          - "--credentials-file=/secrets/credentials.json"
+          - "sap-kms:europe-west3:c-eu-global-p"
+        volumeMounts:
+          - name: cloudsql-creds
+            mountPath: /secrets
+            readOnly: true
+        resources:
+          limits:
+            cpu: 100m
+            memory: 128Mi

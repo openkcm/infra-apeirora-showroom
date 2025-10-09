@@ -1,0 +1,44 @@
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: cmk
+spec:
+  interval: 10m
+  releaseName: cmk
+  chart:
+    spec:
+      chart: cmk
+      version: '0.1.26'
+      sourceRef:
+        kind: HelmRepository
+        name: kms20
+      interval: 10m
+  targetNamespace: services
+  values:
+    apiServer:
+      image:
+        command: "./bin/api-server"
+        args: []
+      deploy: true
+    tenantManager:
+      image:
+        command: "./bin/tenant-manager"
+        args: []
+      deploy: false
+    taskScheduler:
+      image:
+        command: "./bin/task-scheduler"
+        args: [ ]
+      deploy: true
+    taskWorker:
+      image:
+        command: "./bin/task-worker"
+        args: [ ]
+      deploy: true
+    image:
+      registry: kms.common.repositories.cloud.sap
+      repository: sap-cmk
+      digest: sha256:ebfbdca1841159e275043bb7402e0cbd1ca7905e63a73d86177a00a56ba28e09
+      pullPolicy: IfNotPresent
+    imagePullSecrets:
+      - name: "registry-access"

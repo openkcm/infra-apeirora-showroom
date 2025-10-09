@@ -1,0 +1,41 @@
+resources:
+  ingress-gateway:
+    apiVersion: gateway.networking.k8s.io/v1
+    kind: Gateway
+    metadata:
+      name: ingress-gateway
+    spec:
+      listeners:
+        # Temporary hack to allow gardener to create ingress-gateway-secret certificate
+        # for https 443 listener, will be removed in the patches section
+        - name: tcp
+          protocol: TCP
+          port: 1
+        - name: https-aweu-cmk-p-02
+          protocol: HTTPS
+          hostname: ing.aweu-cmk-p-02.cmkc.kms.cloud.sap
+          port: 443
+          allowedRoutes:
+            namespaces:
+              from: Same
+          tls:
+            mode: Terminate
+            certificateRefs:
+              - kind: Secret
+                group: ""
+                name: ingress-gateway-secret
+                namespace: envoy-gateway-system
+        - name: https-eu-02
+          protocol: HTTPS
+          hostname: ing.aws-eu-01.cmkc.kms.cloud.sap
+          port: 443
+          allowedRoutes:
+            namespaces:
+              from: Same
+          tls:
+            mode: Terminate
+            certificateRefs:
+              - kind: Secret
+                group: ""
+                name: ingress-gateway-secret
+                namespace: envoy-gateway-system

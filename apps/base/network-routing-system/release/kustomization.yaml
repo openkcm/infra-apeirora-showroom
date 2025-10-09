@@ -1,0 +1,35 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - release.yaml
+generatorOptions:
+  disableNameSuffixHash: true
+configMapGenerator:
+  - name: network-routing-system-base-values
+    files:
+      - ./resources/client-traffic-policy-certificate-tls.yaml
+      - ./resources/client-traffic-policy-tls.yaml
+      - ./resources/echoserver-certificate-http-route.yaml
+      - ./resources/echoserver-http-route.yaml
+      - ./resources/echoserver-security-policy.yaml
+      - ./resources/envoy-proxy-certificate-config.yaml
+      - ./resources/envoy-proxy-config.yaml
+      - ./resources/envoy-proxy-kms20cmk1-jwt-provider.yaml
+      - ./resources/gateway-class-ingress-certificate-gateway.yaml
+      - ./resources/gateway-class-ingress-gateway.yaml
+      - ./resources/ingress-certificate-gateway.yaml
+      - ./resources/ingress-gateway.yaml
+      - ./resources/sap-cloud-root-ca.yaml
+      - ./resources/service-envoy-proxy-ingress-certificate-gateway.yaml
+      - ./resources/service-envoy-proxy-ingress-gateway.yaml
+      - ./resources/btp-callbacks-certificate-http-route.yaml
+      - ./resources/btp-callbacks-security-policy.yaml
+      - ./resources/platform-extension-certificate-http-route.yaml
+      - ./resources/platform-extension-http-route.yaml
+      - ./resources/platform-extension-security-policy.yaml
+      - ./resources/registry-certificate-grpc-route.yaml
+      - ./resources/registry-grpc-route.yaml
+      - ./resources/registry-security-policy.yaml
+      - ./resources/spis-certificate-http-route.yaml
+      - ./resources/spis-http-route.yaml
+      - ./resources/spis-security-policy.yaml

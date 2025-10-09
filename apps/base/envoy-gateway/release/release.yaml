@@ -1,0 +1,155 @@
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: envoy-gateway
+spec:
+  chartRef:
+    kind: OCIRepository
+    name: envoy-gateway
+  interval: 10m
+  install:
+    createNamespace: false
+    remediation:
+      retries: -1
+      remediateLastFailure: true
+  upgrade:
+    remediation:
+      retries: -1
+      remediateLastFailure: true
+  releaseName: envoy-gateway
+  values:
+    global:
+      images:
+        envoyGateway:
+          # This is the full image name including the hub, repo, and tag.
+          image: "envoyproxy/gateway:v1.5.0"
+          # Specify image pull policy if default behavior isn't desired.
+          # Default behavior: latest images will be Always else IfNotPresent.
+          pullPolicy: IfNotPresent
+          # List of secrets in the same namespace of the component that can be used to pull images from private repositories.
+          pullSecrets: []
+        ratelimit:
+          # This is the full image name including the hub, repo, and tag.
+          image: "envoyproxy/ratelimit@sha256:5966cbc14d5d66279da22f17230701f5eaaeb2ee60857d7070bbf8a7aadd3814"
+          # Specify image pull policy if default behavior isn't desired.
+          # Default behavior: latest images will be Always else IfNotPresent.
+          pullPolicy: IfNotPresent
+          # List of secrets in the same namespace of the component that can be used to pull images from private repositories.
+          pullSecrets: []
+    podDisruptionBudget:
+      minAvailable: 1
+    hpa:
+      enabled: true
+      minReplicas: 1
+      maxReplicas: 5
+      metrics: []
+      behavior: {}
+    deployment:
+      pod:
+        annotations:
+          linkerd.io/inject: enabled
+          prometheus.io/scrape: 'true'
+          prometheus.io/port: '19001'
+
+      ports:
+        - name: grpc
+          port: 18000
+          targetPort: 18000
+        - name: ratelimit
+          port: 18001
+          targetPort: 18001
+        - name: wasm
+          port: 18002
+          targetPort: 18002
+        - name: metrics
+          port: 19001
+          targetPort: 19001
+        - name: status
+          port: 8888
+          targetPort: 8081
+    config:
+      # -- EnvoyGateway configuration. Visit https://gateway.envoyproxy.io/docs/api/extension_types/#envoygateway to view all options.
+      envoyGateway:
+        gateway:
+          controllerName: gateway.envoyproxy.io/gatewayclass-controller
+        extensionManager:
+          # Envoy Gateway will watch these resource kinds and use them as extension policies
+          # which can be attached to Gateway resources.
+          policyResources:
+            - group: gateway.extensions.envoyproxy.io
+              version: v1alpha1
+              kind: JWTProvider
+          resources:
+            - group: gateway.extensions.envoyproxy.io
+              version: v1alpha1
+              kind: JWTProvider
+          hooks:
+            xdsTranslator:
+              post:
+                - HTTPListener
+                - Translation
+                - VirtualHost
+          service:
+            #            unix:
+            #              path: /run/envoy/gateway/sockets/extension.sock
+            fqdn:
+              hostname: gateway-extension.envoy-gateway-system.svc.cluster.local
+              port: 9092
+
+        provider:
+          type: Kubernetes
+          kubernetes:
+            leaderElection:
+              leaseDuration: 30s
+              renewDeadline: 10s
+              retryPeriod: 2s
+              disable: false
+              #      rateLimitDeployment:
+              #        replicas: 1
+              #        container:
+              #          image: envoyproxy/ratelimit@sha256:cfcd34d10db3108fe565991a11b9361373de6888d4eda754978670ac1134aca4
+              #          resources:
+              #            requests:
+              #              cpu: 100m
+              #              memory: 64Mi
+              #          securityContext:
+              #            runAsUser: 2000
+              #            allowPrivilegeEscalation: false
+              #        pod:
+              #          securityContext:
+              #            runAsUser: 1000
+              #            runAsGroup: 3000
+              #            fsGroup: 2000
+              #            fsGroupChangePolicy: "OnRootMismatch"
+        logging:
+          level:
+            default: info
+        telemetry:
+          metrics:
+            sinks:
+              - type: OpenTelemetry
+                openTelemetry:
+                  host: otel-collector-dns.monitoring.svc.cluster.local
+                  port: 4317
+                  exportInterval: 15s
+                  exportTimeout: 30s
+            prometheus:
+              disable: true
+        rateLimit:
+          backend:
+            type: Redis # Only option there is unsure if itll work with valkey
+            redis:
+              url: valkey-headless.storage.svc.cluster.local:6379
+              tls:
+                certificateRef:
+                  name: valkey-tls-secret
+          telemetry:
+            tracing:
+              sampleRate: 50
+              provider:
+                url: otel-collector-dns.monitoring.svc.cluster.local:4318
+          timeout: 20ms
+          failClosed: false
+        extensionApis:
+          enableEnvoyPatchPolicy: true
+          enableBackend: true

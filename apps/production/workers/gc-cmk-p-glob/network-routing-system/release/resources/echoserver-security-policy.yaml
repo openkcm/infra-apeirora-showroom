@@ -1,0 +1,15 @@
+resources:
+  echoserver-security-policy:
+    spec:
+      authorization:
+        defaultAction: Deny
+        rules:
+          - action: Allow
+            principal:
+              clientCIDRs:
+                - 165.1.0.0/16
+                - 208.127.0.0/16
+                # Sugar Runner
+                - 34.141.69.247/32
+                - 34.159.216.62/32
+                - 34.159.191.69/32

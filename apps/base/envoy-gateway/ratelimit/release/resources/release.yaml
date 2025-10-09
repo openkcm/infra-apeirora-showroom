@@ -1,0 +1,82 @@
+resources:
+  release:
+    apiVersion: apps/v1
+    kind: Deployment
+    metadata:
+      name: envoy-ratelimit
+    spec:
+      replicas: 3
+      selector:
+        matchLabels:
+          app: envoy-ratelimit
+      template:
+        metadata:
+          labels:
+            app: envoy-ratelimit
+            valkey-client: "true"
+        spec:
+          containers:
+            - name: ratelimit
+              image: envoyproxy/ratelimit:e74a664a
+              command: ["/bin/ratelimit"]
+              ports:
+                - containerPort: 8081
+              env:
+                - name: REDIS_URL
+                  value: "valkey-primary.storage.svc.cluster.local:6379"
+                - name: REDIS_TLS
+                  value: "true"
+                - name: REDIS_SOCKET_TYPE
+                  value: tcp
+                - name: USE_STATSD
+                  value: "false"
+                - name: DISABLE_STATS
+                  value: "true"
+                - name: LOG_LEVEL
+                  value: "trace"
+                - name: REDIS_TLS_CACERT
+                  value: "/etc/valkey/tls/ca.crt"
+                - name: REDIS_TLS_CLIENT_CERT
+                  value: "/etc/valkey/tls/tls.crt"
+                - name: REDIS_TLS_CLIENT_KEY
+                  value: "/etc/valkey/tls/tls.key"
+                # Increased for performance -> controls the batch size for commands sent to your Valkey/Redis backend
+                - name: REDIS_PIPELINE_LIMIT
+                  value: "1000"
+                - name: RATELIMIT_RUNTIME_INTERVAL
+                  value: "5s"
+                # This sets the number of connections the ratelimit service maintains in its connection pool to Valkey/Redis.
+                - name: REDIS_POOL_SIZE
+                  value: "1000"
+                # This enables a local, in-memory cache within the ratelimit service itself.
+                - name: LOCAL_CACHE_SIZE_IN_BYTES
+                  value: "104857600"
+                # improve latency -> It defines a time window (e.g., 1ms) to wait before sending a partially filled pipeline.
+                - name: REDIS_PIPELINE_WINDOW
+                  value: "100ms"
+                - name: REDIS_TLS_SKIP_HOSTNAME_VERIFICATION
+                  value: "true"
+                - name: RUNTIME_ROOT
+                  value: /data
+                - name: RUNTIME_WATCH_ROOT
+                  value: "false"
+                - name: RUNTIME_IGNOREDOTFILES
+                  value: "true"
+                - name: REDIS_AUTH
+                  valueFrom:
+                    secretKeyRef:
+                      name: valkey
+                      key: valkey-password
+              volumeMounts:
+                - name: ratelimit-config-volume
+                  mountPath: /data/config
+                - name: valkey-tls-secret
+                  mountPath: /etc/valkey/tls
+                  readOnly: true
+          volumes:
+            - name: ratelimit-config-volume
+              configMap:
+                name: ratelimit-config
+            - name: valkey-tls-secret
+              secret:
+                secretName: valkey-tls-secret

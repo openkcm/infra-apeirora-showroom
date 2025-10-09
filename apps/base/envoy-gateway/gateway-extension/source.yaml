@@ -1,0 +1,9 @@
+apiVersion: source.toolkit.fluxcd.io/v1
+kind: OCIRepository
+metadata:
+  name: gateway-extension
+spec:
+  interval: 5m0s
+  url: oci://ghcr.io/openkcm/charts/gateway-extension
+  ref:
+    tag: 0.2.2

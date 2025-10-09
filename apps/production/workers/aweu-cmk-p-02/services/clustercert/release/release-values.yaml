@@ -1,0 +1,12 @@
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: clustercert
+spec:
+  storageNamespace: services
+  targetNamespace: services
+  values:
+    resources:
+      clustercert-certificate:
+        spec:
+          literalSubject: CN=aws-eu-01, L=kms20:cmk:canary, OU=89ce5968-95e6-4bde-9bca-c5820f6f64fa, OU=SAP Cloud Platform Clients, O=SAP SE, C=DE

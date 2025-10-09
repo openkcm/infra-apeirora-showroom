@@ -1,0 +1,32 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: flux-system
+resources:
+  - ./apps/
+  - ./flux-system/
+  - ./workers/
+# for creating 'infra' namespace and provision to add labels and annotations.
+#
+# Following patches are helpful to avoid repetitive configs in Flux Kustomization resources.
+#
+# patches:
+#   # patch to add `.spec.targetNamespace` in Flux KS resource
+#   - target:
+#       kind: Kustomization
+#       group: kustomize.toolkit.fluxcd.io
+#       version: v1
+#     patch: |
+#       - op: add
+#         path: /spec/targetNamespace
+#         value: infra
+    # patch to create `.spec.patches.[]` (empty `patches` array) in Flux KS resource
+
+
+# Example: For adding `.metadata.labels` and `.metadata.annotations` to 'gc-cmk-p-glob' namespace in infra cluster.
+#patches:
+#  - target:
+#      kind: Namespace
+#    patch: |
+#      - op: add
+#        path: /metadata/labels/foo
+#        value: bar

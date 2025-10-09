@@ -1,0 +1,11 @@
+resources:
+  config-map-ui-backend-config:
+    apiVersion: v1
+    kind: ConfigMap
+    metadata:
+      name: backend-config
+    data:
+      config.json: |
+        {
+          "apiBaseUrl": "http://localhost:8080"
+        }

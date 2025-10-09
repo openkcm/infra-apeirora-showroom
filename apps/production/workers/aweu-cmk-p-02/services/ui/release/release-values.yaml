@@ -1,0 +1,54 @@
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: ui
+spec:
+  chart:
+    spec:
+      version: '0.1.0'
+  storageNamespace: services
+  targetNamespace: services
+  dependsOn:
+    - name: ui--pre-release
+  values:
+    extraContainers:
+      - name: envoy
+        image: "envoyproxy/envoy:v1.35-latest"
+        imagePullPolicy: IfNotPresent
+        lifecycle:
+          preStop:
+            exec:
+              command: [ "sleep", "60" ]
+        volumeMounts:
+          - name: envoy-config
+            mountPath: /envoy/config
+            readOnly: true
+          - name: server-certificates
+            mountPath: "/etc/server/certificates"
+            readOnly: true
+        args:
+          - "envoy"
+          - "--config-path"
+          - "/envoy/config/envoy.yaml"
+          - "--log-level"
+          - "info"
+        env:
+          - name: ENVOY_UID
+            value: "1111"
+        ports:
+          - containerPort: 8443
+        resources:
+          limits:
+            memory: 100Mi
+          requests:
+            cpu: 300m
+            memory: 100Mi
+    namespace: services
+    ui:
+      image:
+        tag: 1.0.2-20250827132010-0936ee748df2965e942221ad2b9db56381af97ec
+      service:
+        annotations:
+          dns.gardener.cloud/dnsnames: ui.aweu-cmk-p-02.cmkc.kms.cloud.sap
+          cert.gardener.cloud/dnsnames: ui.aweu-cmk-p-02.cmkc.kms.cloud.sap,ui.aws-eu-01.cmkc.kms.cloud.sap
+          service.beta.kubernetes.io/aws-load-balancer-type: nlb

@@ -1,0 +1,9 @@
+apiVersion: source.toolkit.fluxcd.io/v1
+kind: OCIRepository
+metadata:
+  name: bitnami-oci
+spec:
+  interval: 1m0s
+  url: oci://registry-1.docker.io/bitnamicharts/valkey
+  ref:
+    tag: 3.0.16

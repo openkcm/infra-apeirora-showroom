@@ -1,0 +1,39 @@
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: open-telemetry-daemonset
+spec:
+  chart:
+    spec:
+      version: 0.120.2
+  targetNamespace: monitoring
+  storageNamespace: monitoring
+  dependsOn:
+    - name: monitoring--pre-release
+  values:
+    extraVolumes:
+      - name: otlp-log-certificates
+        secret:
+          secretName: cloud-logging-secret-aweu-cmk-p-02
+          items:
+            - key: tls.crt
+              path: tls.crt
+            - key: tls.key
+              path: tls.key
+    extraVolumeMounts:
+      - name: otlp-log-certificates
+        mountPath: "/etc/otlp-log/certificates"
+        readOnly: true
+    extraEnvs:
+      - name: OTLP_ENDPOINT
+        valueFrom:
+          secretKeyRef:
+            name: cloud-logging-secret-aweu-cmk-p-02
+            key: otlp-endpoint
+      - name: ENVIRONMENT
+        value: "aws-canary-eu"
+      - name: K8S_CLUSTER_NAME
+        value: "aweu-cmk-p-02"
+    image:
+      repository: otel/opentelemetry-collector-k8s
+      tag: 0.121.0

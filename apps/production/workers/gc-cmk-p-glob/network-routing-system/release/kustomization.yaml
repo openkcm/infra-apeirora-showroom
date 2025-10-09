@@ -1,0 +1,26 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - ../../../../../base/network-routing-system/release
+patches:
+  - path: release-values.yaml
+generatorOptions:
+  disableNameSuffixHash: true
+configMapGenerator:
+  - name: network-routing-system-overlay-values
+    files:
+      - ./resources/btp-callbacks-certificate-http-route.yaml
+      - ./resources/echoserver-certificate-http-route.yaml
+      - ./resources/echoserver-http-route.yaml
+      - ./resources/echoserver-security-policy.yaml
+      - ./resources/envoy-proxy-certificate-config.yaml
+      - ./resources/envoy-proxy-config.yaml
+      - ./resources/ingress-certificate-gateway.yaml
+      - ./resources/ingress-gateway.yaml
+      - ./resources/platform-extension-certificate-http-route.yaml
+      - ./resources/platform-extension-http-route.yaml
+      - ./resources/registry-certificate-grpc-route.yaml
+      - ./resources/registry-grpc-route.yaml
+      - ./resources/spis-certificate-http-route.yaml
+      - ./resources/spis-http-route.yaml
+      - ./resources/envoy-proxy-up-jwt-provider.yaml

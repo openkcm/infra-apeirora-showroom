@@ -1,0 +1,10 @@
+resources:
+  registry-grpc-route:
+    apiVersion: gateway.networking.k8s.io/v1
+    kind: GRPCRoute
+    metadata:
+      name: registry-grpc-route
+    spec:
+      hostnames:
+        - "ing.gc-cmk-p-glob.cmkc.kms.cloud.sap"
+        - "ing.mesh.cmkc.kms.cloud.sap"

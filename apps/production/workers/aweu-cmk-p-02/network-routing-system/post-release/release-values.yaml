@@ -1,0 +1,21 @@
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: network-routing-system--post-release
+spec:
+  storageNamespace: envoy-gateway-system
+  targetNamespace: envoy-gateway-system
+  valuesFrom:
+    # !! The sequence is important !!
+    # Always first **base** and **overlay** (if necessary) later.
+    # In this case we need the full replacement of content not a merge with base abd overlay
+    ## base
+    ## overlay
+    - kind: ConfigMap
+      name: network-routing-system-overlay-post-release-values
+      valuesKey: ingress-certificate-gateway.yaml
+    - kind: ConfigMap
+      name: network-routing-system-overlay-post-release-values
+      valuesKey: ingress-gateway.yaml
+  dependsOn:
+    - name: network-routing-system

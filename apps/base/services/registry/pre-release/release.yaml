@@ -1,0 +1,75 @@
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: registry--pre-release
+spec:
+  interval: 1m
+  releaseName: registry--pre-release
+  chart:
+    spec:
+      chart: ./tools/charts/generic
+      sourceRef:
+        kind: GitRepository
+        name: flux-system
+        namespace: flux-system
+  install:
+    createNamespace: false
+    remediation:
+      retries: -1
+      remediateLastFailure: true
+  upgrade:
+    remediation:
+      retries: -1
+      remediateLastFailure: true
+  values:
+    resources:
+      reference-grant-registry:
+        apiVersion: gateway.networking.k8s.io/v1beta1
+        kind: ReferenceGrant
+        metadata:
+          name: registry-routeref
+        spec:
+          from:
+            - group: gateway.networking.k8s.io
+              kind: GRPCRoute
+              namespace: envoy-gateway-system
+          to:
+            - group: ""
+              kind: Service
+              name: registry
+      cloudsql-sa-key:
+        apiVersion: external-secrets.io/v1
+        kind: ExternalSecret
+        metadata:
+          name: cloudsql-sa-key
+        spec:
+          refreshInterval: 1h
+          secretStoreRef:
+            name: vault-backend-common
+            kind: ClusterSecretStore
+          target:
+            name: cloudsql-sa-key
+            creationPolicy: Owner
+            template:
+              type: Opaque
+              data:
+                credentials.json: "{{ .GCP_CROSSPLANE | toString }}"
+          data:
+          - remoteRef:
+              key: fluxcd
+              property: GCP_CROSSPLANE
+            secretKey: GCP_CROSSPLANE
+      db-secret:
+        apiVersion: external-secrets.io/v1
+        kind: ExternalSecret
+        metadata:
+          name: db-secret
+        spec:
+          refreshInterval: 60m
+          secretStoreRef:
+            kind: ClusterSecretStore
+            name: vault-backend-cluster
+          target:
+            creationPolicy: Owner
+            deletionPolicy: Retain
+            name: db-secret

@@ -1,0 +1,348 @@
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: cmk
+spec:
+  chart:
+    spec:
+      version: '0.1.31'
+  storageNamespace: services
+  targetNamespace: services
+  dependsOn:
+    - name: database
+    - name: cmk--pre-release
+  values:
+    namespace: services
+    config:
+      database:
+        name: cmk
+        port: 5432
+        host:
+          value: c-eu-cmk-02-p-cluster.cluster-ctewkia0k38k.eu-central-1.rds.amazonaws.com
+        user:
+          source: file
+          file:
+            path: /etc/cmk/credentials/database/username
+            format: binary
+        secret:
+          source: file
+          file:
+            path: /etc/cmk/credentials/database/password
+            format: binary
+      services:
+        registry:
+          enabled: true
+          grpc:
+            host: ing.cert.mesh.cmkc.kms.cloud.sap
+            port: 443
+          secretRef:
+            type: mtls
+            mTLS:
+              serverCA:
+                source: file
+                file:
+                  path: /etc/credentials/isr/ca.crt
+                  format: binary
+              cert:
+                source: file
+                file:
+                  path: /etc/credentials/cluster-cert/tls_crt
+                  format: binary
+              certKey:
+                source: file
+                file:
+                  path: /etc/credentials/cluster-cert/tls_key
+                  format: binary
+      scheduler:
+        taskQueue:
+          host:
+            source: embedded
+            value: valkey-primary.storage.svc.cluster.local
+          port: 6379
+          acl:
+            username:
+              source: embedded
+              value: default
+            password:
+              source: file
+              file:
+                path: /etc/credentials/valkey/valkey_password
+                format: binary
+            enabled: true
+          secretRef:
+            type: mtls
+            mTLS:
+              cert:
+                source: file
+                file:
+                  path: /etc/credentials/valkey/tls_crt
+                  format: binary
+              certKey:
+                source: file
+                file:
+                  path: /etc/credentials/valkey/tls_key
+                  format: binary
+              serverCA:
+                source: file
+                file:
+                  path: /etc/credentials/valkey/ca_crt
+                  format: binary
+      plugins:
+        - name: FORTANIX
+          path: ./bin/fortanix
+          type: KeystoreInstanceKeyOperation
+          logLevel: debug
+          tags: ['hyok']
+        - name: AWS
+          path: ./bin/aws
+          type: KeystoreInstanceKeyOperation
+          logLevel: debug
+          tags: ['hyok']
+        - name: SYSINFO
+          path: ./bin/cld
+          type: SystemInformationService
+          logLevel: debug
+          tags: ["cld"]
+          yamlConfiguration: |
+            cldisEndpoint:
+              source: env
+              value: SIS_PLUGINS_CLD_ENDPOINT
+            uaa:
+              source: file
+              file:
+                path: /etc/credentials/sis-plugins/cld/uaa-config
+                format: binary
+        - name: SYSINFO
+          path: ./bin/uli
+          type: SystemInformationService
+          logLevel: debug
+          tags: ["uli"]
+          yamlConfiguration: |
+            uliEndpoint: https://ums.ums-stage.shoot.canary.k8s-hana.ondemand.com/graphql
+            certificate:
+              source: file
+              file:
+                path: /etc/credentials/cluster-cert/tls_crt
+                format: binary
+            key:
+              source: file
+              file:
+                path: /etc/credentials/cluster-cert/tls_key
+                format: binary
+        - name: CERT_ISSUER
+          path: ./bin/cert-issuer
+          type: CertificateIssuerService
+          logLevel: debug
+          tags: [ "cert_issuer" ]
+          yamlConfiguration: |
+            certificateservice:
+              source: file
+              file:
+                path: /etc/credentials/cert-issuer-plugins/certificateservice-config
+                format: binary
+            uaa:
+              source: file
+              file:
+                path: /etc/credentials/cert-issuer-plugins/uaa-config
+                format: binary
+      provisioning:
+        initialTenants:
+          enabled: true
+          values:
+            - domainURL: tenant0
+              schemaName: tenant0
+              ID: tenant0-id
+              region: aws-canary-eu
+              status: STATUS_ACTIVE
+            - domainURL: tenant10
+              schemaName: tenant10
+              ID: tenant10-id
+              region: aws-canary-eu
+              status: STATUS_ACTIVE
+            - domainURL: tenant20
+              schemaName: tenant20
+              ID: tenant20-id
+              region: aws-canary-eu
+              status: STATUS_ACTIVE
+            - domainURL: tenant30
+              schemaName: tenant30
+              ID: tenant30-id
+              region: aws-canary-eu
+              status: STATUS_ACTIVE
+            - domainURL: tenant40
+              schemaName: tenant40
+              ID: tenant40-id
+              region: aws-canary-eu
+              status: STATUS_ACTIVE
+            - domainURL: tenant-qa-1
+              schemaName: tenantqa1
+              ID: tenant-qa-1
+              region: aws-canary-eu
+              status: STATUS_ACTIVE
+            - domainURL: tenant50
+              schemaName: tenant50
+              ID: tenant50-id
+              region: aws-canary-eu
+              status: STATUS_ACTIVE
+            - domainURL: mig-oct-test
+              schemaName: migocttest
+              ID: mig-oct-test
+              region: aws-canary-eu
+              status: STATUS_ACTIVE
+            - domainURL: als-1
+              schemaName: als1
+              ID: als-1
+              region: aws-canary-eu
+              status: STATUS_ACTIVE
+        initKeystoreConfig:
+          enabled: false
+      certificates:
+        rootCertURL: https://aia.pki.co.sap.com/aia/SAP%20Cloud%20Root%20CA.crt
+        validityDays: 30
+        rotationThresholdDays: 7
+      cryptoLayer:
+        certX509Trusts:
+          source: embedded
+          value: |
+            {
+              "cf-eu12": {
+                "Subject": "CN=sapkms-ks,L=eu12,OU=08c53948-fc3e-4a3c-94eb-37640531080c,OU=Canary,OU=SAP Cloud Platform Clients,O=SAP SE,C=DE",
+                "RootCA": "https://aia.pki.co.sap.com/aia/SAP%20Cloud%20Root%20CA.crt"
+              }
+            }
+      activePlugins:
+        - hyok
+        - default_keystore
+        - uli
+        - cert_issuer
+      eventProcessor:
+        secretRef:
+          type: mtls
+          mTLS:
+            serverCA:
+              source: file
+              file:
+                path: /etc/credentials/digicert/digicert-global-root-g2.crt
+                format: binary
+            cert:
+              source: file
+              file:
+                path: /etc/credentials/cluster-cert/tls_crt
+                format: binary
+            certKey:
+              source: file
+              file:
+                path: /etc/credentials/cluster-cert/tls_key
+                format: binary
+        targets:
+          - region: cf-eu12
+            amqp:
+              url: "amqps://mr-connection-s86nswl8ild.messaging.solace.cloud:5671"
+              source: "cmk/aws-canary-eu/keys"
+              target: "topic://ks/cf-eu12"
+      audit:
+        endpoint: als.services.svc.cluster.local:4317/logs
+        additionalProperties: |
+          specVersion: "v1"
+          appID: "sap.kmscmk"
+          folderPath: "/sap/btp/cs-dp/ckm/cmk" 
+          accountID: "2948526"
+          resourceGroupPath: "/sap/btp/cs-dp/ckm/cmk/resources"
+          region: "aws-canary-eu"
+          appImage: "kms2"
+          appVersion: "1.0.0"
+    logger:
+      level: trace
+    extraVolumes:
+      - name: isr-ca
+        configMap:
+          name: isr-ca
+          items:
+            - key: ca.crt
+              path: ca.crt
+      - name: sap-cloud-root-ca
+        configMap:
+          name: sap-cloud-root-ca
+          items:
+            - key: ca.crt
+              path: ca.crt
+      - name: digicert-volume
+        configMap:
+          name: digicert-global-root-g2
+          items:
+            - key: digicert-global-root-g2.crt
+              path: digicert-global-root-g2.crt
+      - name: db-credentials
+        secret:
+          secretName: db-secret
+          items:
+            - key: master_username
+              path: username
+            - key: master_password
+              path: password
+      - name: cld-plugins
+        secret:
+          secretName: cldis-secret
+          items:
+            - key: uaa
+              path: uaa-config
+      - name: cert-issuer-plugins
+        secret:
+          secretName: pki-secret
+          items:
+            - key: certificateservice
+              path: certificateservice-config
+            - key: uaa
+              path: uaa-config
+      - name: cluster-cert
+        secret:
+          secretName: clustercert-certificate-secret
+          items:
+            - key: tls.crt
+              path: tls_crt
+            - key: tls.key
+              path: tls_key
+      - name: valkey-secret
+        secret:
+          secretName: valkey-secret
+          items:
+            - key: tls_crt
+              path: tls_crt
+            - key: tls_key
+              path: tls_key
+            - key: ca_crt
+              path: ca_crt
+            - key: valkey_password
+              path: valkey_password
+    extraVolumeMounts:
+      - name: isr-ca
+        mountPath: /etc/credentials/isr
+      - name: sap-cloud-root-ca
+        mountPath: /etc/credentials/sapcloudroot
+        readOnly: true
+      - name: digicert-volume
+        mountPath: /etc/credentials/digicert
+        readOnly: true
+      - name: db-credentials
+        mountPath: /etc/cmk/credentials/database
+        readOnly: true
+      - name: cld-plugins
+        mountPath: /etc/credentials/sis-plugins/cld
+        readOnly: true
+      - name: cert-issuer-plugins
+        mountPath: /etc/credentials/cert-issuer-plugins
+        readOnly: true
+      - name: cluster-cert
+        mountPath: /etc/credentials/cluster-cert
+        readOnly: true
+      - name: valkey-secret
+        mountPath: /etc/credentials/valkey
+        readOnly: true
+    extraEnvs:
+      - name: SIS_PLUGINS_CLD_ENDPOINT
+        valueFrom:
+          secretKeyRef:
+            name: cldis-secret
+            key: cldis_endpoint
+    image:
+      digest: sha256:8bf388cba6ea2396a20eba6ab837edff7c3bd59f718abf6f2c66e24205b2bef2

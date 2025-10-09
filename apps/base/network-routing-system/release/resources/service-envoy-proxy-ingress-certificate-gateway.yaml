@@ -1,0 +1,32 @@
+resources:
+  service-envoy-proxy-ingress-certificate-gateway:
+    apiVersion: v1
+    kind: Service
+    metadata:
+      name: envoyproxy-ingress-certificate-gateway
+    spec:
+      ports:
+        - name: http-envoy-status
+          targetPort: 19003
+          port: 8888
+          protocol: TCP
+      selector:
+        app.kubernetes.io/component: proxy
+        app.kubernetes.io/managed-by: envoy-gateway
+        app.kubernetes.io/name: envoy
+        gateway.envoyproxy.io/owning-gateway-name: ingress-certificate-gateway
+        gateway.envoyproxy.io/owning-gateway-namespace: envoy-gateway-system
+      type: ClusterIP
+  gateway-class-ingress-gateway:
+    # JWT based Ingress Gateway
+    apiVersion: gateway.networking.k8s.io/v1
+    kind: GatewayClass
+    metadata:
+      name: ingress-gateway
+    spec:
+      controllerName: gateway.envoyproxy.io/gatewayclass-controller
+      parametersRef:
+        group: gateway.envoyproxy.io
+        kind: EnvoyProxy
+        name: envoy-proxy-config
+        namespace: envoy-gateway-system

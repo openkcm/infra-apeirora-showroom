@@ -1,0 +1,23 @@
+resources:
+  envoy-proxy-certificate-config:
+    # Certificate based EnvoyProxy
+    apiVersion: gateway.envoyproxy.io/v1alpha1
+    kind: EnvoyProxy
+    metadata:
+      name: envoy-proxy-certificate-config
+    spec:
+      provider:
+        kubernetes:
+          envoyService:
+            annotations:
+              dns.gardener.cloud/dnsnames: ing.cert.gc-cmk-p-glob.cmkc.kms.cloud.sap
+              cert.gardener.cloud/dnsnames: ing.cert.gc-cmk-p-glob.cmkc.kms.cloud.sap,ing.cert.mesh.cmkc.kms.cloud.sap
+              cloud.google.com/load-balancer-type: "External"
+          envoyHpa:
+            minReplicas: 3
+            maxReplicas: 5
+          envoyDeployment:
+            replicas: 3
+            pod:
+              annotations:
+                config.linkerd.io/skip-inbound-ports: 10001,10443

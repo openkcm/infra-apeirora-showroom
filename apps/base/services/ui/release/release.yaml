@@ -1,0 +1,90 @@
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: ui
+spec:
+  interval: 10m
+  chart:
+    spec:
+      chart: ui-app
+      version: '0.1.0'
+      sourceRef:
+        kind: HelmRepository
+        name: kms20
+      interval: 10m
+  targetNamespace: services
+  values:
+    fullnameOverride: ui
+    extraContainers:
+      - name: envoy
+        image: "envoyproxy/envoy:v1.35-latest"
+        imagePullPolicy: IfNotPresent
+        lifecycle:
+          preStop:
+            exec:
+              command: [ "sleep", "60" ]
+        volumeMounts:
+          - name: envoy-config
+            mountPath: /envoy/config
+            readOnly: true
+          - name: server-certificates
+            mountPath: "/etc/server/certificates"
+            readOnly: true
+        args:
+          - "envoy"
+          - "--config-path"
+          - "/envoy/config/envoy.yaml"
+          - "--log-level"
+          - "info"
+        env:
+          - name: ENVOY_UID
+            value: "1111"
+        ports:
+          - containerPort: 8443
+        resources:
+          limits:
+            memory: 100Mi
+          requests:
+            cpu: 300m
+            memory: 100Mi
+    ui:
+      image:
+        registry: kms.common.repositories.cloud.sap
+        repository: ui
+        tag: 1.0.2-20250827132010-0936ee748df2965e942221ad2b9db56381af97ec
+      service:
+        type: LoadBalancer
+        port: 443
+        targetPort: 8443
+        annotations:
+          cert.gardener.cloud/purpose: managed
+          cert.gardener.cloud/secretname: ui-tls-secret
+          dns.gardener.cloud/class: garden
+          dns.gardener.cloud/ttl: "500"
+          service.beta.kubernetes.io/aws-load-balancer-scheme: internet-facing
+          service.beta.kubernetes.io/aws-load-balancer-nlb-target-type: instance
+          service.beta.kubernetes.io/aws-load-balancer-type: external
+    global:
+      volumes:
+        - name: envoy-config
+          configMap:
+            name: ui-envoy-config
+        - name: backend-config
+          configMap:
+            name: backend-config
+        - name: server-certificates
+          secret:
+            secretName: ui-tls-secret
+            item:
+              - key: tls.crt
+                path: tls.cert
+              - key: tls.key
+                path: tls.key
+              - key: ca.crt
+                path: ca.crt
+      volumeMounts:
+        - name: backend-config
+          mountPath: /usr/share/nginx/html/config
+          readOnly: true
+
+

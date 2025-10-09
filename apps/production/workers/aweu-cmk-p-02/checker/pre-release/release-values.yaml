@@ -1,0 +1,25 @@
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: checker--pre-release
+spec:
+  targetNamespace: checker
+  storageNamespace: checker
+  valuesFrom:
+    # !! The sequence is important !!
+    # Always first **base** and **overlay** (if necessary) later.
+    ## base
+    - kind: ConfigMap
+      name: checker-base-pre-release-values
+      valuesKey: checker-envoy-config.yaml
+    - kind: ConfigMap
+      name: checker-base-pre-release-values
+      valuesKey: opa-policy.yaml
+    - kind: ConfigMap
+      name: checker-base-pre-release-values
+      valuesKey: service.yaml
+      # overlay
+    - kind: ConfigMap
+      name: checker-overlay-pre-release-values
+      valuesKey: service.yaml
+

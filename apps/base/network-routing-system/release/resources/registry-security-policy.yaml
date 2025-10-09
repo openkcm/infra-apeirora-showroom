@@ -1,0 +1,22 @@
+resources:
+  registry-security-policy:
+    apiVersion: gateway.envoyproxy.io/v1alpha1
+    kind: SecurityPolicy
+    metadata:
+      name: registry-security-policy
+      namespace: envoy-gateway-system
+    spec:
+      targetRefs:
+        - group: gateway.networking.k8s.io
+          kind: GRPCRoute
+          name: registry-grpc-route
+        - group: gateway.networking.k8s.io
+          kind: GRPCRoute
+          name: registry-certificate-grpc-route
+      extAuth:
+        grpc:
+          backendRefs:
+            - group: ""
+              kind: Service
+              name: extauthz
+              port: 9092

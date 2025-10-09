@@ -1,0 +1,68 @@
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: registry
+spec:
+  interval: 10m
+  chart:
+    spec:
+      chart: registry
+      version: '0.0.5'
+      sourceRef:
+        kind: HelmRepository
+        name: kms20
+  values:
+    image:
+      registry: kms.common.repositories.cloud.sap
+      repository: registry-service
+      tag: v0.0.1-20250623105526-f5d001dcb01d4e4ce0f172cd2acef04dc9484544
+      pullPolicy: IfNotPresent
+    fullnameOverride: registry
+    imagePullSecrets:
+      - name: registry-access
+    debugMode: true
+    service:
+      port: 9092
+    config:
+      application:
+        environment: development
+      debugMode: true
+      logger:
+        level: debug
+      database:
+        host: 127.0.0.1
+        port: 5432
+        name: registry
+        user:
+          source: file
+          file:
+            path: /etc/registry/credentials/database/username
+            format: binary
+        password:
+          source: file
+          file:
+            path: /etc/registry/credentials/database/password
+            format: binary
+      telemetry:
+        traces:
+          enabled: false
+        metrics:
+          enabled: false
+        logs:
+          enabled: false
+    extraVolumes:
+      - name: cloudsql-creds
+        secret:
+          secretName: cloudsql-sa-key
+      - name: db-credentials
+        secret:
+          secretName: db-secret
+          items:
+            - key: username
+              path: username
+            - key: password
+              path: password
+    extraVolumeMounts:
+    - name: db-credentials
+      mountPath: /etc/registry/credentials/database
+      readOnly: true
