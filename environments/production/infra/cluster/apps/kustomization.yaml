@@ -3,7 +3,6 @@ kind: Kustomization
 namespace: flux-system
 resources:
   - cert-manager.yaml
-  - kms-system.yaml
   - linkerd-identity-issuer-syncer.yaml
   - namespaces.yaml
   - service-account-issuer-discovery.yaml
