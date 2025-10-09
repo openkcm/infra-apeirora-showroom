@@ -8,7 +8,7 @@ spec:
     kind: GitRepository
     name: flux-system
     namespace: flux-system
-  path: ./apps/canary/workers/aweu-cmk-p-02/dynatrace-system/
+  path: ./apps/production/workers/aweu-cmk-p-02/dynatrace-system/
   prune: true
   wait: true
   force: true

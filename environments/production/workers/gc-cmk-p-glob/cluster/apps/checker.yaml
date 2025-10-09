@@ -8,7 +8,7 @@ spec:
     kind: GitRepository
     name: flux-system
     namespace: flux-system
-  path: ./apps/canary/workers/gc-cmk-p-glob/checker/
+  path: ./apps/production/workers/gc-cmk-p-glob/checker/
   prune: true
   wait: true
   force: true

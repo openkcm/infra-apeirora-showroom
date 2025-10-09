@@ -10,7 +10,7 @@ spec:
     kind: GitRepository
     name: flux-system
     namespace: flux-system
-  path: ./apps/canary/workers/aweu-cmk-p-02/linkerd/
+  path: ./apps/production/workers/aweu-cmk-p-02/linkerd/
   wait: true
   prune: true
   dependsOn:

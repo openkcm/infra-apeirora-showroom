@@ -9,7 +9,7 @@ spec:
     providers:
       - primary: true
         type: aws-route53
-        secretName: canary-aws-route53-secret
+        secretName: production-aws-route53-secret
   extensions:
   - type: shoot-cert-service
     providerConfig:
@@ -26,7 +26,7 @@ spec:
         enabled: true
       providers:
         - type: aws-route53
-          secretName: shoot-dns-service-canary-aws-route53-secret
+          secretName: shoot-dns-service-production-aws-route53-secret
           zones:
             include:
               - Z04590372NVK1GNUX0CQL
@@ -36,11 +36,11 @@ spec:
         blackholingEnabled: true
   - type: shoot-oidc-service
   resources:
-  - name: shoot-dns-service-canary-aws-route53-secret
+  - name: shoot-dns-service-production-aws-route53-secret
     resourceRef:
       apiVersion: v1
       kind: Secret
-      name: canary-aws-route53-secret
+      name: production-aws-route53-secret
   provider:
     type: gcp
     infrastructureConfig:
@@ -49,7 +49,7 @@ spec:
       networks:
         workers: 10.180.0.0/16
         vpc:
-          name: canary
+          name: production
           cloudRouter:
             name: c-kms-cloudrouter-primary
     controlPlaneConfig:
@@ -91,7 +91,7 @@ spec:
     version: 1.31.6
     enableStaticTokenKubeconfig: false
   cloudProfileName: gcp
-  credentialsBindingName: gcp-canary
+  credentialsBindingName: gcp-production
   purpose: production
   region: europe-west3
   addons:

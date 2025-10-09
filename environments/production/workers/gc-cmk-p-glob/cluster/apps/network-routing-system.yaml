@@ -10,7 +10,7 @@ spec:
     kind: GitRepository
     name: flux-system
     namespace: flux-system
-  path: ./apps/canary/workers/gc-cmk-p-glob/network-routing-system
+  path: ./apps/production/workers/gc-cmk-p-glob/network-routing-system
   prune: true
   wait: true
   dependsOn:

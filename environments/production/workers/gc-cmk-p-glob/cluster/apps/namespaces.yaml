@@ -5,7 +5,7 @@ metadata:
 spec:
   force: true
   interval: 10m
-  path: ./apps/canary/workers/gc-cmk-p-glob/namespaces/
+  path: ./apps/production/workers/gc-cmk-p-glob/namespaces/
   prune: true
   sourceRef:
     kind: GitRepository
