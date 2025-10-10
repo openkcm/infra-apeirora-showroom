@@ -5,7 +5,7 @@ metadata:
 spec:
   force: true
   interval: 10m
-  path: ./apps/production/workers/aweu-cmk-p-02/namespaces/
+  path: ./apps/production/workers/worker01/namespaces/
   prune: true
   sourceRef:
     kind: GitRepository

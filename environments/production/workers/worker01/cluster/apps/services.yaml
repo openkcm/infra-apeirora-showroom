@@ -1,18 +1,21 @@
 apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
 metadata:
-  name: network-routing-system
+  name: services
 spec:
-  interval: 1m
-  retryInterval: 3m
-  timeout: 5m
+  interval: 10m0s
   sourceRef:
     kind: GitRepository
     name: flux-system
     namespace: flux-system
-  path: ./apps/production/workers/gc-cmk-p-glob/network-routing-system
+  path: ./apps/production/workers/worker01/services
   prune: true
   wait: true
+  force: true
+  timeout: 5m0s
   dependsOn:
-    - name: envoy-gateway
+    - name: kms-system
+    - name: linkerd
+    - name: external-secret
+    - name: network-routing-system
     - name: namespaces

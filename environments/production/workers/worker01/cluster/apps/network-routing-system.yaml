@@ -10,7 +10,7 @@ spec:
     kind: GitRepository
     name: flux-system
     namespace: flux-system
-  path: ./apps/production/workers/aweu-cmk-p-02/network-routing-system
+  path: ./apps/production/workers/worker01/network-routing-system
   prune: true
   wait: true
   dependsOn:

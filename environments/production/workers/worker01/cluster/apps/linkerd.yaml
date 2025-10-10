@@ -1,17 +1,17 @@
 apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
 metadata:
-  name: dynatrace-system
+  name: linkerd
 spec:
-  interval: 10m0s
+  interval: 1m
+  retryInterval: 3m
+  timeout: 5m
   sourceRef:
     kind: GitRepository
     name: flux-system
     namespace: flux-system
-  path: ./apps/production/workers/gc-cmk-p-glob/dynatrace-system/
-  prune: true
+  path: ./apps/production/workers/worker01/linkerd/
   wait: true
-  force: true
-  timeout: 5m0s
+  prune: true
   dependsOn:
     - name: namespaces

@@ -1,9 +1,9 @@
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
-namespace: gc-cmk-p-glob
+namespace: worker01
 resources:
   - ./apps/
-  - ../../../../../apps/utils/namespace/ # for creating 'gc-cmk-p-glob' namespace and provision to add labels and annotations.
+  - ../../../../../apps/utils/namespace/ # for creating 'worker01' namespace and provision to add labels and annotations.
   - kubeconfig.yaml
 #
 # Following patches are helpful to avoid repetitive configs in Flux Kustomization resources.
@@ -17,7 +17,7 @@ patches:
     patch: |
       - op: add
         path: /spec/targetNamespace
-        value: gc-cmk-p-glob
+        value: worker01
   # Remove the patch for `targetNamespace` in `namespaces` Kustomization, because it deploys NS only
   - target:
       kind: Kustomization
@@ -78,7 +78,7 @@ patches:
         value:
           secretRef:
             name: kubeconfig
-# Example: For adding `.metadata.labels` and `.metadata.annotations` to 'gc-cmk-p-glob' namespace in infra cluster.
+# Example: For adding `.metadata.labels` and `.metadata.annotations` to 'worker01' namespace in infra cluster.
 #patches:
 #  - target:
 #      kind: Namespace

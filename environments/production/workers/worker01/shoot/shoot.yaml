@@ -1,11 +1,11 @@
 kind: Shoot
 apiVersion: core.gardener.cloud/v1beta1
 metadata:
-  name: aweu-cmk-p-02
+  name: worker01
   namespace: garden-kms2c
 spec:
   dns:
-    domain: aweu-cmk-p-02.cmkc.kms.cloud.sap
+    domain: worker01.cmkc.kms.cloud.sap
     providers:
       - primary: true
         type: aws-route53
@@ -42,63 +42,58 @@ spec:
       kind: Secret
       name: production-aws-route53-secret
   provider:
-    type: aws
+    type: gcp
     infrastructureConfig:
-      apiVersion: aws.provider.extensions.gardener.cloud/v1alpha1
+      apiVersion: gcp.provider.extensions.gardener.cloud/v1alpha1
       kind: InfrastructureConfig
       networks:
+        workers: 10.180.0.0/16
         vpc:
-          cidr: 10.180.0.0/16
-        zones:
-          - name: eu-central-1a
-            workers: 10.180.0.0/19
-            public: 10.180.32.0/20
-            internal: 10.180.48.0/20
-          - name: eu-central-1b
-            workers: 10.180.64.0/19
-            public: 10.180.96.0/20
-            internal: 10.180.112.0/20
-          - name: eu-central-1c
-            workers: 10.180.128.0/19
-            public: 10.180.160.0/20
-            internal: 10.180.176.0/20
+          name: production
+          cloudRouter:
+            name: c-kms-cloudrouter-primary
     controlPlaneConfig:
-      apiVersion: aws.provider.extensions.gardener.cloud/v1alpha1
+      apiVersion: gcp.provider.extensions.gardener.cloud/v1alpha1
       kind: ControlPlaneConfig
+      zone: europe-west3-a
     workers:
-      - name: worker-c6box
+      - name: worker-ek1uo
         minimum: 1
-        maximum: 3
+        maximum: 6
         maxSurge: 1
         machine:
-          type: c3.2xlarge
+          type: c2d-highcpu-8
           image:
             name: gardenlinux
             version: 1592.6.0
           architecture: amd64
         zones:
-          - eu-central-1a
-          - eu-central-1b
-          - eu-central-1c
+          - europe-west3-a
+          - europe-west3-b
+          - europe-west3-c
         cri:
           name: containerd
         volume:
-          type: gp3
-          size: 50Gi
+          type: pd-balanced
+          size: 100Gi
   networking:
     nodes: 10.180.0.0/16
     type: calico
+    providerConfig:
+      overlay:
+        enabled: true
   kubernetes:
-    version: 1.31.7
     kubeAPIServer:
       structuredAuthentication:
         configMapName: infra-issuer-configmap
       serviceAccountConfig:
-        issuer: https://oidc.aweu-cmk-p-02.cmkc.kms.cloud.sap
-  cloudProfileName: aws
-  credentialsBindingName: production-secret
+        issuer: https://oidc.worker01.cmkc.kms.cloud.sap
+    version: 1.31.6
+    enableStaticTokenKubeconfig: false
+  cloudProfileName: gcp
+  credentialsBindingName: gcp-production
   purpose: production
-  region: eu-central-1
+  region: europe-west3
   addons:
     kubernetesDashboard:
       enabled: false
@@ -109,8 +104,8 @@ spec:
       kubernetesVersion: true
       machineImageVersion: true
     timeWindow:
-      begin: 020000+0100
-      end: 030000+0100
+      begin: 050000+0100
+      end: 060000+0100
   monitoring:
     alerting:
       emailReceivers:
