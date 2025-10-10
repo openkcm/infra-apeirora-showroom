@@ -14,7 +14,6 @@ spec:
   force: true
   timeout: 5m0s
   dependsOn:
-    - name: kms-system
     - name: linkerd
     - name: external-secret
     - name: network-routing-system
