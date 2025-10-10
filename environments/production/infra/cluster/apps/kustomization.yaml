@@ -6,6 +6,7 @@ resources:
   - linkerd-identity-issuer-syncer.yaml
   - namespaces.yaml
   - service-account-issuer-discovery.yaml
+  - infra-secrets.yaml
 patches:
   # patch to add `.spec.targetNamespace` in Flux KS resource
   - target:

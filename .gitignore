@@ -2,3 +2,5 @@
 *.iml
 .idea
 .DS_Store
+# AGE private key (do not commit)
+age.agekey
