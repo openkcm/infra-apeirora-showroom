@@ -23,3 +23,34 @@ We as members, contributors, and leaders pledge to make participation in our com
 ## Licensing
 
 Copyright (20xx-)20xx SAP SE or an SAP affiliate company and OpenKCM contributors. Please see our [LICENSE](LICENSE) for copyright and license information. Detailed information including third-party components and their licensing/copyright information is available [via the REUSE tool](https://api.reuse.software/info/github.com/openkcm/infra-apeirora-showroom).
+
+## SOPS & Secrets Workflow
+
+Encrypt Kubernetes Secret manifests placed under any `secrets/` directory. The `.sops.yaml` targets only `data` and `stringData` keys and skips `kustomization.yaml`.
+
+Commands:
+
+```bash
+make encrypt-secrets   # encrypt all secrets/**/*
+make decrypt-secrets   # decrypt locally (NEVER commit decrypted files)
+```
+
+### Git Hook Protection
+
+Enable the provided pre-commit hook to block mistakes:
+
+```bash
+git config core.hooksPath .githooks
+```
+
+The hook will fail the commit if:
+* A file in a `secrets/` path still contains `stringData:` (not encrypted yet).
+* A `kustomization.yaml` inside a secrets folder contains a `sops:` block.
+
+Rotate AGE key:
+
+```bash
+age-keygen -o new.age.agekey
+kubectl -n flux-system create secret generic sops-age-new --from-file=age.agekey=new.age.agekey
+# Add new public key to .sops.yaml, re-encrypt, commit, remove old key.
+```

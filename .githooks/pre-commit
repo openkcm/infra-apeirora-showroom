@@ -1,0 +1,43 @@
+#!/usr/bin/env bash
+# Prevent committing decrypted secrets or kustomization.yaml accidentally encrypted.
+set -euo pipefail
+
+# Files staged
+STAGED=$(git diff --cached --name-only)
+
+FAIL=0
+
+# 1. Block committing secrets with plain stringData (unencrypted) in secrets directories.
+while IFS= read -r f; do
+  [[ $f =~ /secrets/ ]] || continue
+  [[ $f =~ kustomization\.ya?ml$ ]] && continue
+  # Skip binary
+  if file "$f" | grep -qi 'text'; then
+    if grep -Eq '^stringData:' "$f"; then
+      echo "[pre-commit] ERROR: $f contains stringData (unencrypted). Run: make encrypt-secrets" >&2
+      FAIL=1
+    fi
+    # If sops block exists ensure data fields are encrypted (has sops metadata)
+    if grep -Eq '^sops:' "$f" && ! grep -Eq 'ENC\[' "$f"; then
+      echo "[pre-commit] WARNING: $f has sops: marker but no ENC[...] blocks." >&2
+    fi
+  fi
+done < <(printf '%s
+' "$STAGED")
+
+# 2. Ensure kustomization.yaml is never encrypted
+while IFS= read -r f; do
+  [[ $f =~ kustomization\.ya?ml$ ]] || continue
+  if grep -Eq '^sops:' "$f"; then
+    echo "[pre-commit] ERROR: $f should not contain a sops: section." >&2
+    FAIL=1
+  fi
+done < <(printf '%s
+' "$STAGED")
+
+if [[ $FAIL -ne 0 ]]; then
+  echo "[pre-commit] Commit blocked." >&2
+  exit 1
+fi
+
+exit 0
