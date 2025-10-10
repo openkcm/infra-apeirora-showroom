@@ -9,7 +9,6 @@ resources:
   - namespaces.yaml
   - network-routing-system.yaml
   - reloader.yaml
-  - service-account-issuer-discovery.yaml
   - services.yaml
   - storage.yaml
 
