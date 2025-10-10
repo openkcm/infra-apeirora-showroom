@@ -9,7 +9,7 @@ spec:
     kind: GitRepository
     name: flux-system
     namespace: flux-system
-  path: ./environments/production/workers/woker01/cluster
+  path: ./environments/production/workers/worker01/cluster
   prune: true
   wait: true
   force: true
