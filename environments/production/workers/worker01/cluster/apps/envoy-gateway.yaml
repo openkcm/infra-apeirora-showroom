@@ -15,5 +15,4 @@ spec:
   wait: true
   dependsOn:
     - name: envoy-gateway-crds
-    - name: external-secret
     - name: namespaces
