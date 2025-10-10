@@ -6,4 +6,4 @@ spec:
   storageNamespace: service-account-issuer-discovery
   targetNamespace: service-account-issuer-discovery
   values:
-    hostname: oidc.infra.kms2c.shoot.canary.k8s-hana.ondemand.com
+    hostname: oidc.showroominfra.kms20.shoot.canary.k8s-hana.ondemand.com
