@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  # Following 'foo' is a placeholder name.
+  # The name of namespace will be overridden by the value of field 'namespace' in 'kustomization.yaml'
+  name: foo
+  # DO NOT delete following 'labels' and 'annotations' fields, they are required to dynamically generate labels and annotations
+  # in a namespace.
+  labels: {}
+  annotations: {}
