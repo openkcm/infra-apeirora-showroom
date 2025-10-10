@@ -4,7 +4,6 @@ resources:
   - ../../../../base/namespaces/cert-manager.yaml
   - ../../../../base/namespaces/envoy-gateway-system.yaml
   - ../../../../base/namespaces/linkerd.yaml
-  - ../../../../base/namespaces/service-account-issuer-discovery.yaml
   - ../../../../base/namespaces/services.yaml
   - ../../../../base/namespaces/storage.yaml
   - ../../../../base/namespaces/reloader.yaml
