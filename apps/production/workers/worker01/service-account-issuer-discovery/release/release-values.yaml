@@ -6,4 +6,4 @@ spec:
   storageNamespace: service-account-issuer-discovery
   targetNamespace: service-account-issuer-discovery
   values:
-    hostname: oidc.gc-cmk-p-glob.cmkc.kms.cloud.sap
+    hostname: oidc.worker01.cmkc.kms.cloud.sap

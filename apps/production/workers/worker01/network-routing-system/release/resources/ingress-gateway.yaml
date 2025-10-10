@@ -11,9 +11,9 @@ resources:
         - name: tcp
           protocol: TCP
           port: 1
-        - name: https-gc-cmk-p-glob
+        - name: https-worker01
           protocol: HTTPS
-          hostname: ing.gc-cmk-p-glob.cmkc.kms.cloud.sap
+          hostname: ing.worker01.cmkc.kms.cloud.sap
           port: 443
           allowedRoutes:
             namespaces:

@@ -22,7 +22,7 @@ resources:
     # patch to create `.spec.patches.[]` (empty `patches` array) in Flux KS resource
 
 
-# Example: For adding `.metadata.labels` and `.metadata.annotations` to 'gc-cmk-p-glob' namespace in infra cluster.
+# Example: For adding `.metadata.labels` and `.metadata.annotations` to 'worker01' namespace in infra cluster.
 #patches:
 #  - target:
 #      kind: Namespace

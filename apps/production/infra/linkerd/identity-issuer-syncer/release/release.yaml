@@ -25,17 +25,17 @@ spec:
   storageNamespace: flux-system
   values:
     resources:
-      linkerd-identity-issuer-syncer-gc-cmk-p-glob:
+      linkerd-identity-issuer-syncer-worker01:
         apiVersion: external-secrets.io/v1
         kind: ExternalSecret
         metadata:
-          name: gc-cmk-p-glob-linkerd-ca
-          namespace: gc-cmk-p-glob
+          name: worker01-linkerd-ca
+          namespace: worker01
         spec:
           data:
             - remoteRef:
                 key: certificates/pushsecrets/linkerd
-                property: gc-cmk-p-glob-linkerd-ca
+                property: worker01-linkerd-ca
               secretKey: ca.crt
           refreshInterval: 5m
           secretStoreRef:
