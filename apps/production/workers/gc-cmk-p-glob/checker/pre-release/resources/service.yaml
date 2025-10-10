@@ -1,5 +1,0 @@
-resources:
-  service-checker-lb-https:
-    metadata:
-      annotations:
-        dns.gardener.cloud/dnsnames: checker.gc-cmk-p-glob.cmkc.kms.cloud.sap
