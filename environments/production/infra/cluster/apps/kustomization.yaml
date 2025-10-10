@@ -25,3 +25,12 @@ patches:
     patch: |
       - op: remove
         path: /spec/targetNamespace
+  - target:
+      kind: Kustomization
+      group: kustomize.toolkit.fluxcd.io
+      version: v1
+      name: worker-01-secrets
+    patch: |
+      - op: add
+        path: /spec/targetNamespace
+        value: worker01
