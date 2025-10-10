@@ -2,9 +2,15 @@ creation_rules:
   # Encrypt only Secret manifests placed under environments/<env>/<layer>/secrets/
   - path_regex: ^environments/[^/]+/[^/]+/secrets/.*\.ya?ml$
     encrypted_regex: '^(data|stringData)$'
-    age: age1za89nwjqquwwhaxsddy2dcng7cpy8fzfdk92uuq6y3qqm98hr5pqhsyatq
+    age:
+      - age1za89nwjqquwwhaxsddy2dcng7cpy8fzfdk92uuq6y3qqm98hr5pqhsyatq
+      - age15e9nr7zafzpp9whl3u6t28la92p9mm0npp9596ty0rs4x5pcdq0qx0uf52
+      - age1tqkl3fq2rf73g07e8s2falaw8cuself395ev7u0mj8s02tpdsa5shfjt92
   # Encrypt Secret manifests under apps/*/.../secrets/ if you introduce per-app secrets folders.
   - path_regex: ^apps/.*/secrets/.*\.ya?ml$
     encrypted_regex: '^(data|stringData)$'
-    age: age1za89nwjqquwwhaxsddy2dcng7cpy8fzfdk92uuq6y3qqm98hr5pqhsyatq
+    age:
+      - age1za89nwjqquwwhaxsddy2dcng7cpy8fzfdk92uuq6y3qqm98hr5pqhsyatq
+      - age15e9nr7zafzpp9whl3u6t28la92p9mm0npp9596ty0rs4x5pcdq0qx0uf52
+      - age1tqkl3fq2rf73g07e8s2falaw8cuself395ev7u0mj8s02tpdsa5shfjt92
   # Add more rules (e.g. ExternalSecret) with a different encrypted_regex if needed.
