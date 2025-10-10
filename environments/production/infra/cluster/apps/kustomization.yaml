@@ -7,21 +7,21 @@ resources:
   - namespaces.yaml
   - service-account-issuer-discovery.yaml
   - infra-secrets.yaml
-patches:
-  # patch to add `.spec.targetNamespace` in Flux KS resource
-  - target:
-      kind: Kustomization
-      group: kustomize.toolkit.fluxcd.io
-      version: v1
-    patch: |
-      - op: add
-        path: /spec/targetNamespace
-        value: flux-system
-  - target:
-      kind: Kustomization
-      group: kustomize.toolkit.fluxcd.io
-      version: v1
-      name: namespaces
-    patch: |
-      - op: remove
-        path: /spec/targetNamespace
+# patches:
+#   # patch to add `.spec.targetNamespace` in Flux KS resource
+#   - target:
+#       kind: Kustomization
+#       group: kustomize.toolkit.fluxcd.io
+#       version: v1
+#     patch: |
+#       - op: add
+#         path: /spec/targetNamespace
+#         value: flux-system
+#   - target:
+#       kind: Kustomization
+#       group: kustomize.toolkit.fluxcd.io
+#       version: v1
+#       name: namespaces
+#     patch: |
+#       - op: remove
+#         path: /spec/targetNamespace
