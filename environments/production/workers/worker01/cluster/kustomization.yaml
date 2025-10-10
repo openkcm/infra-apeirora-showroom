@@ -4,7 +4,6 @@ namespace: worker01
 resources:
   - ./apps/
   - ../../../../../apps/utils/namespace/ # for creating 'worker01' namespace and provision to add labels and annotations.
-  - kubeconfig.yaml
 #
 # Following patches are helpful to avoid repetitive configs in Flux Kustomization resources.
 #
