@@ -1,6 +1,6 @@
 creation_rules:
   # Encrypt only Secret manifests placed under environments/<env>/<layer>/secrets/
-  - path_regex: ^environments/[^/]+/[^/]+/secrets/.*\.ya?ml$
+  - path_regex:  ^environments/[^/]+/.+/secrets/.*\.ya?ml$
     encrypted_regex: '^(data|stringData)$'
     age:
       - age1za89nwjqquwwhaxsddy2dcng7cpy8fzfdk92uuq6y3qqm98hr5pqhsyatq
