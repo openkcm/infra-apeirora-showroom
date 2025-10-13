@@ -22,7 +22,7 @@ patches:
             sources:
               - serviceAccountToken:
                   path: federated-token
-                  audience: downstream-cluster
+                  #audience: downstream-cluster
   - target:
       kind: Deployment
       name: kustomize-controller

@@ -38,7 +38,7 @@ spec:
         command: ["sh","-c"]
         args:
           - >-
-            echo "Token Sidecar gestartet - warte auf Befehle. Nutze: kubectl logs -c token-cat ... oder exec und cat die Datei"; sleep 360000
+            echo "Token Sidecar bereit (exec mit: kubectl -n external-secret exec -it <pod> -c token-cat -- sh)"; tail -f /dev/null
         resources:
           requests:
             cpu: 1m
@@ -58,7 +58,7 @@ spec:
           command: ["sh","-c"]
           args:
             - >-
-              echo "Token Sidecar gestartet - nutze exec um den Token zu lesen"; sleep 360000
+              echo "Token Sidecar bereit (controller scope)"; tail -f /dev/null
           resources:
             requests:
               cpu: 1m
