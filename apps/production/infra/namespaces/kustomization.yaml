@@ -4,4 +4,4 @@ resources:
   - ../../../base/namespaces/cert-manager.yaml
   - ../../../base/namespaces/linkerd.yaml
   - ../../../base/namespaces/kms-system.yaml
-  - ../../../base/namespaces/external-secrets.yaml
+  - ../../../base/namespaces/external-secret.yaml
