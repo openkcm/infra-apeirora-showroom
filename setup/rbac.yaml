@@ -25,3 +25,31 @@ subjects:
   - apiGroup: rbac.authorization.k8s.io
     kind: User
     name: "infra-cluster-oidc:system:serviceaccount:flux-system:helm-controller"
+---
+# Least-privilege access for Infra cluster ServiceAccount 'kms-system-remote-sync'
+# Token subject (User) produced via structuredAuthentication:
+#   infra-cluster-oidc:system:serviceaccount:flux-system:kms-system-remote-sync
+# Grants read-only access to secrets in linkerd namespace (for ClusterSecretStore remote sync)
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: kms-system-remote-sync-secrets-read
+  namespace: linkerd
+rules:
+  - apiGroups: [""]
+    resources: ["secrets"]
+    verbs: ["get","list","watch"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: kms-system-remote-sync-secrets-read
+  namespace: linkerd
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: kms-system-remote-sync-secrets-read
+subjects:
+  - apiGroup: rbac.authorization.k8s.io
+    kind: User
+    name: "infra-cluster-oidc:system:serviceaccount:flux-system:kms-system-remote-sync"

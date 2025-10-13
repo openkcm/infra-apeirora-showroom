@@ -23,6 +23,12 @@ spec:
       remediateLastFailure: true
   values:
     resources:
+      serviceaccount-remotesync:
+        apiVersion: v1
+        kind: ServiceAccount
+        metadata:
+          name: kms-system-remote-sync
+          namespace: flux-system
       cluster-secret-store-vault-backend-common:
         apiVersion: external-secrets.io/v1
         kind: ClusterSecretStore
@@ -33,10 +39,9 @@ spec:
             kubernetes:
               remoteNamespace: linkerd
               auth:
-                kubeconfig:
-                  name: kubeconfig
-                  key: value.yaml
-                  namespace: worker01
+                serviceAccount:
+                  name: kms-system-remote-sync
+                  namespace: flux-system
               server:
                 url: https://api.worker01.kms20.shoot.canary.k8s-hana.ondemand.com
                 caBundle: LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSUQ1ekNDQWsrZ0F3SUJBZ0lSQUpSOUJNZWkzejhzanVVUSt6NnpnSXd3RFFZSktvWklodmNOQVFFTEJRQXcKRFRFTE1Ba0dBMVVFQXhNQ1kyRXdIaGNOTWpVeE1ERXdNRGd4TXpRMFdoY05NelV4TURFd01EZ3hORFEwV2pBTgpNUXN3Q1FZRFZRUURFd0pqWVRDQ0FhSXdEUVlKS29aSWh2Y05BUUVCQlFBRGdnR1BBRENDQVlvQ2dnR0JBTVF5CmoxdVpEc3dwZkZ5c3libTlXTnV1d3dQMGNhUFNmdmkyRy9jbXRGKzE1Y1FkdHlyTVNuWGh4RzdYanNWOEVrWmUKeFRxSmJra0dMOFhqUk9vUVkwbWkrZk0yWE80K3VEMDhwdFh1VjF3c3JXOVRKVzE1aU1pak41UFVOSjMvcHlEcAppYmwyWnB6UngxUVJWWXJLVnY1RlgybEhtK2hyRGtwL1YrSDB1OFV4Z2psZ3F1OXNNYm1EelBqK0I2S01lL0dlCklnU3ZqdXJ1OFlZU0hCYmlDQlVNK3NxMEQ3Yy9rVjlmd2oyUE5pcnM5NUZuUURyV2dpdmhmZ2JaKzQwaE9Tb20KWXliNFlKYUJOcjJlR2ZlQ00rNElsUE1yQWthckkvalpBeUszMWFvcFU0QkloRWRLQlhpMjhUOU1GeTVIZ1h0MQpuckZhbkpraFljZlArNy9hY2MxaGFISVA2UWRRbmdYdzJnSkN4cHFPb2RpTmozdmNiM0N1Q0ZJZ0d3SXJBTGlECk1vbkhmTjlPTC95U05rSSsra1Nha0VuejNzakJMN0w5ZTFWbFVZVUNncnhZNkJ5Mm4xbm9ZM1IwcXdlZlUzL0EKYzhhUG85UC9TcHlaQWVndy9xT3Y1c25HdFJ5V0xSQ2tiTG95L1J3RGFyV21BOG9lMmNCajVQaHd6UVlnR1FJRApBUUFCbzBJd1FEQU9CZ05WSFE4QkFmOEVCQU1DQWFZd0R3WURWUjBUQVFIL0JBVXdBd0VCL3pBZEJnTlZIUTRFCkZnUVU2bGVLRlhNTGtUOEdLa3NXLytRbDhHQXZUSUl3RFFZSktvWklodmNOQVFFTEJRQURnZ0dCQUdoaXpENkgKblh3ak9SVG9zZ2pSVloyQ3FVQ2x3RmhMZXlkMjdPcWUrdWZtVXFWMFBiRlYxV3I1cXJRaFJTNnVPYlFmcGY2NQpGeUR0UUoweDlqTjBpYVgraW1rb2JpRFFzczAzQk5oaHJZcjlWd25QY1lmdTBHQjlGclNaZDlxVmwzUGZEaER6Cjg3NVUxNk5SQnM1ekVzdGlJUVlZSmpKakJrbEoyQWVtdEIwSUMydmt3VXAzblNzSnRVTkVZTllTcXVTbUtrZlcKOTBBcUY2QW45Kzc4cDFHMU94UjNJRVdqUkpmYmlVN0RScGVEYkxWNGxtZEw1MVd6NURsNWJoTnFyUXRieUZzRQpIN3RhQitNRkVwdlJ5MXhHTWI5aGdOdHhLV1RJb1kxZ2gyK3ExRy9ialkxLzB3eURHL0tJUDladGxkcytURDh2CitmZzUrWVpBVlk2NjZCdHA0Q1VSMlA1b1pWSnZjV2FQMGlPSUtNNktDTFplUlZVZGFkV0p4OThxOXJGSjBlWkcKWnFLdHlhRHBnUHpRZTRra3BtRFV2V242TGtHOGlER09QUjFVWXNIN2UrZC9uR091Tjh0bDdRcnR1VEFYU21MKwo1bVNDZFZnTDIxQzNVWTFGSHhna3Q1aXFNb1VrdEhNTm94TkdPaWtCYkdiWlVZZGFiZ2orSzI5RVVRPT0KLS0tLS1FTkQgQ0VSVElGSUNBVEUtLS0tLQo=     # Gleicher CA Block wie oben (ohne Zeilenumbrüche)
