@@ -53,3 +53,18 @@ subjects:
   - apiGroup: rbac.authorization.k8s.io
     kind: User
     name: "infra-cluster-oidc:system:serviceaccount:flux-system:kms-system-remote-sync"
+---
+# Fallback binding if the Worker API server does not prepend the configured OIDC username prefix
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: kms-system-remote-sync-secrets-read-noprefix
+  namespace: linkerd
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: kms-system-remote-sync-secrets-read
+subjects:
+  - apiGroup: rbac.authorization.k8s.io
+    kind: User
+    name: "system:serviceaccount:flux-system:kms-system-remote-sync"
