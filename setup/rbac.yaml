@@ -68,3 +68,31 @@ subjects:
   - apiGroup: rbac.authorization.k8s.io
     kind: User
     name: "system:serviceaccount:flux-system:kms-system-remote-sync"
+---
+# Dedicated Role for external-secrets controller (ESO) to read linkerd issuer secret
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: external-secrets-controller-secrets-read
+  namespace: linkerd
+rules:
+  - apiGroups: [""]
+    resources: ["secrets"]
+    verbs: ["get","list","watch"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: external-secrets-controller-secrets-read
+  namespace: linkerd
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: external-secrets-controller-secrets-read
+subjects:
+  - apiGroup: rbac.authorization.k8s.io
+    kind: User
+    name: "infra-cluster-oidc:system:serviceaccount:external-secrets:external-secrets-controller"
+  - apiGroup: rbac.authorization.k8s.io
+    kind: User
+    name: "system:serviceaccount:external-secrets:external-secrets-controller"

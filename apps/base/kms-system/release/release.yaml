@@ -39,6 +39,9 @@ spec:
             kubernetes:
               remoteNamespace: linkerd
               auth:
+                # kubeconfig auth is not supported in your deployed ESO version.
+                # serviceAccount auth here only works for in-cluster access. For true cross-cluster
+                # secret sync, deploy ESO in the target cluster or use an intermediate store (e.g. Vault).
                 serviceAccount:
                   name: kms-system-remote-sync
                   namespace: flux-system

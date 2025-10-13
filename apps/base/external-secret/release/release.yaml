@@ -29,14 +29,27 @@ spec:
       create: true
       name: external-secrets-controller
       annotations: {}
-    # Project an additional audience token for downstream (structuredAuthentication use case)
-    extraVolumeMounts:
-      - name: federated-token
-        mountPath: /var/run/secrets/tokens
+      automount: false  # disable default token, we'll supply a projected one with custom audience
+    # Replace default service account token directory with projected volume including custom audience token
     extraVolumes:
-      - name: federated-token
+      - name: sa-token
         projected:
           sources:
             - serviceAccountToken:
-                path: federated-token
+                path: token                 # must be named 'token'
                 audience: downstream-cluster
+                expirationSeconds: 3600
+            - configMap:
+                name: kube-root-ca.crt
+                items:
+                  - key: ca.crt
+                    path: ca.crt
+            - downwardAPI:
+                items:
+                  - path: namespace
+                    fieldRef:
+                      fieldPath: metadata.namespace
+    extraVolumeMounts:
+      - name: sa-token
+        mountPath: /var/run/secrets/kubernetes.io/serviceaccount
+        readOnly: true
