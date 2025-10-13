@@ -30,24 +30,22 @@ spec:
       name: external-secrets-controller
       annotations: {}
       automount: true  # revert to default token mount
-    # Sidecar for debugging JWT token of the controller service account.
-    # NOTE: Chart schema differs between versions; some versions expect extraContainers at root,
-    # others under controller. We provide both (controller.extraContainers preferred if supported).
+    # Minimal BusyBox Sidecar zum manuellen Auslesen des Tokens.
+    # Einige Chart-Versionen nutzen 'extraContainers', andere 'controller.extraContainers'. Wir setzen beides.
     extraContainers:
-      - name: jwt-debugger
-        image: alpine:3.20
-        imagePullPolicy: IfNotPresent
-        command: ["/bin/sh","-c"]
+      - name: token-cat
+        image: busybox:1.36
+        command: ["sh","-c"]
         args:
           - >-
-            set -eu; apk add --no-cache jq >/dev/null 2>&1; decode() { S=$1; P=$(( (4 - ${#S} % 4) % 4 )); printf '%s' "$S" | sed -e 's/-/+/g' -e 's/_/\//g' | awk -v p=$P '{printf "%s%*s", $0, p, ""}' | tr ' ' '=' | base64 -d 2>/dev/null || true; }; while true; do T=$(cat /var/run/secrets/kubernetes.io/serviceaccount/token || true); if [ -n "$T" ]; then H=$(echo $T|cut -d. -f1); B=$(echo $T|cut -d. -f2); echo "==== $(date -u) ===="; echo 'Header:'; decode $H | jq . || decode $H; echo 'Payload:'; decode $B | jq . || decode $B; echo; else echo 'token missing'; fi; sleep 300; done
+            echo "Token Sidecar gestartet - warte auf Befehle. Nutze: kubectl logs -c token-cat ... oder exec und cat die Datei"; sleep 360000
         resources:
           requests:
-            cpu: 5m
-            memory: 16Mi
+            cpu: 1m
+            memory: 8Mi
           limits:
-            cpu: 50m
-            memory: 64Mi
+            cpu: 20m
+            memory: 32Mi
         securityContext:
           readOnlyRootFilesystem: true
           allowPrivilegeEscalation: false
@@ -55,20 +53,19 @@ spec:
           runAsUser: 65534
     controller:
       extraContainers:
-        - name: jwt-debugger
-          image: alpine:3.20
-          imagePullPolicy: IfNotPresent
-          command: ["/bin/sh","-c"]
+        - name: token-cat
+          image: busybox:1.36
+          command: ["sh","-c"]
           args:
             - >-
-              set -eu; apk add --no-cache jq >/dev/null 2>&1; decode() { S=$1; P=$(( (4 - ${#S} % 4) % 4 )); printf '%s' "$S" | sed -e 's/-/+/g' -e 's/_/\//g' | awk -v p=$P '{printf "%s%*s", $0, p, ""}' | tr ' ' '=' | base64 -d 2>/dev/null || true; }; while true; do T=$(cat /var/run/secrets/kubernetes.io/serviceaccount/token || true); if [ -n "$T" ]; then H=$(echo $T|cut -d. -f1); B=$(echo $T|cut -d. -f2); echo "==== $(date -u) ===="; echo 'Header:'; decode $H | jq . || decode $H; echo 'Payload:'; decode $B | jq . || decode $B; echo; else echo 'token missing'; fi; sleep 300; done
+              echo "Token Sidecar gestartet - nutze exec um den Token zu lesen"; sleep 360000
           resources:
             requests:
-              cpu: 5m
-              memory: 16Mi
+              cpu: 1m
+              memory: 8Mi
             limits:
-              cpu: 50m
-              memory: 64Mi
+              cpu: 20m
+              memory: 32Mi
           securityContext:
             readOnlyRootFilesystem: true
             allowPrivilegeEscalation: false
