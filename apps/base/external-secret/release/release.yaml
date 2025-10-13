@@ -24,7 +24,13 @@ spec:
   releaseName: external-secret
   values:
     installCRDs: true
-    extraVolumesMounts:
+    # Create / use dedicated controller ServiceAccount
+    serviceAccount:
+      create: true
+      name: external-secrets-controller
+      annotations: {}
+    # Project an additional audience token for downstream (structuredAuthentication use case)
+    extraVolumeMounts:
       - name: federated-token
         mountPath: /var/run/secrets/tokens
     extraVolumes:
