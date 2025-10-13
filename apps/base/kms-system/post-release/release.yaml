@@ -1,0 +1,51 @@
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: kms-system--post-release
+spec:
+  interval: 10m
+  releaseName: kms-system--post-release
+  chart:
+    spec:
+      chart: ./tools/charts/generic
+      sourceRef:
+        kind: GitRepository
+        name: flux-system
+        namespace: flux-system
+  install:
+    createNamespace: false
+    remediation:
+      retries: -1
+      remediateLastFailure: true
+  upgrade:
+    remediation:
+      retries: -1
+      remediateLastFailure: true
+  values:
+    resources:
+      cluster-external-secret-registry-access:
+        apiVersion: external-secrets.io/v1
+        kind: ClusterExternalSecret
+        metadata:
+          name: registry-access
+        spec:
+          namespaceSelector:
+            matchLabels:
+              registry-image-secret: "true"
+          refreshTime: 1m
+          externalSecretSpec:
+            secretStoreRef:
+              kind: ClusterSecretStore
+              name: vault-backend-common
+            target:
+              template:
+                type: kubernetes.io/dockerconfigjson
+                data:
+                  .dockerconfigjson: "{{ .docker | toString }}"
+              name: registry-access
+              creationPolicy: Owner
+            data:
+            - remoteRef:
+                key: fluxcd
+                property: dockerconfig
+              secretKey: docker
