@@ -3,4 +3,5 @@ kind: Kustomization
 resources:
   - ../../../base/namespaces/cert-manager.yaml
   - ../../../base/namespaces/linkerd.yaml
-
+  - ../../../base/namespaces/kms-system.yaml
+  - ../../../base/namespaces/external-secrets.yaml
