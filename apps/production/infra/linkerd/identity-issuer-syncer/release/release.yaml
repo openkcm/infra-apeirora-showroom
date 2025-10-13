@@ -32,75 +32,15 @@ spec:
           name: worker01-linkerd-ca
           namespace: worker01
         spec:
-          data:
-            - remoteRef:
-                key: certificates/pushsecrets/linkerd
-                property: worker01-linkerd-ca
-              secretKey: ca.crt
+          # Pull the entire remote secret 'linkerd-identity-issuer' from the worker01 cluster (via ClusterSecretStore 'vault-backend-worker01')
+          # The ClusterSecretStore (kubernetes provider) defines remoteNamespace=linkerd so 'key' below refers to a Secret in that namespace.
+          dataFrom:
+            - extract:
+                key: linkerd-identity-issuer
           refreshInterval: 5m
           secretStoreRef:
             kind: ClusterSecretStore
-            name: vault-backend-cluster
-          target:
-            creationPolicy: Owner
-            deletionPolicy: Retain
-            name: linkerd-identity-issuer
-      linkerd-identity-issuer-syncer-gceu-cmk-p-01:
-        apiVersion: external-secrets.io/v1
-        kind: ExternalSecret
-        metadata:
-          name: gceu-cmk-p-01-linkerd-ca
-          namespace: gceu-cmk-p-01
-        spec:
-          data:
-            - remoteRef:
-                key: certificates/pushsecrets/linkerd
-                property: gceu-cmk-p-01-linkerd-ca
-              secretKey: ca.crt
-          refreshInterval: 5m
-          secretStoreRef:
-            kind: ClusterSecretStore
-            name: vault-backend-cluster
-          target:
-            creationPolicy: Owner
-            deletionPolicy: Retain
-            name: linkerd-identity-issuer
-      linkerd-identity-issuer-syncer-aweu-cmk-p-02:
-        apiVersion: external-secrets.io/v1
-        kind: ExternalSecret
-        metadata:
-          name: aweu-cmk-p-02-linkerd-ca
-          namespace: aweu-cmk-p-02
-        spec:
-          data:
-            - remoteRef:
-                key: certificates/pushsecrets/linkerd
-                property: aweu-cmk-p-02-linkerd-ca
-              secretKey: ca.crt
-          refreshInterval: 5m
-          secretStoreRef:
-            kind: ClusterSecretStore
-            name: vault-backend-cluster
-          target:
-            creationPolicy: Owner
-            deletionPolicy: Retain
-            name: linkerd-identity-issuer
-      linkerd-identity-issuer-syncer-awus-cmk-p-03:
-        apiVersion: external-secrets.io/v1
-        kind: ExternalSecret
-        metadata:
-          name: awus-cmk-p-03-linkerd-ca
-          namespace: awus-cmk-p-03
-        spec:
-          data:
-            - remoteRef:
-                key: certificates/pushsecrets/linkerd
-                property: awus-cmk-p-03-linkerd-ca
-              secretKey: ca.crt
-          refreshInterval: 5m
-          secretStoreRef:
-            kind: ClusterSecretStore
-            name: vault-backend-cluster
+            name: vault-backend-worker01
           target:
             creationPolicy: Owner
             deletionPolicy: Retain
