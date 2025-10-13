@@ -9,24 +9,3 @@ spec:
   targetNamespace: linkerd
   dependsOn:
     - name: linkerd-trust-management
-  values:
-    resources:
-      linkerd-ca-pushsecret:
-        apiVersion: external-secrets.io/v1alpha1
-        kind: PushSecret
-        metadata:
-          name: pushsecret-linkerd-ca
-        spec:
-          refreshInterval: 5m
-          secretStoreRefs:
-            - name: vault-backend-cluster
-              kind: ClusterSecretStore
-          selector:
-            secret:
-              name: linkerd-identity-issuer
-          data:
-            - match:
-                secretKey: ca.crt
-                remoteRef:
-                  remoteKey: certificates/pushsecrets/linkerd
-                  property: worker01-linkerd-ca
