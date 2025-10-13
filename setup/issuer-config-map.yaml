@@ -8,7 +8,6 @@ data:
         url: https://discovery.ingress.garden.canary.k8s.ondemand.com/projects/kms20/shoots/c0dca5cc-8f7e-4bbe-b164-6673b1defe7a/issuer
         audiences:
         - downstream-cluster
-        - https://kubernetes.default.svc
       claimMappings:
         username:
           claim: sub
