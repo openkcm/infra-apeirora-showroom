@@ -5,7 +5,7 @@ resources:
   - cert-manager.yaml
   - namespaces.yaml
   - infra-secrets.yaml
-  - external-secrets.yaml
+  - external-secret.yaml
   - kms-system.yaml
 patches:
 #   # patch to add `.spec.targetNamespace` in Flux KS resource
