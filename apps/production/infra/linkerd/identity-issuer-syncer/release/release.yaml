@@ -37,7 +37,7 @@ spec:
           dataFrom:
             - extract:
                 key: linkerd-identity-issuer
-          refreshInterval: 5m
+          refreshInterval: 1m
           secretStoreRef:
             kind: ClusterSecretStore
             name: vault-backend-worker01
