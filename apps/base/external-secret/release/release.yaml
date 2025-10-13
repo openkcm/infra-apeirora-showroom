@@ -24,3 +24,13 @@ spec:
   releaseName: external-secret
   values:
     installCRDs: true
+    extraVolumesMounts:
+      - name: federated-token
+        mountPath: /var/run/secrets/tokens
+    extraVolumes:
+      - name: federated-token
+        projected:
+          sources:
+            - serviceAccountToken:
+                path: federated-token
+                audience: downstream-cluster
