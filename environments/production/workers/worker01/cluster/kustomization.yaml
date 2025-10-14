@@ -94,3 +94,8 @@ patches:
       - op: add
         path: /spec/targetNamespace
         value: envoy-gateway-system
+      - op: add
+        path: /spec/kubeConfig
+        value:
+          secretRef:
+            name: kubeconfig
