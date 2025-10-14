@@ -5,7 +5,7 @@ data:
     kind: AuthenticationConfiguration
     jwt:
     - issuer:
-        url: https://discovery.ingress.garden.canary.k8s.ondemand.com/projects/kms20/shoots/c0dca5cc-8f7e-4bbe-b164-6673b1defe7a/issuer
+        url: https://discovery.ingress.garden.gardener.cc-one.showroom.apeirora.eu/projects/kms/shoots/6ef89ffa-4aa9-4a93-a974-f11a7348d1e6/issuer/
         audiences:
         - kubernetes
         - gardener
@@ -17,4 +17,4 @@ data:
 kind: ConfigMap
 metadata:
   name: showroominfra-issuer-configmap
-  namespace: garden-kms20
+  namespace: garden-kms
