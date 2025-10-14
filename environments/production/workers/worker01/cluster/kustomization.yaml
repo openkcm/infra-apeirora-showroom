@@ -93,7 +93,7 @@ patches:
     patch: |
       - op: add
         path: /spec/targetNamespace
-        value: envoy-gateway-system
+        value: worker01
       - op: add
         path: /spec/kubeConfig
         value:
