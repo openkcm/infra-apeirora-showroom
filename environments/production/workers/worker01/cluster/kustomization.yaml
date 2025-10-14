@@ -85,4 +85,15 @@ patches:
 #      - op: add
 #        path: /metadata/labels/foo
 #        value: bar
-
+  - target:
+      kind: Kustomization
+      group: kustomize.toolkit.fluxcd.io
+      version: v1beta1
+    # patch to append a decryption block (SOPS) to every Flux Kustomization
+    patch: |
+      - op: add
+        path: /spec/decryption
+        value:
+          provider: sops
+          secretRef:
+            name: sops-age
