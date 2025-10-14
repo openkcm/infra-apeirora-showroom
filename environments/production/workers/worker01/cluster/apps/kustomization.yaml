@@ -13,16 +13,8 @@ resources:
   - services.yaml
   - storage.yaml
 
-patches:
-  - target:
-      kind: Kustomization
-      group: kustomize.toolkit.fluxcd.io
-      version: v1
-      name: envoy-gateway-secrets
-    patch: |
-      - op: add
-        path: /spec/targetNamespace
-        value: envoy-gateway-system
+#patches:
+
 
 #   # patch to add `.spec.targetNamespace` in Flux KS resource
 #   - target:
