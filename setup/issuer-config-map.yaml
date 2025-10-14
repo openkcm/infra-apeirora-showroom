@@ -5,7 +5,7 @@ data:
     kind: AuthenticationConfiguration
     jwt:
     - issuer:
-        url: https://discovery.ingress.garden.gardener.cc-one.showroom.apeirora.eu/projects/kms/shoots/6ef89ffa-4aa9-4a93-a974-f11a7348d1e6/issuer/
+        url: https://discovery.ingress.garden.gardener.cc-one.showroom.apeirora.eu/projects/kms/shoots/6ef89ffa-4aa9-4a93-a974-f11a7348d1e6/issuer
         audiences:
         - kubernetes
         - gardener
