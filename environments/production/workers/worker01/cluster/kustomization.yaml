@@ -91,11 +91,5 @@ patches:
       version: v1
       name: envoy-gateway-secrets
     patch: |
-      - op: add
+      - op: remove
         path: /spec/targetNamespace
-        value: worker01
-      - op: add
-        path: /spec/kubeConfig
-        value:
-          secretRef:
-            name: kubeconfig
