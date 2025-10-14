@@ -12,4 +12,3 @@ configMapGenerator:
       - ./resources/extauthz-system-policies.yaml
       - ./resources/extauthz-trusted-subjects.yaml
       - ./resources/extauthz-user-policies.yaml
-      - ./resources/extauthz-signing-keys-secret.yaml

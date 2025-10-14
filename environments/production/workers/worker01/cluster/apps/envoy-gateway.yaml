@@ -16,3 +16,8 @@ spec:
   dependsOn:
     - name: envoy-gateway-crds
     - name: namespaces
+  decryption:
+    provider: sops
+    secretRef:
+      name: sops-age
+      namespace: flux-system

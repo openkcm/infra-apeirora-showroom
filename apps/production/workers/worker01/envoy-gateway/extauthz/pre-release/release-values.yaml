@@ -16,6 +16,3 @@ spec:
     - kind: ConfigMap
       name: extauthz-overlay-pre-release-values
       valuesKey: extauthz-user-policies.yaml
-    - kind: ConfigMap
-      name: extauthz-overlay-pre-release-values
-      valuesKey: extauthz-signing-keys-secret.yaml
