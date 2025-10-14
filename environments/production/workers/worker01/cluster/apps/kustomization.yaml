@@ -4,6 +4,7 @@ namespace: flux-system
 resources:
   - cert-manager.yaml
   - envoy-gateway-crds.yaml
+  - envoy-gateway-secrets.yaml
   - envoy-gateway.yaml
   - linkerd.yaml
   - namespaces.yaml
