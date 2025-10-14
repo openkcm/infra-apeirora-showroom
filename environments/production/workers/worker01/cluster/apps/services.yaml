@@ -10,7 +10,6 @@ spec:
     namespace: flux-system
   path: ./apps/production/workers/worker01/services
   prune: true
-  wait: true
   force: true
   timeout: 5m0s
   dependsOn:

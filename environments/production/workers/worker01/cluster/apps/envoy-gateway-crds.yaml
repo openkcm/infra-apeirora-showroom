@@ -12,4 +12,3 @@ spec:
     namespace: flux-system
   path: ./crds/envoy-gateway/v1_5_0
   prune: true
-  wait: true

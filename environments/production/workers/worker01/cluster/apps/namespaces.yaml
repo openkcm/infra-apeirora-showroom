@@ -12,7 +12,6 @@ spec:
     name: flux-system
     namespace: flux-system
   timeout: 1m
-  wait: true
   kubeConfig:
     secretRef:
       name: kubeconfig
