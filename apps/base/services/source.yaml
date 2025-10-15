@@ -1,9 +1,0 @@
-apiVersion: source.toolkit.fluxcd.io/v1
-kind: HelmRepository
-metadata:
-  name: kms20
-spec:
-  interval: 10m
-  url: https://common.repositories.cloud.sap/artifactory/api/helm/kms-helm
-  secretRef:
-    name: kms-helm-secret
