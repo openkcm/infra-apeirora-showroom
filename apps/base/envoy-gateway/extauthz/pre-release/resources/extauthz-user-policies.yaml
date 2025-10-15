@@ -7,13 +7,4 @@ resources:
     immutable: false
     data:
       users.cedar: |-
-        // Users based on JWT accessing the CMK Backend via the CMK UI
-        permit (
-          principal is Subject,
-          action in [Action::"GET", Action::"POST", Action::"PUT", Action::"DELETE"],
-          resource is Route
-        ) when {
-          context.type == "jwt"
-          && context.route like "*/cmk/*"
-          && context.issuer like "*"
-        };
+        # This file is managed by git. Manual changes will be overwritten.

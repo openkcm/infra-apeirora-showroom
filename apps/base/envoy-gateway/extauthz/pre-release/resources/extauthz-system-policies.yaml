@@ -7,29 +7,4 @@ resources:
     immutable: false
     data:
       systems.cedar: |-
-        // Technical system based on x509 for automation tests
-        permit (
-          principal,
-          action in [Action::"GET"],
-          resource is Route
-        ) when {
-          principal in [
-              Subject::"CN=automation,L=9999-TEST-CSGE,OU=a45b537c-3e0c-4403-9a42-17fb5ad59215,OU=SAP Cloud Platform Clients,O=SAP SE,C=DE",
-              Subject::"CN=automation,L=9999-TEST-CSGE,OU=bfe87081-75e2-473a-bbf8-e4f80d7e4175,OU=SAP Cloud Platform Clients,O=SAP SE,C=DE"
-          ]
-          && context.type == "x509"
-          && context.route like "*/echo/*"
-        };
-        // Technical system based on JWT for automation tests
-        permit (
-          principal,
-          action in [Action::"GET"],
-          resource is Route
-        ) when {
-          principal in [
-              Subject::"c43fa18a-efb0-46bc-a97c-fbfe926d17ed"
-          ]
-          && context.type == "jwt"
-          && context.route like "*/echo/*"
-          && context.issuer == "https://kms20cmk1.accounts400.ondemand.com"
-        };
+        // Technical system based on x509 for automation test
