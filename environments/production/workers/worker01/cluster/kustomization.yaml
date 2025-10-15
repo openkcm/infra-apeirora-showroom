@@ -95,3 +95,6 @@ patches:
         path: /spec/targetNamespace
       - op: remove
         path: /spec/patches
+      - op: add
+        path: /metadata/namespace
+        value: envoy-gateway-system
