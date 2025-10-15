@@ -12,7 +12,8 @@ resources:
   - network-routing-system.yaml
   - reloader.yaml
   - services.yaml
-  - storage.yaml
+  - valkey.yaml
+  - postgresql.yaml
   - rabbitmq.yaml
 
 #patches:
