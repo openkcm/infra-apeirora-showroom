@@ -17,3 +17,6 @@ spec:
     - name: cert-manager
     - name: linkerd
     - name: namespaces
+  kubeConfig:
+    secretRef:
+      name: kubeconfig
