@@ -13,6 +13,7 @@ resources:
   - reloader.yaml
   - services.yaml
   - storage.yaml
+  - rabbitmq.yaml
 
 #patches:
 
