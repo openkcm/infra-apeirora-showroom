@@ -93,3 +93,5 @@ patches:
     patch: |
       - op: remove
         path: /spec/targetNamespace
+      - op: remove
+        path: /spec/patches
