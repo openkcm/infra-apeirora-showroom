@@ -2,6 +2,7 @@ apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
 metadata:
   name: rabbitmq
+  namespace: storage
 spec:
   interval: 10m0s
   sourceRef:
