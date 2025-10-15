@@ -4,7 +4,7 @@ metadata:
   name: envoy-gateway
   namespace: envoy-gateway-system
 spec:
-  interval: 1m
+  interval: 10m
   retryInterval: 3m
   timeout: 5m
   sourceRef:
