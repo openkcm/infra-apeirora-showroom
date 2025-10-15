@@ -13,6 +13,10 @@ spec:
         kind: HelmRepository
         name: alekc-charts
       version: 2.6.0
+  # NOTE: 2.6.0 triggers duplicate label keys (app.kubernetes.io/component / part-of)
+  # during Flux Helm post-render causing YAML unmarshal errors. Downgrading to 2.5.1
+  # as a temporary workaround until upstream chart fixes duplication.
+  version: 2.5.1
   install:
     createNamespace: true
     remediation:
