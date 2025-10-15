@@ -7,3 +7,4 @@ resources:
   - ../../../../base/namespaces/services.yaml
   - ../../../../base/namespaces/storage.yaml
   - ../../../../base/namespaces/reloader.yaml
+  - ../../../../base/namespaces/external-secret.yaml
