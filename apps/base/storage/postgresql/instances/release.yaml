@@ -45,7 +45,5 @@ spec:
             - createdb
           databases:
             kms: kms_user
-          preparedDatabases:
-            kms: {}
           postgresql:
             version: "16"
