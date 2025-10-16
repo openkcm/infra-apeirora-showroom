@@ -7,45 +7,4 @@ resources:
     immutable: false
     data:
       trustedSubjects.yaml: |-
-        automations:
-          - CN=automation,L=9999-TEST-CSGE,OU=bfe87081-75e2-473a-bbf8-e4f80d7e4175,OU=SAP Cloud Platform Clients,O=SAP SE,C=DE
-          - CN=automation,L=9999-TEST-CSGE,OU=a45b537c-3e0c-4403-9a42-17fb5ad59215,OU=SAP Cloud Platform Clients,O=SAP SE,C=DE
-
-        btp-callbacks:
-          - CN=Subscription Manager,L=sap-provisioning,OU=Certificate Service,OU=Subscription Manager,O=SAP Trust Community,C=DE
-          - CN=Subscription Manager,L=Subscription Manager,OU=sap-provisioning,OU=Canary,OU=SAP Cloud Platform Clients,O=SAP SE,C=DE
-          - CN=exampleapp_99_eu10-canary_csg,L=9999-TEST-CSGE,OU=2dfd8089-3c3c-47a4-ae67-3abaf016908a,OU=Canary,OU=SAP Cloud Platform Clients,O=SAP SE,C=DE
-
-        spis:
-          - CN=cmp-stage,L=Stage,OU=cmp-cf-eu10-canary,OU=Canary,OU=SAP Cloud Platform Clients,O=SAP SE,C=DE
-          - CN=exampleapp_99_eu10-canary_csg,L=9999-TEST-CSGE,OU=2dfd8089-3c3c-47a4-ae67-3abaf016908a,OU=Canary,OU=SAP Cloud Platform Clients,O=SAP SE,C=DE
-
-        btp-cockpit-service-api:
-          - CN=SAP BTP Cockpit Client For KMS,L=accounts.sap.com,OU=SAP BTP Cockpit Client,OU=SAP Cloud Platform Clients,O=SAP,C=DE
-          - CN=exampleapp_99_eu10-canary_csg,L=9999-TEST-CSGE,OU=2dfd8089-3c3c-47a4-ae67-3abaf016908a,OU=Canary,OU=SAP Cloud Platform Clients,O=SAP SE,C=DE
-
-        sapkms-ks:
-          - CN=sapkms-ks,L=Frankfurt,OU=4ca4a2fb-f8ed-4ca8-92c4-57ac972cc6c2,OU=Canary,OU=SAP Cloud Platform Clients,O=SAP SE,C=DE
-          - CN=sapkms-ks,L=eu10-canary,OU=413aebc7-ac56-474b-b83e-f98befaf2a71,OU=Canary,OU=SAP Cloud Platform Clients,O=SAP SE,C=DE
-          - CN=sapkms-ks,L=us31,OU=2fa5347e-4daf-478b-a95b-5f4725c20283,OU=Canary,OU=SAP Cloud Platform Clients,O=SAP SE,C=DE
-          - CN=sapkms-ks,L=eu30,OU=6032221c-48ce-4c8a-a44b-c14da5826229,OU=SAP Cloud Platform Clients,O=SAP SE,C=DE
-          - CN=sapkms-ks,L=eu12,OU=08c53948-fc3e-4a3c-94eb-37640531080c,OU=Canary,OU=SAP Cloud Platform Clients,O=SAP SE,C=DE
-          - CN=exampleapp_99_eu10-canary_csg,L=9999-TEST-CSGE,OU=2dfd8089-3c3c-47a4-ae67-3abaf016908a,OU=Canary,OU=SAP Cloud Platform Clients,O=SAP SE,C=DE
-
-        sapkms-cmk:
-          - CN=mesh,L=kms20:cmk:canary,OU=554e9d05-3818-4a8b-968d-080f4802e123,OU=SAP Cloud Platform Clients,O=SAP SE,C=DE
-          - CN=aws-eu-01,L=kms20:cmk:canary,OU=89ce5968-95e6-4bde-9bca-c5820f6f64fa,OU=SAP Cloud Platform Clients,O=SAP SE,C=DE
-          - CN=aws-us-01,L=kms20:cmk:canary,OU=41d21508-6a35-441b-a5ed-7ca46c619b84,OU=SAP Cloud Platform Clients,O=SAP SE,C=DE
-          - CN=gcp-eu-01,L=kms20:cmk:canary,OU=89ce5968-95e6-4bde-9bca-c5820f6f64fa,OU=SAP Cloud Platform Clients,O=SAP SE,C=DE
-          - CN=exampleapp_99_eu10-canary_csg,L=9999-TEST-CSGE,OU=2dfd8089-3c3c-47a4-ae67-3abaf016908a,OU=Canary,OU=SAP Cloud Platform Clients,O=SAP SE,C=DE
-
-        mocks-testing:
-          - CN=private-cmk-mocks-go,L=Frankfurt,OU=75234043-d387-4c11-928e-3e3b4facc7ea,OU=Canary,OU=SAP Cloud Platform Clients,O=SAP SE,C=DE
-          - CN=private-cmk-mocks-go,L=Frankfurt,OU=413aebc7-ac56-474b-b83e-f98befaf2a71,OU=Canary,OU=SAP Cloud Platform Clients,O=SAP SE,C=DE
-
-        developers:
-          - CN=V1..DEVEL/ISM/AppTU:3694d615-69a3-4fb1-8d04-18eaffcd421c,L=DEVEL/KMS:3694d615-69a3-4fb1-8d04-18eaffcd421c,OU=fa5479eb-cc52-4605-a99e-be1af660f698,OU=Canary,OU=SAP Cloud Platform Clients,O=SAP SE,C=DE
-          - CN=private-I538413,L=9999-PRIVATE-CERT,OU=6425e3f7-7c06-4b76-a2aa-0ed4f5d67edb,OU=Canary,OU=SAP Cloud Platform Clients,O=SAP SE,C=DE
-
-        registry-platform-extension-testing:
-          - CN=exampleapp_99_eu10-canary_csg,L=9999-TEST-CSGE,OU=2dfd8089-3c3c-47a4-ae67-3abaf016908a,OU=Canary,OU=SAP Cloud Platform Clients,O=SAP SE,C=DE
+        # Trusted subjects for mTLS authentication
