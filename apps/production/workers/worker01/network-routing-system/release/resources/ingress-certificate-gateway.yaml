@@ -11,23 +11,9 @@ resources:
         - name: tcp
           protocol: TCP
           port: 1
-        - name: https-worker01
-          protocol: HTTPS
-          hostname: ing.cert.worker01.kms.shoot.gardener.cc-one.showroom.apeirora.eu
-          port: 443
-          allowedRoutes:
-            namespaces:
-              from: Same
-          tls:
-            mode: Terminate
-            certificateRefs:
-              - kind: Secret
-                group: ""
-                name: ingress-certificate-gateway-secret
-                namespace: envoy-gateway-system
         - name: https-global
           protocol: HTTPS
-          hostname: ing.cert.mesh.cmkc.kms.cloud.sap
+          hostname: ing.cert.worker01.kms.shoot.gardener.cc-one.showroom.apeirora.eu
           port: 443
           allowedRoutes:
             namespaces:
