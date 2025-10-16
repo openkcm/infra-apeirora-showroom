@@ -1,0 +1,51 @@
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: rabbitmq
+spec:
+  interval: 1m
+  releaseName: storage
+  chart:
+    spec:
+      chart: ./tools/charts/generic
+      sourceRef:
+        kind: GitRepository
+        name: flux-system
+        namespace: flux-system
+  install:
+    createNamespace: false
+    remediation:
+      retries: -1
+      remediateLastFailure: true
+  upgrade:
+    remediation:
+      retries: -1
+      remediateLastFailure: true
+  valuesFrom:
+    # !! The sequence is important !!
+    # Always first **base** and **overlay** (if necessary) later.
+    ## base
+    - kind: ConfigMap
+      name: rabbitmq-base-values
+      valuesKey: crd.yaml
+    - kind: ConfigMap
+      name: rabbitmq-base-values
+      valuesKey: clusterrole01.yaml
+    - kind: ConfigMap
+      name: rabbitmq-base-values
+      valuesKey: clusterrole02.yaml
+    - kind: ConfigMap
+      name: rabbitmq-base-values
+      valuesKey: clusterrolebinding01.yaml
+    - kind: ConfigMap
+      name: rabbitmq-base-values
+      valuesKey: deployment.yaml
+    - kind: ConfigMap
+      name: rabbitmq-base-values
+      valuesKey: role.yaml
+    - kind: ConfigMap
+      name: rabbitmq-base-values
+      valuesKey: rolebinding01.yaml
+    - kind: ConfigMap
+      name: rabbitmq-base-values
+      valuesKey: serviceaccount.yaml

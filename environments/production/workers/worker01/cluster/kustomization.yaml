@@ -98,18 +98,3 @@ patches:
       - op: add
         path: /metadata/namespace
         value: envoy-gateway-system
-
-  - target:
-      kind: Kustomization
-      group: kustomize.toolkit.fluxcd.io
-      name: rabbitmq
-      version: v1
-    # patch to append the elements in `.spec.patches.[]` in Flux KS resource
-    patch: |
-      - op: remove
-        path: /spec/targetNamespace
-      - op: remove
-        path: /spec/patches
-      - op: add
-        path: /metadata/namespace
-        value: storage
