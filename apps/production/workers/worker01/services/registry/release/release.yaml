@@ -35,7 +35,7 @@ spec:
       logger:
         level: debug
       database:
-        host: 127.0.0.1
+        host: kms-postgresql.services.svc.cluster.local
         port: 5432
         name: registry
         user:

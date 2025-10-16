@@ -47,5 +47,6 @@ spec:
             - createdb
           databases:
             kms: kms_user
+            registry: kms_user
           postgresql:
             version: "16"
