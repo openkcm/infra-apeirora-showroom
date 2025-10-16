@@ -27,13 +27,11 @@ spec:
       registry: ghcr.io/openkcm
       repository: images/registry
       digest: sha256:47dfcadde59f5b2d9c726081ebe174c2807e83d169589200a9857d9e588bfd9a
-    debugMode: true
     service:
       port: 9092
     config:
       application:
         environment: development
-      debugMode: true
       logger:
         level: debug
       database:
