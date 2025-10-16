@@ -5,3 +5,5 @@ metadata:
   namespace: flux-system
 resources:
   - ../../../../../base/storage/rabbitmq
+patches:
+  - path: release-values.yaml
