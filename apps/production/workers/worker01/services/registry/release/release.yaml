@@ -1,0 +1,71 @@
+---
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: registry
+spec:
+  targetNamespace: services
+  chartRef:
+    kind: OCIRepository
+    name: registry
+  interval: 10m
+  timeout: 10m
+  install:
+    createNamespace: true
+    remediation:
+      retries: 5
+      remediateLastFailure: true
+  upgrade:
+    remediation:
+      retries: 5
+      remediateLastFailure: true
+  values:
+    fullnameOverride: "registry"
+    imagePullSecrets: []
+    image:
+      registry: ghcr.io/openkcm
+      repository: images/registry
+      digest: sha256:47dfcadde59f5b2d9c726081ebe174c2807e83d169589200a9857d9e588bfd9a
+    debugMode: true
+    service:
+      port: 9092
+    config:
+      application:
+        environment: development
+      debugMode: true
+      logger:
+        level: debug
+      database:
+        host: 127.0.0.1
+        port: 5432
+        name: registry
+        user:
+          source: file
+          file:
+            path: /etc/registry/credentials/database/username
+            format: binary
+        password:
+          source: file
+          file:
+            path: /etc/registry/credentials/database/password
+            format: binary
+      telemetry:
+        traces:
+          enabled: false
+        metrics:
+          enabled: false
+        logs:
+          enabled: false
+    extraVolumes:
+      - name: db-credentials
+        secret:
+          secretName: kms-user.kms-postgresql.credentials.postgresql.acid.zalan.do
+          items:
+            - key: username
+              path: username
+            - key: password
+              path: password
+    extraVolumeMounts:
+    - name: db-credentials
+      mountPath: /etc/registry/credentials/database
+      readOnly: true
