@@ -72,29 +72,29 @@ spec:
       envoyGateway:
         gateway:
           controllerName: gateway.envoyproxy.io/gatewayclass-controller
-        extensionManager:
-          # Envoy Gateway will watch these resource kinds and use them as extension policies
-          # which can be attached to Gateway resources.
-          policyResources:
-            - group: gateway.extensions.envoyproxy.io
-              version: v1alpha1
-              kind: JWTProvider
-          resources:
-            - group: gateway.extensions.envoyproxy.io
-              version: v1alpha1
-              kind: JWTProvider
-          hooks:
-            xdsTranslator:
-              post:
-                - HTTPListener
-                - Translation
-                - VirtualHost
-          service:
-            #            unix:
-            #              path: /run/envoy/gateway/sockets/extension.sock
-            fqdn:
-              hostname: gateway-extension.envoy-gateway-system.svc.cluster.local
-              port: 9092
+        # extensionManager:
+        #   # Envoy Gateway will watch these resource kinds and use them as extension policies
+        #   # which can be attached to Gateway resources.
+        #   policyResources:
+        #     - group: gateway.extensions.envoyproxy.io
+        #       version: v1alpha1
+        #       kind: JWTProvider
+        #   resources:
+        #     - group: gateway.extensions.envoyproxy.io
+        #       version: v1alpha1
+        #       kind: JWTProvider
+        #   hooks:
+        #     xdsTranslator:
+        #       post:
+        #         - HTTPListener
+        #         - Translation
+        #         - VirtualHost
+        #   service:
+        #     #            unix:
+        #     #              path: /run/envoy/gateway/sockets/extension.sock
+        #     fqdn:
+        #       hostname: gateway-extension.envoy-gateway-system.svc.cluster.local
+        #       port: 9092
 
         provider:
           type: Kubernetes
