@@ -4,7 +4,8 @@ metadata:
   name: rabbitmq
 spec:
   interval: 1m
-  releaseName: storage
+  releaseName: rabbitmq
+  targetNamespace: storage
   chart:
     spec:
       chart: ./tools/charts/generic
@@ -49,3 +50,4 @@ spec:
     - kind: ConfigMap
       name: rabbitmq-base-values
       valuesKey: serviceaccount.yaml
+
