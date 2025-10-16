@@ -27,37 +27,19 @@ spec:
     ## base
     - kind: ConfigMap
       name: network-routing-system-base-values
-      valuesKey: echoserver-certificate-http-route.yaml
-    - kind: ConfigMap
-      name: network-routing-system-base-values
       valuesKey: echoserver-http-route.yaml
-    - kind: ConfigMap
-      name: network-routing-system-base-values
-      valuesKey: envoy-proxy-certificate-config.yaml
     - kind: ConfigMap
       name: network-routing-system-base-values
       valuesKey: envoy-proxy-config.yaml
     - kind: ConfigMap
       name: network-routing-system-base-values
-      valuesKey: gateway-class-ingress-certificate-gateway.yaml
-    - kind: ConfigMap
-      name: network-routing-system-base-values
       valuesKey: gateway-class-ingress-gateway.yaml
-    - kind: ConfigMap
-      name: network-routing-system-base-values
-      valuesKey: ingress-certificate-gateway.yaml
     - kind: ConfigMap
       name: network-routing-system-base-values
       valuesKey: ingress-gateway.yaml
     - kind: ConfigMap
       name: network-routing-system-base-values
-      valuesKey: service-envoy-proxy-ingress-certificate-gateway.yaml
-    - kind: ConfigMap
-      name: network-routing-system-base-values
       valuesKey: service-envoy-proxy-ingress-gateway.yaml
-    - kind: ConfigMap
-      name: network-routing-system-base-values
-      valuesKey: registry-certificate-grpc-route.yaml
     - kind: ConfigMap
       name: network-routing-system-base-values
       valuesKey: registry-grpc-route.yaml

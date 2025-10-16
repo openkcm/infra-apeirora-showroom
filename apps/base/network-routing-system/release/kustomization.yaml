@@ -7,15 +7,9 @@ generatorOptions:
 configMapGenerator:
   - name: network-routing-system-base-values
     files:
-      - ./resources/echoserver-certificate-http-route.yaml
       - ./resources/echoserver-http-route.yaml
-      - ./resources/envoy-proxy-certificate-config.yaml
       - ./resources/envoy-proxy-config.yaml
-      - ./resources/gateway-class-ingress-certificate-gateway.yaml
       - ./resources/gateway-class-ingress-gateway.yaml
-      - ./resources/ingress-certificate-gateway.yaml
       - ./resources/ingress-gateway.yaml
-      - ./resources/service-envoy-proxy-ingress-certificate-gateway.yaml
       - ./resources/service-envoy-proxy-ingress-gateway.yaml
-      - ./resources/registry-certificate-grpc-route.yaml
       - ./resources/registry-grpc-route.yaml

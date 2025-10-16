@@ -10,9 +10,6 @@ resources:
         - group: gateway.networking.k8s.io
           kind: GRPCRoute
           name: registry-grpc-route
-        - group: gateway.networking.k8s.io
-          kind: GRPCRoute
-          name: registry-certificate-grpc-route
       extAuth:
         grpc:
           backendRefs:

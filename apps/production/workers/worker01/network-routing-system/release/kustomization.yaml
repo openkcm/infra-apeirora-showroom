@@ -9,11 +9,7 @@ generatorOptions:
 configMapGenerator:
   - name: network-routing-system-overlay-values
     files:
-      - ./resources/echoserver-certificate-http-route.yaml
       - ./resources/echoserver-http-route.yaml
-      - ./resources/envoy-proxy-certificate-config.yaml
       - ./resources/envoy-proxy-config.yaml
-      - ./resources/ingress-certificate-gateway.yaml
       - ./resources/ingress-gateway.yaml
-      - ./resources/registry-certificate-grpc-route.yaml
       - ./resources/registry-grpc-route.yaml
