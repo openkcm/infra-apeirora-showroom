@@ -32,3 +32,4 @@ spec:
         kind: RabbitmqCluster
         metadata:
           name: kms-rabbitmqcluster
+          namespace: services
