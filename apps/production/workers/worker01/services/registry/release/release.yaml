@@ -5,6 +5,7 @@ metadata:
   name: registry
 spec:
   targetNamespace: services
+  storageNamespace: services
   chartRef:
     kind: OCIRepository
     name: registry
