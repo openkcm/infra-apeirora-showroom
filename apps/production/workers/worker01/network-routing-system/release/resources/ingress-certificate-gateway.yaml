@@ -13,7 +13,7 @@ resources:
           port: 1
         - name: https-worker01
           protocol: HTTPS
-          hostname: ing.cert.worker01.cmkc.kms.cloud.sap
+          hostname: ing.cert.worker01.kms.shoot.gardener.cc-one.showroom.apeirora.eu
           port: 443
           allowedRoutes:
             namespaces:

@@ -9,8 +9,8 @@ resources:
         kubernetes:
           envoyService:
             annotations:
-              dns.gardener.cloud/dnsnames: ing.worker01.cmkc.kms.cloud.sap
-              cert.gardener.cloud/dnsnames: ing.worker01.cmkc.kms.cloud.sap,ing.mesh.cmkc.kms.cloud.sap
+              dns.gardener.cloud/dnsnames: ing.worker01.kms.shoot.gardener.cc-one.showroom.apeirora.eu
+              cert.gardener.cloud/dnsnames: ing.worker01.kms.shoot.gardener.cc-one.showroom.apeirora.eu
               cloud.google.com/load-balancer-type: "External"
           envoyHpa:
             minReplicas: 3

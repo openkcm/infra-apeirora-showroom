@@ -27,28 +27,16 @@ spec:
     ## base
     - kind: ConfigMap
       name: network-routing-system-base-values
-      valuesKey: client-traffic-policy-certificate-tls.yaml
-    - kind: ConfigMap
-      name: network-routing-system-base-values
-      valuesKey: client-traffic-policy-tls.yaml
-    - kind: ConfigMap
-      name: network-routing-system-base-values
       valuesKey: echoserver-certificate-http-route.yaml
     - kind: ConfigMap
       name: network-routing-system-base-values
       valuesKey: echoserver-http-route.yaml
     - kind: ConfigMap
       name: network-routing-system-base-values
-      valuesKey: echoserver-security-policy.yaml
-    - kind: ConfigMap
-      name: network-routing-system-base-values
       valuesKey: envoy-proxy-certificate-config.yaml
     - kind: ConfigMap
       name: network-routing-system-base-values
       valuesKey: envoy-proxy-config.yaml
-    - kind: ConfigMap
-      name: network-routing-system-base-values
-      valuesKey: envoy-proxy-kms20cmk1-jwt-provider.yaml
     - kind: ConfigMap
       name: network-routing-system-base-values
       valuesKey: gateway-class-ingress-certificate-gateway.yaml
@@ -63,43 +51,13 @@ spec:
       valuesKey: ingress-gateway.yaml
     - kind: ConfigMap
       name: network-routing-system-base-values
-      valuesKey: sap-cloud-root-ca.yaml
-    - kind: ConfigMap
-      name: network-routing-system-base-values
       valuesKey: service-envoy-proxy-ingress-certificate-gateway.yaml
     - kind: ConfigMap
       name: network-routing-system-base-values
       valuesKey: service-envoy-proxy-ingress-gateway.yaml
     - kind: ConfigMap
       name: network-routing-system-base-values
-      valuesKey: btp-callbacks-certificate-http-route.yaml
-    - kind: ConfigMap
-      name: network-routing-system-base-values
-      valuesKey: btp-callbacks-security-policy.yaml
-    - kind: ConfigMap
-      name: network-routing-system-base-values
-      valuesKey: platform-extension-certificate-http-route.yaml
-    - kind: ConfigMap
-      name: network-routing-system-base-values
-      valuesKey: platform-extension-http-route.yaml
-    - kind: ConfigMap
-      name: network-routing-system-base-values
-      valuesKey: platform-extension-security-policy.yaml
-    - kind: ConfigMap
-      name: network-routing-system-base-values
       valuesKey: registry-certificate-grpc-route.yaml
     - kind: ConfigMap
       name: network-routing-system-base-values
       valuesKey: registry-grpc-route.yaml
-    - kind: ConfigMap
-      name: network-routing-system-base-values
-      valuesKey: registry-security-policy.yaml
-    - kind: ConfigMap
-      name: network-routing-system-base-values
-      valuesKey: spis-certificate-http-route.yaml
-    - kind: ConfigMap
-      name: network-routing-system-base-values
-      valuesKey: spis-http-route.yaml
-    - kind: ConfigMap
-      name: network-routing-system-base-values
-      valuesKey: spis-security-policy.yaml
