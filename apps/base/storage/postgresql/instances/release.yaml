@@ -5,6 +5,8 @@ metadata:
 spec:
   interval: 1m
   releaseName: postgresql--post-release
+  storageNamespace: storage
+  targetNamespace: storage
   chart:
     spec:
       chart: ./tools/charts/generic
