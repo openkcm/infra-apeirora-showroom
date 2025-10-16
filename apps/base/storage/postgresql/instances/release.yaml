@@ -32,7 +32,7 @@ spec:
         kind: postgresql
         metadata:
           name: kms-postgresql
-          namespace: storage
+          namespace: services
         spec:
           teamId: "acid"
           volume:
