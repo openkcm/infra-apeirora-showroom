@@ -1,5 +1,41 @@
 ## ApeiroRA Showroom Infra & Worker Cluster Setup
 
+### Inhaltsverzeichnis / Table of Contents
+1. [Prerequisites](#prerequisites)
+2. [Create the Infra Cluster (Gardener Shoot)](#1-create-the-infra-cluster-gardener-shoot)
+3. [Install Flux on Infra Cluster](#2-install-flux-on-infra-cluster)
+4. [Apply Infra Cluster Manifests](#3-apply-infra-cluster-manifests)
+5. [Add SOPS Age Key Secret](#4-add-sops-age-key-secret)
+6. [Encrypt Any New Secrets](#5-encrypt-any-new-secrets)
+7. [Verify Test Secret Decryption](#6-verify-test-secret-decryption)
+8. [Structured Authentication ConfigMap](#7-apply-structured-authentication-configmap-issuer)
+9. [Create Worker Cluster (structuredAuthentication)](#8-create-worker-cluster-shoot-with-structured-auth-enabled)
+10. [Provide Worker Cluster CA](#9-provide-cluster-ca-of-worker-to-infra-if-remote-sync-needed)
+11. [Apply RBAC on Worker Cluster](#10-apply-rbac-on-worker-cluster)
+12. [Deploy Worker Workloads via Flux](#11-deploy-worker-cluster-workloads-via-infra-flux)
+13. [Validate Remote Secrets & Namespaces](#12-validate-remote-secrets--namespaces)
+14. [Local Encryption / Decryption Workflow](#13-encryption--decryption-local-workflow)
+15. [AGE Key Rotation](#14-age-key-rotation)
+16. [Cross-Cluster Secret Sync (Infra -> Worker)](#15-cross-cluster-secret-sync-infra---worker)
+17. [ESO Release Values Check](#150-eso-release)
+18. [Remote Secret Flow Overview](#151-flow-overview)
+19. [Remote Secret Kustomization Example](#152-minimal-remote-secret-kustomization-example)
+20. [Kubeconfig Secret](#153-kubeconfig-secret)
+21. [Namespace Presence](#154-namespace-presence)
+22. [RBAC for Remote Sync & ESO](#155-rbac-for-remote-sync--eso)
+23. [ESO Notes](#156-external-secrets-operator-eso-notes)
+24. [Troubleshooting Remote Delivery](#157-troubleshooting-remote-secret-delivery)
+25. [Verification Commands](#158-verification-commands)
+26. [Hardening Recommendations](#159-recommended-hardening)
+27. [External Secrets Linkerd CA Sync](#16-external-secrets-cross-cluster-linkerd-ca-sync)
+28. [Linkerd CA Sync Goal](#161-goal)
+29. [Components](#162-components)
+30. [ClusterSecretStore Example](#163-clustersecretstore-example)
+31. [ExternalSecret Definition](#164-externalsecret-definition)
+32. [RBAC Requirements](#165-rbac-requirements-worker-cluster)
+33. [Token / Auth Considerations](#166-token--auth-considerations)
+34. [Validation Steps](#167-validation-steps)
+
 This document complements the root `README.md` with the concrete step‑by‑step for bootstrapping the Infra (control) cluster and a Worker cluster using Flux, SOPS (age), and Kubernetes structuredAuthentication.
 
 ### Prerequisites
