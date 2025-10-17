@@ -41,6 +41,32 @@ Enable the provided pre-commit hook to block mistakes:
 
 ```bash
 git config core.hooksPath .githooks
+chmod +x .githooks/pre-commit           # ensure executable so Git runs it
+git add .githooks/pre-commit            # stage permission bit for others
+git commit -m "chore: make pre-commit hook executable" || true
+```
+
+Verify it runs (should show hook output or succeed silently on empty commit):
+
+```bash
+git commit --allow-empty -m "hook test"
+```
+
+Troubleshooting:
+
+* If you see: `hook was ignored because it's not set as executable` run:
+	```bash
+	chmod +x .githooks/pre-commit
+	```
+* To bypass in an emergency (NOT recommended for secrets work): `git commit -n -m "msg"`
+* Update after pulling new hooks:
+	```bash
+	chmod +x .githooks/* || true
+	```
+* Disable (if ever needed):
+	```bash
+	git config --unset core.hooksPath
+	```
 ```
 
 The hook will fail the commit if:

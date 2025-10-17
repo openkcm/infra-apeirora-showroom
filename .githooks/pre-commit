@@ -1,39 +1,50 @@
 #!/usr/bin/env bash
-# Prevent committing decrypted secrets or kustomization.yaml accidentally encrypted.
+# Prevent committing decrypted secrets or encrypted kustomization.yaml.
 set -euo pipefail
 
-# Files staged
 STAGED=$(git diff --cached --name-only)
-
 FAIL=0
 
-# 1. Block committing secrets with plain stringData (unencrypted) in secrets directories.
+# 1. Block PLAINTEXT stringData in secrets (allow if SOPS-encrypted: has sops: + ENC[ markers)
 while IFS= read -r f; do
+  [[ -n $f ]] || continue
   [[ $f =~ /secrets/ ]] || continue
   [[ $f =~ kustomization\.ya?ml$ ]] && continue
-  # Skip binary
-  if file "$f" | grep -qi 'text'; then
-    if grep -Eq '^stringData:' "$f"; then
-      echo "[pre-commit] ERROR: $f contains stringData (unencrypted). Run: make encrypt-secrets" >&2
+  file "$f" | grep -qi 'text' || continue
+  if grep -Eq '^stringData:' "$f"; then
+    if ! grep -Eq '^sops:' "$f"; then
+      echo "[pre-commit] ERROR: $f has stringData but no sops: block (unencrypted). Run: make encrypt-secrets" >&2
+      FAIL=1
+      continue
+    fi
+    if awk '
+      /^stringData:/ {inblock=1; next}
+      inblock && /^[^[:space:]]/ {inblock=0}
+      inblock && /^[[:space:]]+[A-Za-z0-9_.-]+:/ {
+        if ($0 ~ /#/ ) next
+        if ($0 ~ /\|$/ || $0 ~ />$/) next
+        if ($0 !~ /ENC\[/) { plaintext=1 }
+      }
+      END { exit !plaintext }
+    ' "$f"; then
+      echo "[pre-commit] ERROR: $f contains plaintext stringData values (encrypt with: make encrypt-secrets)" >&2
       FAIL=1
     fi
-    # If sops block exists ensure data fields are encrypted (has sops metadata)
-    if grep -Eq '^sops:' "$f" && ! grep -Eq 'ENC\[' "$f"; then
-      echo "[pre-commit] WARNING: $f has sops: marker but no ENC[...] blocks." >&2
-    fi
   fi
-done < <(printf '%s
-' "$STAGED")
+  if grep -Eq '^sops:' "$f" && ! grep -Eq 'ENC\[' "$f"; then
+    echo "[pre-commit] WARNING: $f has sops: marker but no ENC[...] blocks (did encryption fail?)." >&2
+  fi
+done < <(printf '%s\n' "$STAGED")
 
 # 2. Ensure kustomization.yaml is never encrypted
 while IFS= read -r f; do
+  [[ -n $f ]] || continue
   [[ $f =~ kustomization\.ya?ml$ ]] || continue
   if grep -Eq '^sops:' "$f"; then
     echo "[pre-commit] ERROR: $f should not contain a sops: section." >&2
     FAIL=1
   fi
-done < <(printf '%s
-' "$STAGED")
+done < <(printf '%s\n' "$STAGED")
 
 if [[ $FAIL -ne 0 ]]; then
   echo "[pre-commit] Commit blocked." >&2
