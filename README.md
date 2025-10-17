@@ -35,6 +35,8 @@ make encrypt-secrets   # encrypt all secrets/**/*
 make decrypt-secrets   # decrypt locally (NEVER commit decrypted files)
 ```
 
+For full Infra & Worker cluster bootstrap (Flux install, structuredAuthentication, RBAC, remote sync), see the setup guide: [setup/readme.md](./setup/readme.md).
+
 ### Git Hook Protection
 
 Enable the provided pre-commit hook to block mistakes:
