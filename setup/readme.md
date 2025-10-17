@@ -1,6 +1,6 @@
 ## ApeiroRA Showroom Infra & Worker Cluster Setup
 
-### Inhaltsverzeichnis / Table of Contents
+### Table of Contents
 1. [Prerequisites](#prerequisites)
 2. [Create the Infra Cluster (Gardener Shoot)](#1-create-the-infra-cluster-gardener-shoot)
 3. [Install Flux on Infra Cluster](#2-install-flux-on-infra-cluster)
