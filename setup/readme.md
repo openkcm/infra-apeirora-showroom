@@ -1,40 +1,52 @@
 ## ApeiroRA Showroom Infra & Worker Cluster Setup
 
-### Table of Contents
-1. [Prerequisites](#prerequisites)
-2. [Create the Infra Cluster (Gardener Shoot)](#1-create-the-infra-cluster-gardener-shoot)
-3. [Install Flux on Infra Cluster](#2-install-flux-on-infra-cluster)
-4. [Apply Infra Cluster Manifests](#3-apply-infra-cluster-manifests)
-5. [Add SOPS Age Key Secret](#4-add-sops-age-key-secret)
-6. [Encrypt Any New Secrets](#5-encrypt-any-new-secrets)
-7. [Verify Test Secret Decryption](#6-verify-test-secret-decryption)
-8. [Structured Authentication ConfigMap](#7-apply-structured-authentication-configmap-issuer)
-9. [Create Worker Cluster (structuredAuthentication)](#8-create-worker-cluster-shoot-with-structured-auth-enabled)
-10. [Provide Worker Cluster CA](#9-provide-cluster-ca-of-worker-to-infra-if-remote-sync-needed)
-11. [Apply RBAC on Worker Cluster](#10-apply-rbac-on-worker-cluster)
-12. [Deploy Worker Workloads via Flux](#11-deploy-worker-cluster-workloads-via-infra-flux)
-13. [Validate Remote Secrets & Namespaces](#12-validate-remote-secrets--namespaces)
-14. [Local Encryption / Decryption Workflow](#13-encryption--decryption-local-workflow)
-15. [AGE Key Rotation](#14-age-key-rotation)
-16. [Cross-Cluster Secret Sync (Infra -> Worker)](#15-cross-cluster-secret-sync-infra---worker)
-17. [ESO Release Values Check](#150-eso-release)
-18. [Remote Secret Flow Overview](#151-flow-overview)
-19. [Remote Secret Kustomization Example](#152-minimal-remote-secret-kustomization-example)
-20. [Kubeconfig Secret](#153-kubeconfig-secret)
-21. [Namespace Presence](#154-namespace-presence)
-22. [RBAC for Remote Sync & ESO](#155-rbac-for-remote-sync--eso)
-23. [ESO Notes](#156-external-secrets-operator-eso-notes)
-24. [Troubleshooting Remote Delivery](#157-troubleshooting-remote-secret-delivery)
-25. [Verification Commands](#158-verification-commands)
-26. [Hardening Recommendations](#159-recommended-hardening)
-27. [External Secrets Linkerd CA Sync](#16-external-secrets-cross-cluster-linkerd-ca-sync)
-28. [Linkerd CA Sync Goal](#161-goal)
-29. [Components](#162-components)
-30. [ClusterSecretStore Example](#163-clustersecretstore-example)
-31. [ExternalSecret Definition](#164-externalsecret-definition)
-32. [RBAC Requirements](#165-rbac-requirements-worker-cluster)
-33. [Token / Auth Considerations](#166-token--auth-considerations)
-34. [Validation Steps](#167-validation-steps)
+### Inhaltsverzeichnis / Table of Contents
+
+**Grundlagen / Basics**
+- [Prerequisites](#prerequisites)
+
+**Bootstrap Infra Cluster**
+1. [Create the Infra Cluster (Gardener Shoot)](#1-create-the-infra-cluster-gardener-shoot)
+2. [Install Flux on Infra Cluster](#2-install-flux-on-infra-cluster)
+3. [Apply Infra Cluster Manifests](#3-apply-infra-cluster-manifests)
+4. [Add SOPS Age Key Secret](#4-add-sops-age-key-secret)
+5. [Encrypt Any New Secrets](#5-encrypt-any-new-secrets)
+6. [Verify Test Secret Decryption](#6-verify-test-secret-decryption)
+7. [Apply Structured Authentication ConfigMap (Issuer)](#7-apply-structured-authentication-configmap-issuer)
+
+**Worker Cluster**
+8. [Create Worker Cluster (Structured Auth Enabled)](#8-create-worker-cluster-shoot-with-structured-auth-enabled)
+9. [Provide Cluster CA of Worker to Infra](#9-provide-cluster-ca-of-worker-to-infra-if-remote-sync-needed)
+10. [Apply RBAC on Worker Cluster](#10-apply-rbac-on-worker-cluster)
+11. [Deploy Worker Cluster Workloads via Infra Flux](#11-deploy-worker-cluster-workloads-via-infra-flux)
+12. [Validate Remote Secrets & Namespaces](#12-validate-remote-secrets--namespaces)
+
+**Lokaler Entwicklungs-Workflow / Local Dev Workflow**
+13. [Encryption / Decryption Workflow](#13-encryption--decryption-local-workflow)
+14. [AGE Key Rotation](#14-age-key-rotation)
+
+**Cross-Cluster Secret Sync (Infra -> Worker)**
+15. [Overview Section](#15-cross-cluster-secret-sync-infra---worker)
+  - [ESO Release Values](#150-eso-release)
+  - [Flow Overview](#151-flow-overview)
+  - [Remote Secret Kustomization Example](#152-minimal-remote-secret-kustomization-example)
+  - [Kubeconfig Secret](#153-kubeconfig-secret)
+  - [Namespace Presence](#154-namespace-presence)
+  - [RBAC for Remote Sync & ESO](#155-rbac-for-remote-sync--eso)
+  - [ESO Notes](#156-external-secrets-operator-eso-notes)
+  - [Troubleshooting](#157-troubleshooting-remote-secret-delivery)
+  - [Verification Commands](#158-verification-commands)
+  - [Hardening](#159-recommended-hardening)
+
+**External Secrets Linkerd CA Sync**
+16. [Linkerd CA Sync Section](#16-external-secrets-cross-cluster-linkerd-ca-sync)
+  - [Goal](#161-goal)
+  - [Components](#162-components)
+  - [ClusterSecretStore Example](#163-clustersecretstore-example)
+  - [ExternalSecret Definition](#164-externalsecret-definition)
+  - [RBAC Requirements](#165-rbac-requirements-worker-cluster)
+  - [Token / Auth Considerations](#166-token--auth-considerations)
+  - [Validation Steps](#167-validation-steps)
 
 This document complements the root `README.md` with the concrete step‑by‑step for bootstrapping the Infra (control) cluster and a Worker cluster using Flux, SOPS (age), and Kubernetes structuredAuthentication.
 
@@ -118,39 +130,97 @@ kubectl get cm showroominfra-issuer-configmap -n garden-kms
 ```
 If absent:
 ```bash
-kubectl apply -f ./setup/issuer-config-map.yaml
-```
-If it is a new Cluster you need copy the new Issuer URL after cluster is created.
-Contents define `AuthenticationConfiguration` with issuer audiences `kubernetes` & `gardener`, username prefix `infra-cluster-oidc:`.
+# Create the structured authentication issuer ConfigMap (example)
+kubectl apply -f setup/issuer-config-map.yaml -n garden-kms
 
-### 8. Create Worker Cluster (Shoot) With Structured Auth Enabled
-In the Worker cluster Shoot spec, set:
+# Confirm
+kubectl get cm showroominfra-issuer-configmap -n garden-kms -o yaml | grep -E 'usernamePrefix|issuer'
+```
+
+### 8. Create Worker Cluster (structuredAuthentication)
+Create the Worker shoot similarly (choose smaller machine type if appropriate) and ensure structured authentication is enabled. Example Gardener shoot snippet:
 ```yaml
-kubernetes:
-  kubeAPIServer:
-    structuredAuthentication:
-      configMapName: showroominfra-issuer-configmap
+metadata:
+  annotations:
+    authentication.gardener.cloud/issuer: managed
+spec:
+  extensions:
+    - type: shoot-dns-service
+  provider: aws   # or azure/gcp/openstack etc.
 ```
-Ensure the ConfigMap is visible from the Worker cluster (Gardener projects namespace reference). If using a different project, replicate the ConfigMap there.
-If you add this config to a existing cluster you need start manual a reconcile.
+After creation obtain kubeconfig:
+```bash
+kubectl get secret <worker-shoot-kubeconfig-secret> -n garden-kms -o jsonpath='{.data.kubeconfig}' | base64 -d > worker01.kubeconfig
+```
+Validate access:
+```bash
+KUBECONFIG=worker01.kubeconfig kubectl get nodes
+```
 
-### 9. Provide Cluster CA of Worker to Infra (If Remote Sync Needed)
-For remote secret sync or cross-cluster kubeconfigs, ensure the worker cluster CA is available where needed (e.g. embed it in the kubeconfig Secret or Gardener distributes automatically). Update any `kubeConfig` secrets used by Flux Kustomizations.
+### 9. Provide Cluster CA of Worker to Infra (if remote sync needed)
+If you plan to apply manifests to the Worker from Infra using Flux `spec.kubeConfig`, ensure the Infra repo (and optionally cluster) has the Worker CA:
+```bash
+grep 'certificate-authority-data' worker01.kubeconfig | awk -F': ' '{print $2}' > worker01.ca.b64
+base64 -d worker01.ca.b64 > worker01.ca.crt
+```
+Store it securely (e.g. SOPS‑encrypted Secret manifest) if committing:
+```bash
+cat > environments/production/workers/worker01/cluster/secrets/worker01-ca-secret.yaml <<'EOF'
+apiVersion: v1
+kind: Secret
+metadata:
+  name: worker01-ca
+  namespace: flux-system
+stringData:
+  ca.crt: |
+    # paste PEM from worker01.ca.crt
+EOF
+make encrypt-secrets
+```
+Or embed CA directly in the kubeconfig you create as a Secret (recommended):
+```bash
+kubectl -n flux-system create secret generic kubeconfig --from-file=value.yaml=worker01.kubeconfig
+```
 
 ### 10. Apply RBAC on Worker Cluster
-Switch kube-context to Worker cluster:
+Pre-create Roles and RoleBindings on the Worker cluster so the Infra Flux controllers (via OIDC subject prefix) and any dedicated remote sync ServiceAccounts have least privilege access.
 ```bash
-kubectl apply -f ./setup/rbac.yaml
+KUBECONFIG=worker01.kubeconfig kubectl apply -f setup/rbac.yaml
 ```
-RBAC grants:
-* Cluster admin to Flux controllers via OIDC user subjects with prefix `infra-cluster-oidc:`.
-* Least-privilege read Roles for remote sync ServiceAccounts (`kms-system-remote-sync`, `external-secrets-controller`) including fallback bindings without prefix in case API server omits it.
+Key points:
+* Role names ending in `-secrets-read` grant `get,list,watch` on Secrets only.
+* Bindings include subjects with and without the username prefix (`infra-cluster-oidc:`) to handle API server differences.
+* Avoid granting cluster-admin unless required for bootstrap.
+Verification:
+```bash
+KUBECONFIG=worker01.kubeconfig kubectl auth can-i get secrets -n linkerd --as=system:serviceaccount:flux-system:source-controller
+```
 
 ### 11. Deploy Worker Cluster Workloads via Infra Flux
-Back on Infra kube-context, ensure Kustomizations using `spec.kubeConfig` for Worker cluster are applied (see `environments/production/workers/worker01/cluster/`). Monitor:
+Create remote `Kustomization` objects in the Infra cluster that point (`spec.path`) to worker workload directories and include `spec.kubeConfig.secretRef`.
+Example (excerpt):
+```yaml
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: worker01-namespaces
+  namespace: flux-system
+spec:
+  interval: 10m
+  sourceRef:
+    kind: GitRepository
+    name: flux-system
+  path: ./environments/production/workers/worker01/cluster/namespaces
+  prune: true
+  kubeConfig:
+    secretRef:
+      name: kubeconfig
+```
+Apply and verify:
 ```bash
-flux get kustomizations -A
-flux logs --follow --kind Kustomization
+kubectl apply -f environments/production/workers/worker01/cluster/apps/worker01-namespaces.yaml
+flux get kustomizations -A | grep worker01-namespaces
+KUBECONFIG=worker01.kubeconfig kubectl get ns
 ```
 
 ### 12. Validate Remote Secrets & Namespaces
