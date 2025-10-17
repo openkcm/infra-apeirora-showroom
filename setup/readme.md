@@ -6,13 +6,13 @@
 - [Prerequisites](#prerequisites)
 
 **Bootstrap Infra Cluster**
-1. [Create the Infra Cluster (Gardener Shoot)](#1-create-the-infra-cluster-gardener-shoot)
+1. [Create the Infra Cluster](#1-create-the-infra-cluster-gardener-shoot)
 2. [Install Flux on Infra Cluster](#2-install-flux-on-infra-cluster)
 3. [Apply Infra Cluster Manifests](#3-apply-infra-cluster-manifests)
 4. [Add SOPS Age Key Secret](#4-add-sops-age-key-secret)
 5. [Encrypt Any New Secrets](#5-encrypt-any-new-secrets)
 6. [Verify Test Secret Decryption](#6-verify-test-secret-decryption)
-7. [Apply Structured Authentication ConfigMap (Issuer)](#7-apply-structured-authentication-configmap-issuer)
+7. [Apply Structured Authentication ConfigMap](#7-apply-structured-authentication-configmap-issuer)
 
 **Worker Cluster**
 8. [Create Worker Cluster (Structured Auth Enabled)](#8-create-worker-cluster-shoot-with-structured-auth-enabled)
