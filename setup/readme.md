@@ -1,8 +1,8 @@
 ## ApeiroRA Showroom Infra & Worker Cluster Setup
 
-### Inhaltsverzeichnis / Table of Contents
+### Table of Contents
 
-**Grundlagen / Basics**
+**Basics**
 - [Prerequisites](#prerequisites)
 
 **Bootstrap Infra Cluster**
@@ -18,10 +18,10 @@
 8. [Create Worker Cluster (Structured Auth Enabled)](#8-create-worker-cluster-shoot-with-structured-auth-enabled)
 9. [Provide Cluster CA of Worker to Infra](#9-provide-cluster-ca-of-worker-to-infra-if-remote-sync-needed)
 10. [Apply RBAC on Worker Cluster](#10-apply-rbac-on-worker-cluster)
-11. [Deploy Worker Cluster Workloads via Infra Flux](#11-deploy-worker-cluster-workloads-via-infra-flux)
+11. [Deploy Worker Cluster Workloads with Infra Flux](#11-deploy-worker-cluster-workloads-via-infra-flux)
 12. [Validate Remote Secrets & Namespaces](#12-validate-remote-secrets--namespaces)
 
-**Lokaler Entwicklungs-Workflow / Local Dev Workflow**
+**Local Dev Workflow**
 13. [Encryption / Decryption Workflow](#13-encryption--decryption-local-workflow)
 14. [AGE Key Rotation](#14-age-key-rotation)
 
@@ -74,7 +74,7 @@ Enable required extensions when creating the shoot (YAML excerpt):
 ```
 `showroominfra-issuer-configmap` enables structuredAuthentication username prefixing.
 
-Choose Mashine Type:
+Choose Machine Type:
 
 ```yaml
   machine:
