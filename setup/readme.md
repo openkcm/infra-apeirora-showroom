@@ -179,12 +179,6 @@ spec:
     secretRef:
       name: kubeconfig
 ```
-Apply and verify:
-```bash
-kubectl apply -f environments/production/workers/worker01/cluster/apps/worker01-namespaces.yaml
-flux get kustomizations -A | grep worker01-namespaces
-KUBECONFIG=worker01.kubeconfig kubectl get ns
-```
 
 ### 12. Validate Remote Secrets & Namespaces
 Check that namespaces and Secrets targeted for the Worker cluster exist there:
