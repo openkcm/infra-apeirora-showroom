@@ -72,8 +72,6 @@ Enable required extensions when creating the shoot (YAML excerpt):
   annotations:
     authentication.gardener.cloud/issuer: managed
 ```
-`showroominfra-issuer-configmap` enables structuredAuthentication username prefixing.
-
 Choose Machine Type:
 
 ```yaml
@@ -138,54 +136,21 @@ kubectl get cm showroominfra-issuer-configmap -n garden-kms -o yaml | grep -E 'u
 ```
 
 ### 8. Create Worker Cluster (structuredAuthentication)
-Create the Worker shoot similarly (choose smaller machine type if appropriate) and ensure structured authentication is enabled. Example Gardener shoot snippet:
+Create the Worker shoot similarly and ensure structured authentication is enabled. Example Gardener shoot snippet:
 ```yaml
-metadata:
-  annotations:
-    authentication.gardener.cloud/issuer: managed
-spec:
-  extensions:
-    - type: shoot-dns-service
-  provider: aws   # or azure/gcp/openstack etc.
-```
-After creation obtain kubeconfig:
-```bash
-kubectl get secret <worker-shoot-kubeconfig-secret> -n garden-kms -o jsonpath='{.data.kubeconfig}' | base64 -d > worker01.kubeconfig
-```
-Validate access:
-```bash
-KUBECONFIG=worker01.kubeconfig kubectl get nodes
+kubernetes:
+  kubeAPIServer:
+    structuredAuthentication:
+      configMapName: showroominfra-issuer-configmap
 ```
 
-### 9. Provide Cluster CA of Worker to Infra (if remote sync needed)
-If you plan to apply manifests to the Worker from Infra using Flux `spec.kubeConfig`, ensure the Infra repo (and optionally cluster) has the Worker CA:
-```bash
-grep 'certificate-authority-data' worker01.kubeconfig | awk -F': ' '{print $2}' > worker01.ca.b64
-base64 -d worker01.ca.b64 > worker01.ca.crt
-```
-Store it securely (e.g. SOPS‑encrypted Secret manifest) if committing:
-```bash
-cat > environments/production/workers/worker01/cluster/secrets/worker01-ca-secret.yaml <<'EOF'
-apiVersion: v1
-kind: Secret
-metadata:
-  name: worker01-ca
-  namespace: flux-system
-stringData:
-  ca.crt: |
-    # paste PEM from worker01.ca.crt
-EOF
-make encrypt-secrets
-```
-Or embed CA directly in the kubeconfig you create as a Secret (recommended):
-```bash
-kubectl -n flux-system create secret generic kubeconfig --from-file=value.yaml=worker01.kubeconfig
-```
+### 9. Provide Cluster CA of Worker to Infra
+Copy CA from the kubeconfig to the kubeconfig in  environments/<stage>/workers/<name>/secrets/kubeconfig
 
 ### 10. Apply RBAC on Worker Cluster
 Pre-create Roles and RoleBindings on the Worker cluster so the Infra Flux controllers (via OIDC subject prefix) and any dedicated remote sync ServiceAccounts have least privilege access.
 ```bash
-KUBECONFIG=worker01.kubeconfig kubectl apply -f setup/rbac.yaml
+kubectl apply -f setup/rbac.yaml
 ```
 Key points:
 * Role names ending in `-secrets-read` grant `get,list,watch` on Secrets only.
@@ -193,7 +158,7 @@ Key points:
 * Avoid granting cluster-admin unless required for bootstrap.
 Verification:
 ```bash
-KUBECONFIG=worker01.kubeconfig kubectl auth can-i get secrets -n linkerd --as=system:serviceaccount:flux-system:source-controller
+kubectl auth can-i get secrets -n linkerd --as=system:serviceaccount:flux-system:source-controller
 ```
 
 ### 11. Deploy Worker Cluster Workloads via Infra Flux
@@ -251,29 +216,19 @@ kubectl -n flux-system delete secret sops-age   # after verifying decryption wit
 kubectl -n flux-system rename secret sops-age-new sops-age || echo "Manual rename may be required"
 ```
 
-### 15. Cross-Cluster Secret Sync (Infra -> Worker)
+### 15. SOPS Secrer Management
 This section explains how encrypted Secrets in Git for the Infra cluster are decrypted by Flux and then applied to a remote Worker cluster using `spec.kubeConfig` on a Flux Kustomization, and (optionally) how External Secrets Operator (ESO) can consume secrets with least privilege RBAC.
 
-### 15.0 ESO Release
-Check the Helm Release of ESO have enable this in values:
-```yaml
-  values:
-    # Create / use dedicated controller ServiceAccount
-    serviceAccount:
-      create: true
-      name: external-secrets-controller
-      annotations: {}
-      automount: true
-```
 
 #### 15.1 Flow Overview
 1. Secret manifest lives in Git under `apps/production/workers/worker01/.../secrets/` (or `environments/.../secrets/`).
 2. Secret is SOPS-encrypted (age recipients) – only `stringData`/`data` keys encrypted.
 3. Infra Flux `Kustomization` (running in Infra cluster) has:
    * `spec.decryption.secretRef.name: sops-age` → decrypts before apply.
-   * `spec.kubeConfig.secretRef.name: kubeconfig` → uses remote kubeconfig credentials to apply the decrypted Secret to Worker API server.
-4. Remote Worker cluster receives the Secret (namespace must pre-exist remotely).
-5. ESO or workload in Worker cluster consumes the Secret.
+   * `spec.kubeConfig.secretRef.name: kubeconfig` → uses JWT of flux Service ACCOUNT for authentication.
+   * kubeconfig is only need for remote cluster.
+4. Remote Worker cluster receives the Secret
+5. Workload in Worker cluster consumes the Secret.
 
 #### 15.2 Minimal Remote Secret Kustomization (Example)
 File: `environments/production/workers/worker01/cluster/apps/envoy-gateway-secrets.yaml`
@@ -302,43 +257,19 @@ spec:
       name: kubeconfig
 ```
 
-Important: Avoid adding a global patch that overwrites `targetNamespace` incorrectly for this Kustomization or the secrets will land in Infra instead of Worker.
-
 #### 15.3 Kubeconfig Secret
-Create a Secret `kubeconfig` in Infra cluster (namespace where Flux looks) containing a kubeconfig with minimal RBAC:
-```bash
-kubectl -n flux-system create secret generic kubeconfig \
-  --from-file=value.yaml=./worker01.kubeconfig
-```
-Ensure CA data and cluster server endpoint are present. Optionally restrict token user to read/write only required namespaces (NOT cluster-admin).
+Kubceconfig is managed in environments/production/workers/name/secret/kubeconfig
 
-#### 15.4 Namespace Presence
-Before remote apply, the namespace must exist on Worker cluster:
-```bash
-kubectl --context worker01 get ns envoy-gateway-system || \
-kubectl --context worker01 create ns envoy-gateway-system
-```
-You can also manage remote namespaces via a separate remote Kustomization using the same kubeConfig.
-
-#### 15.5 RBAC for Remote Sync & ESO
+#### 15.4 RBAC for Remote Sync & ESO
 Apply RBAC in Worker cluster (`setup/rbac.yaml`) so Infra-issued OIDC user identities (`infra-cluster-oidc:system:serviceaccount:flux-system:<controller>`) have required rights. Least privilege Roles (e.g. `kms-system-remote-sync-secrets-read`) grant only secret read in specific namespaces. Provide fallback RoleBindings without prefix if the API server omits the configured prefix.
 
-#### 15.6 External Secrets Operator (ESO) Notes
+#### 15.5 External Secrets Operator (ESO) Notes
 If using ESO to mirror or transform secrets:
 * Confirm chart is installed (`HelmRelease external-secret`).
 * ServiceAccount `external-secrets-controller` must have read on namespaces where upstream secrets land (see RBAC Role + RoleBinding).
 * Avoid relying on projected tokens with custom audiences until confirmed supported; stick to standard audience provided in AuthenticationConfiguration.
 
-#### 15.7 Troubleshooting Remote Secret Delivery
-| Issue | Check | Fix |
-|-------|-------|-----|
-| Secret appears only in Infra cluster | Does Kustomization lack `spec.kubeConfig`? Was `targetNamespace` patched? | Add kubeConfig or remove unintended patch injecting local targetNamespace. |
-| SOPS decryption fails remotely | Flux logs show MAC mismatch? | Re-run `make encrypt-secrets`; ensure `sops-age` Secret exists in Infra cluster. |
-| Namespace not found errors | Namespace exists in Infra only | Create namespace in Worker or manage it via remote namespaces Kustomization. |
-| ESO cannot read secret | RBAC RoleBinding lacks user subject | Apply `setup/rbac.yaml`; verify username prefix matches AuthenticationConfiguration. |
-| Token audience mismatch | ServiceAccount token has wrong `aud` claim | Remove custom audience override; rely on default accepted audiences (`kubernetes`, `gardener`). |
-
-#### 15.8 Verification Commands
+#### 15.6 Verification Commands
 ```bash
 # Infra side: ensure Kustomization ready
 flux get kustomizations -A | grep envoy-gateway-secrets
@@ -349,13 +280,6 @@ kubectl --context worker01 get secret -n envoy-gateway-system extauthz-signing-k
 # View controller logs for decryption errors
 flux logs --kind Kustomization --follow | grep envoy-gateway-secrets
 ```
-
-#### 15.9 Recommended Hardening
-* Use a dedicated ServiceAccount/token in kubeconfig with restricted namespace permissions.
-* Periodically rotate kubeconfig credentials; store encrypted at rest (Vault, SOPS with different rule set).
-* Add Admission Policies to prevent plaintext Secrets creation on Infra cluster.
-* Enable alerting on Flux Kustomization failures (Prometheus alerts / Alertmanager routes).
-
 ---
 End of cross-cluster secret sync section.
 
@@ -366,9 +290,9 @@ This describes how the Infra cluster obtains (and optionally republishes) the Li
 Consume the remote Worker cluster Secret `linkerd-identity-issuer` (namespace `linkerd`) and materialize it in the Infra cluster so flux helm release can access it to install linkerd on remote cluster.
 
 #### 16.2 Components
-* ServiceAccount `kms-system-remote-sync` (Infra cluster) – subject becomes OIDC user `infra-cluster-oidc:system:serviceaccount:flux-system:kms-system-remote-sync` in Worker cluster.
+* ServiceAccount `external-secrets-controller` (Infra cluster) – subject becomes OIDC user `infra-cluster-oidc:system:serviceaccount:flux-system:external-secrets-controller` in Worker cluster.
 * RBAC in Worker cluster granting read-only access to `linkerd` namespace Secrets (Role + RoleBinding in `setup/rbac.yaml`).
-* `ClusterSecretStore` (Infra) using the Kubernetes provider pointing to the Worker API server + CA bundle + serviceAccount token.
+* `ClusterSecretStore` (Infra) using the Kubernetes provider pointing to the Worker API server + CA bundle + serviceAccount token (Read from POD).
 * `ExternalSecret` referencing the `ClusterSecretStore` and pulling the full Secret via `dataFrom.extract`.
 * Flux HelmRelease `linkerd-identity-issuer-syncer` (generic chart) templates the `ExternalSecret` resource.
 
@@ -433,7 +357,6 @@ linkerd-identity-issuer-syncer-worker01:
 Key Points:
 * `dataFrom.extract.key` pulls all key/value pairs from the remote Secret.
 * Target name may differ from metadata.name; here it intentionally mirrors remote origin.
-* `refreshInterval` controls polling frequency (balance between eventual consistency and API load).
 
 #### 16.5 RBAC Requirements (Worker Cluster)
 In `setup/rbac.yaml`, ensure Role grants `get,list,watch` on Secrets in `linkerd` and RoleBinding ties to the OIDC user subject of the Infra cluster ServiceAccount.
