@@ -363,7 +363,7 @@ End of cross-cluster secret sync section.
 This describes how the Infra cluster obtains (and optionally republishes) the Linkerd identity issuer (CA) Secret from a Worker cluster using External Secrets Operator (ESO) and a `ClusterSecretStore` with the Kubernetes provider.
 
 #### 16.1 Goal
-Consume the remote Worker cluster Secret `linkerd-identity-issuer` (namespace `linkerd`) and materialize it in the Infra cluster so components (e.g., multi-cluster mTLS validators or monitoring) can reference the issuer without storing it manually. The resulting local Secret is managed via an `ExternalSecret` and refreshes periodically.
+Consume the remote Worker cluster Secret `linkerd-identity-issuer` (namespace `linkerd`) and materialize it in the Infra cluster so flux helm release can access it to install linkerd on remote cluster.
 
 #### 16.2 Components
 * ServiceAccount `kms-system-remote-sync` (Infra cluster) – subject becomes OIDC user `infra-cluster-oidc:system:serviceaccount:flux-system:kms-system-remote-sync` in Worker cluster.
@@ -371,6 +371,17 @@ Consume the remote Worker cluster Secret `linkerd-identity-issuer` (namespace `l
 * `ClusterSecretStore` (Infra) using the Kubernetes provider pointing to the Worker API server + CA bundle + serviceAccount token.
 * `ExternalSecret` referencing the `ClusterSecretStore` and pulling the full Secret via `dataFrom.extract`.
 * Flux HelmRelease `linkerd-identity-issuer-syncer` (generic chart) templates the `ExternalSecret` resource.
+
+#### 16.2.1 ESO Helm Release
+
+This need to be in the values:
+```yaml
+serviceAccount:
+  create: true
+  name: external-secrets-controller
+  annotations: {}
+  automount: true
+```
 
 #### 16.3 ClusterSecretStore Example
 Excerpt (from `apps/base/kms-system/release/release.yaml`):
@@ -394,7 +405,7 @@ cluster-secret-store-vault-backend-common:
 ```
 Notes:
 * `remoteNamespace` allows referencing Secrets in that namespace without repeating the namespace.
-* `serviceAccount` auth assumes ESO is querying a cluster reachable via the API server address. For true cross-cluster where the Infra ESO must talk to Worker API, ensure network reachability (VPN / VPC peering) and that the token audience matches API server expectations.
+* `serviceAccount` auth assumes ESO is querying a cluster reachable via the API server address. For true cross-cluster where the Infra ESO must talk to Worker API.
 * `caBundle` must be the PEM (base64 inline) of the Worker cluster CA (matches kubeconfig CA).
 
 #### 16.4 ExternalSecret Definition
@@ -425,23 +436,12 @@ Key Points:
 * `refreshInterval` controls polling frequency (balance between eventual consistency and API load).
 
 #### 16.5 RBAC Requirements (Worker Cluster)
-In `setup/rbac.yaml`, ensure Role grants `get,list,watch` on Secrets in `linkerd` and RoleBinding ties to the OIDC user subject of the Infra cluster ServiceAccount:
-```yaml
-kind: Role
-metadata:
-  name: kms-system-remote-sync-secrets-read
-  namespace: linkerd
-rules:
-  - apiGroups: [""]
-    resources: ["secrets"]
-    verbs: ["get","list","watch"]
-```
-Fallback bindings without the prefix mitigate cases where API server does not apply the structuredAuthentication prefix.
+In `setup/rbac.yaml`, ensure Role grants `get,list,watch` on Secrets in `linkerd` and RoleBinding ties to the OIDC user subject of the Infra cluster ServiceAccount.
+Namespace 'linkerd' need pre crated to apply this.
 
 #### 16.6 Token / Auth Considerations
 * ServiceAccount token used by ESO must be issued for audience(s) accepted by Worker API.
 * If structuredAuthentication is active, verify subject format matches RBAC: decode token (`jwt decode`) or inspect from a debug sidecar.
-* Avoid relying on projected tokens with custom audiences until confirmed stable; keep defaults.
 
 #### 16.7 Validation Steps
 ```bash
