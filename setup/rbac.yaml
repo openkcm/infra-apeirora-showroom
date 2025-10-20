@@ -26,6 +26,11 @@ subjects:
     kind: User
     name: "infra-cluster-oidc:system:serviceaccount:flux-system:helm-controller"
 ---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: linkerd
+---
 # Least-privilege access for Infra cluster ServiceAccount 'kms-system-remote-sync'
 # Token subject (User) produced via structuredAuthentication:
 #   infra-cluster-oidc:system:serviceaccount:flux-system:kms-system-remote-sync
