@@ -33,8 +33,6 @@
   - [Kubeconfig Secret](#153-kubeconfig-secret)
   - [Namespace Presence](#154-namespace-presence)
   - [RBAC for Remote Sync & ESO](#155-rbac-for-remote-sync--eso)
-  - [ESO Notes](#156-external-secrets-operator-eso-notes)
-  - [Troubleshooting](#157-troubleshooting-remote-secret-delivery)
   - [Verification Commands](#158-verification-commands)
   - [Hardening](#159-recommended-hardening)
 
