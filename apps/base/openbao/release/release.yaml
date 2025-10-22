@@ -22,4 +22,3 @@ spec:
       remediateLastFailure: true
   interval: 1m0s
   releaseName: openbao
-
