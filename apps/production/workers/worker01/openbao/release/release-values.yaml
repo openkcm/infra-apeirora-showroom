@@ -1,0 +1,10 @@
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: openbao
+spec:
+  chart:
+    spec:
+      version: 0.4.0
+  targetNamespace: openbao
+  storageNamespace: openbao

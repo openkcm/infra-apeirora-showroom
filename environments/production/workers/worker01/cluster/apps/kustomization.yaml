@@ -15,6 +15,7 @@ resources:
   - valkey.yaml
   - postgresql.yaml
   - rabbitmq.yaml
+  - openbao.yaml
 
 #patches:
 
