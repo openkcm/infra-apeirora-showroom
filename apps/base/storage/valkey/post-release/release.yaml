@@ -1,0 +1,75 @@
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: valkey-post-release
+spec:
+  interval: 10m
+  releaseName: valkey-post-release
+  chart:
+    spec:
+      chart: ./tools/charts/generic
+      sourceRef:
+        kind: GitRepository
+        name: flux-system
+        namespace: flux-system
+  install:
+    createNamespace: false
+    remediation:
+      retries: -1
+      remediateLastFailure: true
+  targetNamespace: storage
+  storageNamespace: storage
+  upgrade:
+    remediation:
+      retries: -1
+      remediateLastFailure: true
+  values:
+    resources:
+      push-secret-valkey-crt:
+        apiVersion: external-secrets.io/v1alpha1
+        kind: PushSecret
+        metadata:
+          name: pushsecret-valkey-crt
+        spec:
+          refreshInterval: 5m
+          secretStoreRefs:
+            - name: vault-backend-cluster
+              kind: ClusterSecretStore
+          selector:
+            secret:
+              name: valkey-tls-secret
+          data:
+            - match:
+                secretKey: "ca.crt"
+                remoteRef:
+                  remoteKey: valkey/ca.crt
+                  property: valkey_ca.crt
+            - match:
+                secretKey: "tls.crt"
+                remoteRef:
+                  remoteKey: valkey/tls.crt
+                  property: valkey_tls.crt
+            - match:
+                secretKey: "tls.key"
+                remoteRef:
+                  remoteKey: valkey/tls.key
+                  property: valkey_tls.key
+      push-secret-valkey-pword:
+        apiVersion: external-secrets.io/v1alpha1
+        kind: PushSecret
+        metadata:
+          name: pushsecret-valkey-pword
+        spec:
+          refreshInterval: 5m
+          secretStoreRefs:
+            - name: vault-backend-cluster
+              kind: ClusterSecretStore
+          selector:
+            secret:
+              name: valkey
+          data:
+            - match:
+                secretKey: "valkey-password"
+                remoteRef:
+                  remoteKey: valkey/password
+                  property: valkey_password

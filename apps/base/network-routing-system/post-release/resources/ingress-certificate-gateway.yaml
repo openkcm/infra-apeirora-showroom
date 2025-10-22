@@ -1,0 +1,24 @@
+resources:
+  ingress-certificate-gateway:
+    # Certificate based Gateway
+    apiVersion: gateway.networking.k8s.io/v1
+    kind: Gateway
+    metadata:
+      name: ingress-certificate-gateway
+    spec:
+      gatewayClassName: ingress-certificate-gateway
+      listeners:
+        - name: https
+          protocol: HTTPS
+          hostname: ing.cert.<replace>.kms20.shoot.canary.k8s-hana.ondemand.com
+          port: 443
+          allowedRoutes:
+            namespaces:
+              from: Same
+          tls:
+            mode: Terminate
+            certificateRefs:
+              - kind: Secret
+                group: ""
+                name: ingress-certificate-gateway-secret
+                namespace: envoy-gateway-system

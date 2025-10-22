@@ -1,0 +1,185 @@
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: extauthz
+spec:
+  chartRef:
+    kind: OCIRepository
+    name: extauthz
+  interval: 10m
+  install:
+    createNamespace: false
+    remediation:
+      retries: -1
+      remediateLastFailure: true
+  upgrade:
+    remediation:
+      retries: -1
+      remediateLastFailure: true
+  releaseName: extauthz
+  values:
+    fullnameOverride: extauthz
+    image:
+      registry: ghcr.io/openkcm
+      repository: images/extauthz
+      digest: sha256:ca348afcac11b8c06127622534e6c86f7a5b6c0f7d31f6c9cfb732e2de3eb92c
+    hpa:
+      enabled: true
+      minReplicas: 1
+      maxReplicas: 6
+      targetCPUUtilizationPercentage: 85
+      targetMemoryUtilizationPercentage: 90
+    pod:
+      annotations:
+        linkerd.io/inject: enabled
+      labels:
+        service.cmk.kms.cloud.sap/instance: extauthz
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 100
+              podAffinityTerm:
+                labelSelector:
+                  matchExpressions:
+                    - key: service.cmk.kms.cloud.sap/instance
+                      operator: In
+                      values:
+                        - extauthz
+                topologyKey: kubernetes.io/hostname
+      topologySpreadConstraints:
+        - maxSkew: 1
+          topologyKey: kubernetes.io/hostname
+          whenUnsatisfiable: ScheduleAnyway
+          labelSelector:
+            matchExpressions:
+              - key: service.cmk.kms.cloud.sap/instance
+                operator: In
+                values:
+                  - extauthz
+        - maxSkew: 1
+          topologyKey: topology.kubernetes.io/zone
+          whenUnsatisfiable: ScheduleAnyway
+          labelSelector:
+            matchExpressions:
+              - key: service.cmk.kms.cloud.sap/instance
+                operator: In
+                values:
+                  - extauthz
+    extraPorts:
+      - name: grpc
+        protocol: TCP
+        containerPort: 9092
+      - name: http-status
+        protocol: TCP
+        containerPort: 8888
+      - name: http-cdks
+        protocol: TCP
+        containerPort: 5555
+    service:
+      type: ClusterIP
+      ports:
+        - name: grpc
+          protocol: TCP
+          port: 9092
+          targetPort: 9092
+        - name: http-status
+          protocol: TCP
+          port: 8888
+          targetPort: 8888
+        - name: http-cdks
+          protocol: TCP
+          port: 5555
+          targetPort: 5555
+    extraVolumes:
+      - name: extauthz-trusted-subjects-vol
+        configMap:
+          name: extauthz-trusted-subjects
+      - name: extauthz-policies-volume
+        projected:
+          sources:
+            - configMap:
+                name: extauthz-system-policies
+            - configMap:
+                name: extauthz-user-policies
+      - name: extauthz-signing-keys-volume
+        projected:
+          sources:
+            - secret:
+                name: extauthz-signing-keys-secret
+    extraVolumeMounts:
+      - name: extauthz-trusted-subjects-vol
+        mountPath: /etc/extauthz-mtls
+        readOnly: true
+      - name: extauthz-policies-volume
+        mountPath: /etc/extauthz-policies
+        readOnly: true
+      - mountPath: /etc/extauthz-signing
+        name: extauthz-signing-keys-volume
+        readOnly: true
+    livenessProbe:
+      httpGet:
+        path: /probe/liveness
+        port: http-status
+        scheme: HTTP
+      failureThreshold: 1
+      periodSeconds: 10
+    readinessProbe:
+      httpGet:
+        path: /probe/readiness
+        port: http-status
+        scheme: HTTP
+      failureThreshold: 1
+      periodSeconds: 10
+    config:
+      # Based on github.tools.sap/kms/common-sdk/pkg/commoncfg
+      environment: development
+      logger:
+        level: debug # one of: debug, info, warn, error
+        format: json # one of: json, text
+
+      status: # status server configuration
+        enabled: true
+        address: :8888
+        profiling: true
+
+      featureGates:
+        enrich-header-with-client-type: true
+        enrich-header-with-client-region: true
+        disable-client-certificate-computation: true
+        disable-jwt-token-computation: true
+
+      # Based on github.com/openkcm/extauthz/pkg/config
+      grpcServer:
+        address: :9092
+        flags:
+          health: true
+
+      # Client Data Key Set handling
+      cdksServer:
+        address: :5555
+        signingKeyRefreshInterval: 6h
+
+      cedar:
+        policyPath: /etc/extauthz-policies
+
+      # Client Certificate handling
+      mtls:
+        trustedSubjectsYaml: /etc/extauthz-mtls/trustedSubjects.yaml
+
+      # JWT Token handling
+      jwt:
+        issuerClaimKeys:
+          - ias_iss
+          - iss
+        k8sProviders:
+          enabled: true
+          apiGroup: gateway.extensions.envoyproxy.io
+          apiVersion: v1alpha1
+          name: jwtproviders
+          namespace: envoy-gateway-system
+
+      clientData:
+        signingKeyIDFilePath: /etc/extauthz-signing/keyId
+
+
+

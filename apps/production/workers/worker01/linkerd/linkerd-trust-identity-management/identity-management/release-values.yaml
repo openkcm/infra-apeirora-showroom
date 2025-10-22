@@ -1,0 +1,11 @@
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: linkerd-identity-management
+spec:
+  # Reason of deploying and storing identity-management helm release into 'linkerd' namespace -
+  # https://linkerd.io/2-edge/tasks/automatically-rotating-control-plane-tls-credentials/#4-configure-cert-manager-to-create-the-identity-issuer-certificate
+  storageNamespace: linkerd
+  targetNamespace: linkerd
+  dependsOn:
+    - name: linkerd-trust-management

@@ -1,0 +1,10 @@
+---
+apiVersion: source.toolkit.fluxcd.io/v1beta2
+kind: OCIRepository
+metadata:
+  name: registry
+spec:
+  interval: 5m0s
+  url: oci://ghcr.io/openkcm/charts/registry
+  ref:
+    tag: 1.1.0

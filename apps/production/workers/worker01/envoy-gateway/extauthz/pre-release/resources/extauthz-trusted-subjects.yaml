@@ -1,0 +1,10 @@
+resources:
+  extauthz-trusted-subjects:
+    apiVersion: v1
+    kind: ConfigMap
+    metadata:
+      name: extauthz-trusted-subjects
+    immutable: false
+    data:
+      trustedSubjects.yaml: |-
+        # Trusted subjects for mTLS authentication

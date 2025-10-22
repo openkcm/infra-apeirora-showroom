@@ -1,0 +1,9 @@
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: ratelimit-local-secret-sync
+spec:
+  storageNamespace: envoy-gateway-system
+  targetNamespace: envoy-gateway-system
+  dependsOn:
+    - name: valkey

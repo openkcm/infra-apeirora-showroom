@@ -1,0 +1,9 @@
+resources:
+  registry-grpc-route:
+    apiVersion: gateway.networking.k8s.io/v1
+    kind: GRPCRoute
+    metadata:
+      name: registry-grpc-route
+    spec:
+      hostnames:
+        - "ing.worker01.kms.shoot.gardener.cc-one.showroom.apeirora.eu"

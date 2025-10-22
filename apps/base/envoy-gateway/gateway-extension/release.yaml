@@ -1,0 +1,50 @@
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: gateway-extension
+spec:
+  chartRef:
+    kind: OCIRepository
+    name: gateway-extension
+  interval: 10m
+  install:
+    createNamespace: false
+    remediation:
+      retries: -1
+      remediateLastFailure: true
+  upgrade:
+    remediation:
+      retries: -1
+      remediateLastFailure: true
+  releaseName: gateway-extension
+  values:
+    fullnameOverride: "gateway-extension"
+    serviceAccount:
+      create: false
+      name: envoy-gateway
+    image:
+      registry: ghcr.io/openkcm
+      repository: images/gateway-extension
+      digest: sha256:83fecedc98d444173cf9171c6af9f76dfbb7cea16d0d90820b50446b0cd0b866
+    service:
+      ports:
+        - port: 9092
+          protocol: TCP
+          targetPort: http-grpc
+          name: http-grpc
+        - port: 8888
+          protocol: TCP
+          targetPort: http-status
+          name: http-status
+    config:
+      logger:
+        level: debug # one of: debug, info, warn, error
+        format: json # one of: json, text
+        formatter:
+          time:
+            type: pattern # one of: pattern, unix
+            pattern: "Mon Jan 02 15:04:05 -0700 2006"
+            precision: 1s
+      featureGates:
+        disable-jwt-provider-computation: false
+        enable-allow-missing-jwt-authentication-envoy: false

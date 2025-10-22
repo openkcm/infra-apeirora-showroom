@@ -1,0 +1,15 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - ../../../../../base/network-routing-system/release
+patches:
+  - path: release-values.yaml
+generatorOptions:
+  disableNameSuffixHash: true
+configMapGenerator:
+  - name: network-routing-system-overlay-values
+    files:
+      - ./resources/echoserver-http-route.yaml
+      - ./resources/envoy-proxy-config.yaml
+      - ./resources/ingress-gateway.yaml
+      - ./resources/registry-grpc-route.yaml

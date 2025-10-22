@@ -1,0 +1,10 @@
+resources:
+  extauthz-system-policies:
+    apiVersion: v1
+    kind: ConfigMap
+    metadata:
+      name: extauthz-system-policies
+    immutable: false
+    data:
+      systems.cedar: |-
+        // Technical system based on x509 for automation test

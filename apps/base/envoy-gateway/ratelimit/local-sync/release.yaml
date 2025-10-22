@@ -1,0 +1,113 @@
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: ratelimit-local-secret-sync
+spec:
+  interval: 10m
+  releaseName: ratelimit-local-secret-sync
+  chart:
+    spec:
+      chart: ./tools/charts/generic
+      sourceRef:
+        kind: GitRepository
+        name: flux-system
+        namespace: flux-system
+  install:
+    createNamespace: false
+    remediation:
+      retries: -1
+      remediateLastFailure: true
+  upgrade:
+    remediation:
+      retries: -1
+      remediateLastFailure: true
+  targetNamespace: storage
+  storageNamespace: storage
+  values:
+    resources:
+      serviceAccount:
+        apiVersion: v1
+        kind: ServiceAccount
+        metadata:
+          name: ratelimit-local-secret-sync
+          namespace: storage
+      role:
+        apiVersion: rbac.authorization.k8s.io/v1
+        kind: Role
+        metadata:
+          name: secrets-reader-ratelimit-sync
+          namespace: storage
+        rules:
+          - apiGroups: [""]
+            resources:
+              - secrets
+            verbs:
+              - get
+              - list
+              - watch
+      rolebinding:
+        apiVersion: rbac.authorization.k8s.io/v1
+        kind: RoleBinding
+        metadata:
+          name: secrets-reader-ratelimit-sync
+          namespace: storage
+        subjects:
+          - kind: ServiceAccount
+            name: ratelimit-local-secret-sync
+            namespace: storage
+        roleRef:
+          kind: Role
+          name: secrets-reader-ratelimit-sync
+          apiGroup: rbac.authorization.k8s.io
+      secretStore:
+        apiVersion: external-secrets.io/v1
+        kind: ClusterSecretStore
+        metadata:
+          name: ratelimit-local-secret-sync
+        spec:
+          provider:
+            kubernetes:
+              server:
+                url: "https://kubernetes.default"
+                caProvider:
+                  type: "ConfigMap"
+                  name: "kube-root-ca.crt"
+                  key: "ca.crt"
+                  namespace: storage
+              remoteNamespace: storage
+              auth:
+                serviceAccount:
+                  name: ratelimit-local-secret-sync
+                  namespace: storage
+      estls:
+        apiVersion: external-secrets.io/v1
+        kind: ExternalSecret
+        metadata:
+          name: local-secret-sync-valkey-tls-secret
+          namespace: envoy-gateway-system
+        spec:
+          secretStoreRef:
+            kind: ClusterSecretStore
+            name: ratelimit-local-secret-sync
+          target:
+            name: valkey-tls-secret
+            creationPolicy: Owner
+          dataFrom:
+            - extract:
+                key: valkey-tls-secret
+      esvalkey:
+        apiVersion: external-secrets.io/v1
+        kind: ExternalSecret
+        metadata:
+          name: local-secret-sync-valkey-secret
+          namespace: envoy-gateway-system
+        spec:
+          secretStoreRef:
+            kind: ClusterSecretStore
+            name: ratelimit-local-secret-sync
+          target:
+            name: valkey
+            creationPolicy: Owner
+          dataFrom:
+            - extract:
+                key: valkey

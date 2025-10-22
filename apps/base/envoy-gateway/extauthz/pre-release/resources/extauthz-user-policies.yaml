@@ -1,0 +1,10 @@
+resources:
+  extauthz-user-policies:
+    apiVersion: v1
+    kind: ConfigMap
+    metadata:
+      name: extauthz-user-policies
+    immutable: false
+    data:
+      users.cedar: |-
+        # This file is managed by git. Manual changes will be overwritten.

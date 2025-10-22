@@ -1,0 +1,14 @@
+resources:
+  service:
+    apiVersion: v1
+    kind: Service
+    metadata:
+      name: envoy-ratelimit
+    spec:
+      ports:
+        - port: 8081
+          targetPort: 8081
+          protocol: TCP
+          name: grpc
+      selector:
+        app: envoy-ratelimit

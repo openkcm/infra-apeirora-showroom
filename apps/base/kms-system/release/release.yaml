@@ -1,0 +1,50 @@
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: kms-system
+spec:
+  interval: 10m
+  releaseName: kms-system
+  chart:
+    spec:
+      chart: ./tools/charts/generic
+      sourceRef:
+        kind: GitRepository
+        name: flux-system
+        namespace: flux-system
+  install:
+    createNamespace: false
+    remediation:
+      retries: -1
+      remediateLastFailure: true
+  upgrade:
+    remediation:
+      retries: -1
+      remediateLastFailure: true
+  values:
+    resources:
+      serviceaccount-remotesync:
+        apiVersion: v1
+        kind: ServiceAccount
+        metadata:
+          name: kms-system-remote-sync
+          namespace: flux-system
+      cluster-secret-store-vault-backend-common:
+        apiVersion: external-secrets.io/v1
+        kind: ClusterSecretStore
+        metadata:
+          name: vault-backend-worker01
+        spec:
+          provider:
+            kubernetes:
+              remoteNamespace: linkerd
+              auth:
+                # kubeconfig auth is not supported in your deployed ESO version.
+                # serviceAccount auth here only works for in-cluster access. For true cross-cluster
+                # secret sync, deploy ESO in the target cluster or use an intermediate store (e.g. Vault).
+                serviceAccount:
+                  name: kms-system-remote-sync
+                  namespace: flux-system
+              server:
+                url: https://api.worker01.kms.shoot.gardener.cc-one.showroom.apeirora.eu
+                caBundle: LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSUQ1ekNDQWsrZ0F3SUJBZ0lSQUovbU9hZHF1MStvTDdETStnMDFqaTB3RFFZSktvWklodmNOQVFFTEJRQXcKRFRFTE1Ba0dBMVVFQXhNQ1kyRXdIaGNOTWpVeE1ERTBNRGswTmpVd1doY05NelV4TURFME1EazBOelV3V2pBTgpNUXN3Q1FZRFZRUURFd0pqWVRDQ0FhSXdEUVlKS29aSWh2Y05BUUVCQlFBRGdnR1BBRENDQVlvQ2dnR0JBTm5zClhlNzl6a0d4a29VV3MzY2JpajhRNnFMcUpIV21CQnM1b3NFTnU3d2hZTVg4MU1qMzM5ekxpcHpmVVNlY2VwU3cKZzY5a3dJTXRHNUpacyswN1Z3R2VlQ3hjQUFKZlFvcS8zeVpqQmJBNXc0TnIxNFVPMFE3Ry9seE83MzBKT2xteAp4RUhNRXJyYVVEY0R3cjlJbUkyZWdEUFpTREFZa2Q4MVNaZ1M5Z21OOW1QTlJhdUt1ajBlMXFwME9iVjRhMVZPCjcwMExQVnk5cDFoSVByaS9MYndqM2RXVjBKQXp5aVlQOVdiaUF4WXN0SDZlTGxleTQ0eDQrT1gzODBxZlV3WVIKaWQvWEhqRWNocEgwd2xRNEoxTzBkcklVV0pkdHozR0ErYlZPUU1NQUtGK1BvMS9uVXZqWFdOWlBIUDRBVmt3TAovRTZVeXZvUUh1YnE2V0RTQ2hRSHJMSG9aNUdHYTVPSUZuQU4vN3U0RUpoV3prRUxGR1Q5OEZxcXhrN1VIc2pCCmNxRnEvM0doajhUeXlkU1dub2xKZVl2ZmtMYXJxQzdDWDBhYkY5VC8wUE4rWmhGaHJkWXZBZzhBbUs0TVR6RE4KeEhrVUJ4V3pmcUU0NWpmdHkzb3BWRXBVZ1ZRTWFTUE0yTEVyY0lldjNHRW5TMDR3MVJtRlVsdVZiSnp5endJRApBUUFCbzBJd1FEQU9CZ05WSFE4QkFmOEVCQU1DQWFZd0R3WURWUjBUQVFIL0JBVXdBd0VCL3pBZEJnTlZIUTRFCkZnUVVhRk9ZMW5IZS9KL3N2eFE4Zi9Ic0wwTmtCUDB3RFFZSktvWklodmNOQVFFTEJRQURnZ0dCQU5CdVJQRmQKYURNVXpmVmREOGN1eUpNcnFBeEs1Q3F4OHRWeEJSY21ScE95SVA2WUYzN3FQUlJGalVpWjU1cHppaHNmOTB0NAppd1dOOEJCMG4rQlF6S21hTit3engrSzRxdFRRT3FNaSt0WlJ5a09UOEZqRzhjMVhQcWRTSHNYRnVROFdpMUJVCmEzVS92QVFrVGhZOCtsbHZ4YnNGNmxwZTVwZE5rdkRXL2NuNDRsMXhGR2lwRnowc1Jra1NHajY0dG1oZ04yTk0Ka3RMRms3VDlkMzVpU0w2RlhZamo5Y1RoNlFxN0tjdk5hUkY5NFpPdThIOTdqN3ZOSEZ5WENCWUwyRDRFelMvSgp5YVcyZDV1S2JKb0VkSkNMN2pWdXY2N0N2eU82dFhuR0dJOTh1NlFjMEZoWVpQeFNWNFBuSUNhQ3FTcjBNMldkCmZzZE1qNFhwZ3lMQVNESWJ2TXpQUFJsU3c3N2M3ZDBvV2s5b0Z3djIwYno2OXFkdUc2ZEdpSFJpWFU1dEtlU3AKaFFWbTVCK0dsbWlFQW1DRkROZEJIZ0t4aDhtUTZFYlAwVEJXNTNxaDVIRG14TG1XbXZnQXl2eitkSjR5VEV1MQo1SFBINUJXaHZIeHh3RWdzZUppOEFHMjkxNStUU0gxb1hlYjlYbk55cGcvYTN4V0JNMm9teVduQ1pBPT0KLS0tLS1FTkQgQ0VSVElGSUNBVEUtLS0tLQo=     # Gleicher CA Block wie oben (ohne Zeilenumbrüche)

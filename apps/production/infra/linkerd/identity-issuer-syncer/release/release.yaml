@@ -1,0 +1,47 @@
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: linkerd-identity-issuer-syncer
+spec:
+  interval: 10m
+  releaseName: linkerd-identity-issuer-syncer
+  chart:
+    spec:
+      chart: ./tools/charts/generic
+      sourceRef:
+        kind: GitRepository
+        name: flux-system
+        namespace: flux-system
+  install:
+    createNamespace: false
+    remediation:
+      retries: -1
+      remediateLastFailure: true
+  upgrade:
+    remediation:
+      retries: -1
+      remediateLastFailure: true
+  targetNamespace: flux-system
+  storageNamespace: flux-system
+  values:
+    resources:
+      linkerd-identity-issuer-syncer-worker01:
+        apiVersion: external-secrets.io/v1
+        kind: ExternalSecret
+        metadata:
+          name: worker01-linkerd-ca
+          namespace: worker01
+        spec:
+          # Pull the entire remote secret 'linkerd-identity-issuer' from the worker01 cluster (via ClusterSecretStore 'vault-backend-worker01')
+          # The ClusterSecretStore (kubernetes provider) defines remoteNamespace=linkerd so 'key' below refers to a Secret in that namespace.
+          dataFrom:
+            - extract:
+                key: linkerd-identity-issuer
+          refreshInterval: 1m
+          secretStoreRef:
+            kind: ClusterSecretStore
+            name: vault-backend-worker01
+          target:
+            creationPolicy: Owner
+            deletionPolicy: Retain
+            name: linkerd-identity-issuer

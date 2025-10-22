@@ -1,0 +1,7 @@
+apiVersion: source.toolkit.fluxcd.io/v1
+kind: OCIRepository
+metadata:
+  name: service-account-issuer-discovery
+spec:
+  ref:
+    tag: v0.10.0

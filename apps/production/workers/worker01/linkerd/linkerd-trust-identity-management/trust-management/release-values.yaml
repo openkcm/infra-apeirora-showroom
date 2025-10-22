@@ -1,0 +1,9 @@
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: linkerd-trust-management
+spec:
+  # Reason of deploying and storing trust-management helm release into 'cert-manager' namespace -
+  # https://linkerd.io/2-edge/tasks/automatically-rotating-control-plane-tls-credentials/#3-configure-cert-manager-to-create-the-trust-anchor
+  storageNamespace: cert-manager
+  targetNamespace: cert-manager

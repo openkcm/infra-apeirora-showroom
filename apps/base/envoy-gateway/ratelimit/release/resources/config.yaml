@@ -1,0 +1,38 @@
+resources:
+  ratelimit-config:
+    apiVersion: v1
+    kind: ConfigMap
+    metadata:
+      name: ratelimit-config
+    data:
+      ui.yaml: |
+        domain: ui
+        descriptors:
+          # Global limit: x req/s
+          - key: generic_key
+            value: global
+            rate_limit:
+              unit: second
+              requests_per_unit: 10
+          # Per-IP limit: x req/s
+          - key: remote_address
+            value: "*"
+            rate_limit:
+              unit: second
+              requests_per_unit: 10
+
+      checker.yaml: |
+        domain: checker
+        descriptors:
+          # Global limit: x req/s
+          - key: generic_key
+            value: global
+            rate_limit:
+              unit: second
+              requests_per_unit: 10
+          # Per-IP limit: x req/s
+          - key: remote_address
+            value: "*"
+            rate_limit:
+              unit: second
+              requests_per_unit: 10

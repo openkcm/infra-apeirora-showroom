@@ -1,0 +1,17 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - release.yaml
+generatorOptions:
+  disableNameSuffixHash: true
+configMapGenerator:
+  - name: rabbitmq-base-values
+    files:
+    - ./ressources/crd.yaml
+    - ./ressources/clusterrole01.yaml
+    - ./ressources/clusterrole02.yaml
+    - ./ressources/clusterrolebinding01.yaml
+    - ./ressources/deployment.yaml
+    - ./ressources/role.yaml
+    - ./ressources/rolebinding01.yaml
+    - ./ressources/serviceaccount.yaml
