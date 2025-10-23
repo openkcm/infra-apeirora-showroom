@@ -24,6 +24,7 @@ spec:
   releaseName: openbao
   values:
     server:
+      logLevel: debug
       volumes:
         - name: userconfig-openbao-storage-config
           secret:
