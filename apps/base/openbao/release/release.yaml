@@ -27,7 +27,7 @@ spec:
       volumes:
         - name: userconfig-openbao-storage-config
           secret:
-            secretName: openbao-storage-config
+            secretName: openbao-postgres-storage
             defaultMode: 420
       volumeMounts:
         - name: userconfig-openbao-storage-config
