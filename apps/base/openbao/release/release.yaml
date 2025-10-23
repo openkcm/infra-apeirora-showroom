@@ -22,3 +22,15 @@ spec:
       remediateLastFailure: true
   interval: 1m0s
   releaseName: openbao
+  values:
+    server:
+      volumes:
+        - name: userconfig-openbao-storage-config
+          secret:
+            secretName: openbao-storage-config
+            defaultMode: 420
+      volumeMounts:
+        - name: userconfig-openbao-storage-config
+          mountPath: /openbao/userconfig/openbao-storage-config
+          readOnly: true
+      extraArgs: "-config=/openbao/userconfig/openbao-storage-config/config.hcl"
