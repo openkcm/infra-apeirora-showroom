@@ -85,6 +85,7 @@ patches:
 #      - op: add
 #        path: /metadata/labels/foo
 #        value: bar
+#sops
   - target:
       kind: Kustomization
       group: kustomize.toolkit.fluxcd.io
@@ -98,3 +99,31 @@ patches:
       - op: add
         path: /metadata/namespace
         value: envoy-gateway-system
+
+  - target:
+      kind: Kustomization
+      group: kustomize.toolkit.fluxcd.io
+      version: v1
+      name: openbao-secrets
+    patch: |
+      - op: remove
+        path: /spec/targetNamespace
+      - op: remove
+        path: /spec/patches
+      - op: add
+        path: /metadata/namespace
+        value: openbao
+
+  - target:
+      kind: Kustomization
+      group: kustomize.toolkit.fluxcd.io
+      version: v1
+      name: storage-secrets
+    patch: |
+      - op: remove
+        path: /spec/targetNamespace
+      - op: remove
+        path: /spec/patches
+      - op: add
+        path: /metadata/namespace
+        value: storage

@@ -13,8 +13,10 @@ resources:
   - reloader.yaml
   - services.yaml
   - valkey.yaml
+  - storage-secrets.yaml
   - postgresql.yaml
   - rabbitmq.yaml
+  - openbao-secrets.yaml
   - openbao.yaml
 
 #patches:
