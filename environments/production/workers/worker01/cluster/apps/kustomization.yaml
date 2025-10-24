@@ -18,6 +18,7 @@ resources:
   - rabbitmq.yaml
   - openbao-secrets.yaml
   - openbao.yaml
+  - kms-system.yaml
 
 #patches:
 

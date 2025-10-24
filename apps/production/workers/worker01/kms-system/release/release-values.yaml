@@ -1,0 +1,58 @@
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: kms-system
+spec:
+  storageNamespace: kms-system
+  targetNamespace: kms-system
+  dependsOn:
+    - name: kms-system--pre-release
+  values:
+    resources:
+      serviceaccount-remotesync:
+        apiVersion: v1
+        kind: ServiceAccount
+        metadata:
+          name: eso-sync-local-sa
+      clusterrole-kubernetes-local-all:
+        apiVersion: rbac.authorization.k8s.io/v1
+        kind: ClusterRole
+        metadata:
+          name: eso-secrets-read-all
+        rules:
+          - apiGroups: [""]
+            resources: ["secrets"]
+            verbs: ["get","list","watch"]
+      clusterrolebinding-kubernetes-local-all:
+        apiVersion: rbac.authorization.k8s.io/v1
+        kind: ClusterRoleBinding
+        metadata:
+          name: eso-secrets-read-all-binding
+        roleRef:
+          apiGroup: rbac.authorization.k8s.io
+          kind: ClusterRole
+          name: eso-secrets-read-all
+        subjects:
+          - kind: ServiceAccount
+            name: eso-sync-local-sa
+            namespace: kms-system
+      cluster-secret-store-vault-backend-common:
+        apiVersion: external-secrets.io/v1
+        kind: ClusterSecretStore
+        metadata:
+          name: kubernetes-local-all
+        spec:
+          provider:
+            kubernetes:
+              auth:
+                serviceAccount:
+                  name: eso-sync-local-sa
+                  namespace: kms-system
+              remoteNamespace: "openbao"
+              server:
+                url: https://kubernetes.default.svc
+                caProvider:
+                  type: ConfigMap
+                  name: kube-root-ca.crt
+                  namespace: kube-system
+                  key: ca.crt
