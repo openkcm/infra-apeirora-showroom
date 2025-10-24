@@ -1,0 +1,50 @@
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: openbao--pre-release
+spec:
+  interval: 10m
+  releaseName: openbao--pre-release
+  chart:
+    spec:
+      chart: ./tools/charts/generic
+      sourceRef:
+        kind: GitRepository
+        name: flux-system
+        namespace: flux-system
+  install:
+    createNamespace: false
+    remediation:
+      retries: -1
+      remediateLastFailure: true
+  upgrade:
+    remediation:
+      retries: -1
+      remediateLastFailure: true
+  values:
+    resources:
+      serviceaccount-remotesync:
+        apiVersion: external-secrets.io/v1beta1
+        kind: ExternalSecret
+        metadata:
+          name: openbao-postgres-storage
+        spec:
+          refreshInterval: 5m
+          secretStoreRef:
+            name: kubernetes-local-all
+            kind: ClusterSecretStore
+          target:
+            name: openbao-postgres-storage
+            creationPolicy: Owner
+          data:
+            - secretKey: openbao_password
+              remoteRef:
+                key: openbao.openbao-postgresql.credentials.postgresql.acid.zalan.do
+                property: password
+          template:
+            type: Opaque
+            data:
+              config.hcl: |-
+                storage "postgresql" {
+                  connection_url = "postgres://openbao:{{ .openbao_password }}@openbao-postgresql-rw.openbao.svc.cluster.local:5432/openbao?sslmode=require"
+                }
