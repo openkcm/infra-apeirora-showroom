@@ -83,14 +83,11 @@ spec:
         spec:
           provider:
             kubernetes:
-              # In-cluster access: ESO service account with cluster-wide secret RBAC
               auth:
                 serviceAccount:
                   name: eso-sync-local-sa
                   namespace: kms-system
-              # Omit remoteNamespace to allow referencing secrets across namespaces (requires RBAC)
-              # remoteNamespace: ""   # (leave unset)
+              remoteNamespace: "openbao"
               server:
-                # In-cluster API (no URL needed if ESO supports default); specify for clarity
                 url: https://kubernetes.default.svc
-                caBundle: ""  # optional; cluster CA auto-mounted
+                caBundle: ""
