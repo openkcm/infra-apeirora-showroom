@@ -7,8 +7,8 @@ metadata:
 spec:
   interval: 1m
   releaseName: postgres-infra-config
-  storageNamespace: services
-  targetNamespace: services
+  storageNamespace: storage
+  targetNamespace: storage
   chart:
     spec:
       chart: ./tools/charts/generic
