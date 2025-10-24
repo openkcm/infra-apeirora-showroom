@@ -39,8 +39,8 @@ spec:
           data:
             - secretKey: openbao
               remoteRef:
-                key: openbao-postgresql.credentials
-                property: openbao
+                key: openbao.openbao-postgresql.credentials.postgresql.acid.zalan.do
+                property: password
           template:
             type: Opaque
             data:
