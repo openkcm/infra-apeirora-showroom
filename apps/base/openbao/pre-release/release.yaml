@@ -48,4 +48,4 @@ spec:
             - secretKey: openbao
               remoteRef:
                 key: openbao.openbao-postgresql.credentials.postgresql.acid.zalan.do
-                property: openbao
+                property: password
