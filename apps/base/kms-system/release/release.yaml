@@ -88,4 +88,6 @@ spec:
                   name: eso-sync-local-sa
                   namespace: kms-system
               remoteNamespace: "openbao"
-
+              server:
+                url: https://kubernetes.default.svc
+                caBundle: ""
