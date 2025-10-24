@@ -1,0 +1,7 @@
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: kms-system--pre-release
+spec:
+  storageNamespace: kms-system
+  targetNamespace: kms-system
