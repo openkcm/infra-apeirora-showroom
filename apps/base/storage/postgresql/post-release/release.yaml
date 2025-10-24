@@ -5,6 +5,7 @@ kind: HelmRelease
 metadata:
   name: postgres-infra-config
 spec:
+  interval: 1m
   chart:
     spec:
       chart: ./tools/charts/generic
