@@ -36,15 +36,16 @@ spec:
           target:
             name: openbao-postgres-storage
             creationPolicy: Owner
+            template:
+              type: Opaque                # use kubernetes.io/tls only if you’re creating a TLS secret (crt/key)
+              engineVersion: v2
+              data:
+                config.hcl: |-
+                  storage "postgresql" {
+                    connection_url = "postgres://openbao:{{ .openbao }}@openbao-postgresql-rw.openbao.svc.cluster.local:5432/openbao?sslmode=require"
+                  }
           data:
             - secretKey: openbao
               remoteRef:
                 key: openbao-postgresql.credentials
                 property: openbao
-          template:
-            type: Opaque
-            data:
-              config.hcl: |-
-                storage "postgresql" {
-                  connection_url = "postgres://openbao:{{ .openbao }}@openbao-postgresql-rw.openbao.svc.cluster.local:5432/openbao?sslmode=require"
-                }
