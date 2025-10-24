@@ -42,7 +42,7 @@ spec:
               data:
                 config.hcl: |-
                   storage "postgresql" {
-                    connection_url = "postgres://openbao:{{ .openbao }}@openbao-postgresql-rw.openbao.svc.cluster.local:5432/openbao?sslmode=require"
+                    connection_url = "postgres://openbao:{{ .openbao }}@openbao-postgresql.openbao.svc.cluster.local:5432/openbao?sslmode=require"
                   }
           data:
             - secretKey: openbao
