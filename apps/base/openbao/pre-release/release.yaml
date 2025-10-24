@@ -23,8 +23,8 @@ spec:
       remediateLastFailure: true
   values:
     resources:
-      serviceaccount-remotesync:
-        apiVersion: external-secrets.io/v1beta1
+      externalsecret-postgres-storage:
+        apiVersion: external-secrets.io/v1
         kind: ExternalSecret
         metadata:
           name: openbao-postgres-storage
@@ -37,14 +37,14 @@ spec:
             name: openbao-postgres-storage
             creationPolicy: Owner
           data:
-            - secretKey: openbao_password
+            - secretKey: openbao
               remoteRef:
-                key: openbao.openbao-postgresql.credentials.postgresql.acid.zalan.do
-                property: password
+                key: openbao-postgresql.credentials
+                property: openbao
           template:
             type: Opaque
             data:
               config.hcl: |-
                 storage "postgresql" {
-                  connection_url = "postgres://openbao:{{ .openbao_password }}@openbao-postgresql-rw.openbao.svc.cluster.local:5432/openbao?sslmode=require"
+                  connection_url = "postgres://openbao:{{ .openbao }}@openbao-postgresql-rw.openbao.svc.cluster.local:5432/openbao?sslmode=require"
                 }
