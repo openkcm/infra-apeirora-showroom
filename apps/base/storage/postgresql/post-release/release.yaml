@@ -1,0 +1,42 @@
+# HelmRelease A: operator-config
+# filepath: apps/base/storage/postgresql/infrastructure/helmrelease.yaml
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: postgres-infra-config
+spec:
+  chart:
+    spec:
+      chart: ./tools/charts/generic
+      sourceRef:
+        kind: GitRepository
+        name: flux-system
+        namespace: flux-system
+    dependsOn:
+    - name: postgres-operator
+  values:
+    resources:
+      postgresql-operator-configuration-secret:
+        apiVersion: acid.zalan.do/v1
+        kind: OperatorConfiguration
+        metadata:
+          name: postgresql-infrastructure-roles
+        configuration:
+          kubernetes:
+            infrastructure_roles_secrets:
+              - secretname: postgresql-openbao-role
+                userkey: user1
+                passwordkey: password1
+                rolekey: admin
+      postgresql-operator-configuration-configmap:
+        apiVersion: v1
+        kind: ConfigMap
+        metadata:
+          name: postgresql-infrastructure-roles
+        data:
+          admin: |
+            user_flags:
+              - createdb
+              - superuser
+            db_parameters:
+              log_statement: all

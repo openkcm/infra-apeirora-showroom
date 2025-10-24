@@ -24,34 +24,9 @@ spec:
       retries: -1
       remediateLastFailure: true
   dependsOn:
-    - name: postgres-operator
+    - name: postgres-infra-config
   values:
     resources:
-      postgresql-operator-configuration-secret:
-        apiVersion: "acid.zalan.do/v1"
-        kind: OperatorConfiguration
-        metadata:
-          name: postgresql-infrastructure-roles
-        configuration:
-          kubernetes:
-            infrastructure_roles_secrets:
-            - secretname: "postgresql-openbao-role"
-              userkey: "user1"
-              passwordkey: "password1"
-              rolekey: "inrole1"
-      postgresql-operator-configuration-configmap:
-        apiVersion: v1
-        kind: ConfigMap
-        metadata:
-          name: postgresql-infrastructure-roles
-        data:
-          openbao: |
-            inrole: [admin]  # following roles will be assigned to the new user
-            user_flags:
-              - createdb
-              - superuser
-            db_parameters:  # db parameters, applyed for this particular user
-              log_statement: all
       openbao-postgresql:
         apiVersion: "acid.zalan.do/v1"
         kind: postgresql
