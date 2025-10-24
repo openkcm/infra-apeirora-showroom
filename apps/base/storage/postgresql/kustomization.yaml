@@ -5,3 +5,4 @@ resources:
   - postgres-operator-repository.yaml
   - postgres-operator-release.yaml
   - ./instances
+  - ./post-release
