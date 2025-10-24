@@ -9,3 +9,5 @@ resources:
   - ../../../../base/namespaces/reloader.yaml
   - ../../../../base/namespaces/external-secret.yaml
   - ../../../../base/namespaces/openbao.yaml
+  - ../../../../base/namespaces/kms-system.yaml
+
