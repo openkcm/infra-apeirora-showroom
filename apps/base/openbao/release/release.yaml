@@ -32,7 +32,7 @@ spec:
             defaultMode: 420
         - name: unseal-keys
           secret:
-            secretName: openbao-unseal-keys 
+            secretName: openbao-unseal-keys
       volumeMounts:
         - name: userconfig-openbao-storage-config
           mountPath: /openbao/userconfig/openbao-storage-config
@@ -45,23 +45,31 @@ spec:
           args:
             - |
               set -e
+              echo "Listing mounted unseal keys directory..."
+              ls -al /unseal || true
               echo "Waiting for OpenBao port..."
-              until curl -s http://localhost:8200/v1/sys/health >/dev/null 2>&1; do
+              until curl -s http://127.0.0.1:8200/v1/sys/health >/dev/null 2>&1; do
                 sleep 2
               done
-              if curl -s http://localhost:8200/v1/sys/seal-status | grep '"sealed":false' >/dev/null; then
+              if curl -s http://127.0.0.1:8200/v1/sys/seal-status | grep '"sealed":false' >/dev/null; then
                 echo "Already unsealed."
                 sleep 3600
               fi
-              for f in /unseal/*.key; do
+              FOUND=0
+              for f in /unseal/*; do
+                [ -f "$f" ] || continue
+                FOUND=1
                 KEY=$(cat "$f")
-                echo "Submitting unseal key $f"
-                curl -s -X POST -H "Content-Type: application/json" -d "{\"key\":\"$KEY\"}" http://localhost:8200/v1/sys/unseal >/dev/null
-                if curl -s http://localhost:8200/v1/sys/seal-status | grep '"sealed":false' >/dev/null; then
+                echo "Submitting unseal key file $f"
+                curl -s -X POST -H "Content-Type: application/json" -d "{\"key\":\"$KEY\"}" http://127.0.0.1:8200/v1/sys/unseal >/dev/null
+                if curl -s http://127.0.0.1:8200/v1/sys/seal-status | grep '"sealed":false' >/dev/null; then
                   echo "Unsealed."
                   break
                 fi
               done
+              if [ $FOUND -eq 0 ]; then
+                echo "No unseal key files found in /unseal (check Secret openbao-unseal-keys)."
+              fi
               sleep 3600
           volumeMounts:
             - name: unseal-keys
