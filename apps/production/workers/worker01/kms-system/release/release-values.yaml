@@ -14,6 +14,7 @@ spec:
         kind: ServiceAccount
         metadata:
           name: eso-sync-local-sa
+          namespace: kms-system
       clusterrole-kubernetes-local-all:
         apiVersion: rbac.authorization.k8s.io/v1
         kind: ClusterRole
