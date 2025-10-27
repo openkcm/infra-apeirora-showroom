@@ -33,9 +33,15 @@ spec:
         - name: unseal-keys
           secret:
             secretName: openbao-unseal-keys
+        - name: tls
+          secret:
+            secretName: openbao-tls
       volumeMounts:
         - name: userconfig-openbao-storage-config
           mountPath: /openbao/userconfig/openbao-storage-config
+          readOnly: true
+        - name: tls
+          mountPath: /tls
           readOnly: true
       extraArgs: "-config=/openbao/userconfig/openbao-storage-config/config.hcl"
       extraContainers:
@@ -47,11 +53,12 @@ spec:
               set -e
               echo "Listing mounted unseal keys directory..."
               ls -al /unseal || true
-              echo "Waiting for OpenBao port..."
-              until curl -s http://127.0.0.1:8200/v1/sys/health >/dev/null 2>&1; do
+              HOST="openbao.openbao.svc:8200"
+              echo "Waiting for OpenBao HTTPS port at $HOST (DNS name) with cert validation) ..."
+              until curl --cacert /tls/tls.crt -s https://$HOST/v1/sys/health >/dev/null 2>&1; do
                 sleep 2
               done
-              if curl -s http://127.0.0.1:8200/v1/sys/seal-status | grep '"sealed":false' >/dev/null; then
+              if curl --cacert /tls/tls.crt -s https://$HOST/v1/sys/seal-status | grep '"sealed":false' >/dev/null; then
                 echo "Already unsealed."
                 sleep 3600
               fi
@@ -60,9 +67,9 @@ spec:
                 [ -f "$f" ] || continue
                 FOUND=1
                 KEY=$(cat "$f")
-                echo "Submitting unseal key file $f"
-                curl -s -X POST -H "Content-Type: application/json" -d "{\"key\":\"$KEY\"}" http://127.0.0.1:8200/v1/sys/unseal >/dev/null
-                if curl -s http://127.0.0.1:8200/v1/sys/seal-status | grep '"sealed":false' >/dev/null; then
+                echo "Submitting unseal key file $f over HTTPS to $HOST (verified)"
+                curl --cacert /tls/tls.crt -s -X POST -H "Content-Type: application/json" -d "{\"key\":\"$KEY\"}" https://$HOST/v1/sys/unseal >/dev/null
+                if curl --cacert /tls/tls.crt -s https://$HOST/v1/sys/seal-status | grep '"sealed":false' >/dev/null; then
                   echo "Unsealed."
                   break
                 fi
@@ -74,4 +81,7 @@ spec:
           volumeMounts:
             - name: unseal-keys
               mountPath: /unseal
+              readOnly: true
+            - name: tls
+              mountPath: /tls
               readOnly: true
