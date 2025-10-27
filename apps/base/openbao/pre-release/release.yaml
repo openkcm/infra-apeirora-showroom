@@ -41,11 +41,6 @@ spec:
               engineVersion: v2
               data:
                 config.hcl: |-
-                  listener "tcp" {
-                    address        = "0.0.0.0:8200"
-                    tls_cert_file  = "/tls/tls.crt"
-                    tls_key_file   = "/tls/tls.key"
-                  }
                   storage "postgresql" {
                     connection_url = "postgres://openbao:{{ .openbao }}@openbao-postgresql.openbao.svc.cluster.local:5432/openbao?sslmode=require"
                   }
