@@ -30,8 +30,40 @@ spec:
           secret:
             secretName: openbao-postgres-storage
             defaultMode: 420
+        - name: unseal-keys
+          secret:
+            secretName: openbao-unseal-keys 
       volumeMounts:
         - name: userconfig-openbao-storage-config
           mountPath: /openbao/userconfig/openbao-storage-config
           readOnly: true
       extraArgs: "-config=/openbao/userconfig/openbao-storage-config/config.hcl"
+      extraContainers:
+        - name: unseal-sidecar
+          image: curlimages/curl:8.5.0
+          command: ["sh","-c"]
+          args:
+            - |
+              set -e
+              echo "Waiting for OpenBao port..."
+              until curl -s http://localhost:8200/v1/sys/health >/dev/null 2>&1; do
+                sleep 2
+              done
+              if curl -s http://localhost:8200/v1/sys/seal-status | grep '"sealed":false' >/dev/null; then
+                echo "Already unsealed."
+                sleep 3600
+              fi
+              for f in /unseal/*.key; do
+                KEY=$(cat "$f")
+                echo "Submitting unseal key $f"
+                curl -s -X POST -H "Content-Type: application/json" -d "{\"key\":\"$KEY\"}" http://localhost:8200/v1/sys/unseal >/dev/null
+                if curl -s http://localhost:8200/v1/sys/seal-status | grep '"sealed":false' >/dev/null; then
+                  echo "Unsealed."
+                  break
+                fi
+              done
+              sleep 3600
+          volumeMounts:
+            - name: unseal-keys
+              mountPath: /unseal
+              readOnly: true
