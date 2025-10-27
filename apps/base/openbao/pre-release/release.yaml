@@ -37,10 +37,15 @@ spec:
             name: openbao-postgres-storage
             creationPolicy: Owner
             template:
-              type: Opaque                # use kubernetes.io/tls only if you’re creating a TLS secret (crt/key)
+              type: Opaque
               engineVersion: v2
               data:
                 config.hcl: |-
+                  listener "tcp" {
+                    address        = "0.0.0.0:8200"
+                    tls_cert_file  = "/tls/tls.crt"
+                    tls_key_file   = "/tls/tls.key"
+                  }
                   storage "postgresql" {
                     connection_url = "postgres://openbao:{{ .openbao }}@openbao-postgresql.openbao.svc.cluster.local:5432/openbao?sslmode=require"
                   }
@@ -49,3 +54,23 @@ spec:
               remoteRef:
                 key: openbao.openbao-postgresql.credentials.postgresql.acid.zalan.do
                 property: password
+      issuer-openbao-selfsigned:
+        apiVersion: cert-manager.io/v1
+        kind: Issuer
+        metadata:
+          name: openbao-selfsigned
+        spec:
+          selfSigned: {}
+      certificate-openbao-tls:
+        apiVersion: cert-manager.io/v1
+        kind: Certificate
+        metadata:
+          name: openbao-tls
+        spec:
+          secretName: openbao-tls
+          dnsNames:
+            - openbao.openbao.svc
+            - openbao.openbao.svc.cluster.local
+          issuerRef:
+            name: openbao-selfsigned
+            kind: Issuer
