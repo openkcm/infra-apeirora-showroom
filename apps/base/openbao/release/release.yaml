@@ -28,7 +28,6 @@ spec:
     global:
       enabled: true
       tlsDisable: false
-
     server:
       logLevel: debug
       standalone:
@@ -103,3 +102,13 @@ spec:
               readOnly: true
       extraEnvironmentVars:
         OPENBAO_CACERT: /tls/tls.ca
+
+    injector:
+      replicas: 2
+      leaderElector:
+        enabled: false
+      certs:
+        secretName: injector-tls
+      webhook:
+        annotations:
+          cert-manager.io/inject-ca-from: openbao/injector-certificate"

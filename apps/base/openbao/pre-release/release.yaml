@@ -69,3 +69,44 @@ spec:
           issuerRef:
             name: openbao-selfsigned
             kind: Issuer
+        injector-selfsigned-ca:
+          apiVersion: cert-manager.io/v1
+          kind: Certificate
+          metadata:
+            name: injector-selfsigned-ca
+          spec:
+            isCA: true
+            commonName: Agent Inject CA
+            secretName: injector-ca-secret
+            duration: 87660h  # 10 years
+            privateKey:
+              algorithm: ECDSA
+              size: 256
+            issuerRef:
+              name: openbao-selfsigned
+              kind: Issuer
+              group: cert-manager.io
+        injector-ca-issuer:
+          apiVersion: cert-manager.io/v1
+          kind: Issuer
+          metadata:
+            name: injector-ca-issuer
+          spec:
+            ca:
+              secretName: injector-ca-secret
+        injector-certificate:
+          apiVersion: cert-manager.io/v1
+          kind: Certificate
+          metadata:
+            name: injector-certificate
+          spec:
+            secretName: injector-tls
+            duration: 24h
+            renewBefore: 144m  # roughly 10% of 24h
+            dnsNames:
+            - openbao-agent-injector-svc
+            - openbao-agent-injector-svc.openbao
+            - openbao-agent-injector-svc.openbao.svc
+            issuerRef:
+              name: injector-ca-issuer
+            commonName: Agent Inject Cert
