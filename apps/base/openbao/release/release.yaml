@@ -25,6 +25,16 @@ spec:
   values:
     server:
       logLevel: debug
+      standalone:
+        enabled: true
+        config: |
+          listener "tcp" {
+            address = "[::]:8200"
+            cluster_address = "[::]:8201"
+            tls_cert_file = "/tls/tls.crt"
+            tls_key_file  = "/tls/tls.key"
+            tls_client_ca_file = "/tls/tls.ca"
+          }
       volumes:
         - name: userconfig-openbao-storage-config
           secret:
