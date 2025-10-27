@@ -3,6 +3,8 @@ kind: HelmRelease
 metadata:
   name: openbao
 spec:
+  dependsOn:
+    - name: openbao--pre-release
   chart:
     spec:
       chart: openbao
@@ -23,6 +25,10 @@ spec:
   interval: 1m0s
   releaseName: openbao
   values:
+    global:
+      enabled: true
+      tlsDisable: false
+
     server:
       logLevel: debug
       standalone:
@@ -95,3 +101,5 @@ spec:
             - name: tls
               mountPath: /tls
               readOnly: true
+      extraEnvironmentVars:
+        OPENBAO_CACERT: /tls/tls.ca
