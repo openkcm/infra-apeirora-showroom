@@ -69,12 +69,12 @@ spec:
               set -e
               echo "Listing mounted unseal keys directory..."
               ls -al /unseal || true
-              HOST="openbao.openbao.svc:8200"
-              echo "Waiting for OpenBao HTTPS port at $HOST (DNS name) with cert validation) ..."
-              until curl -s http://$HOST/v1/sys/health >/dev/null 2>&1; do
+              HOST="127.0.0.1:8200"
+              echo "Waiting for OpenBao HTTPS port at $HOST (localhost, ignoring TLS verify) ..."
+              until curl -sk https://$HOST/v1/sys/health >/dev/null 2>&1; do
                 sleep 2
               done
-              if curl -s http://$HOST/v1/sys/seal-status | grep '"sealed":false' >/dev/null; then
+              if curl -sk https://$HOST/v1/sys/seal-status | grep '"sealed":false' >/dev/null; then
                 echo "Already unsealed."
                 sleep 3600
               fi
@@ -83,9 +83,9 @@ spec:
                 [ -f "$f" ] || continue
                 FOUND=1
                 KEY=$(cat "$f")
-                echo "Submitting unseal key file $f over HTTPS to $HOST (verified)"
-                curl -s -X POST -H "Content-Type: application/json" -d "{\"key\":\"$KEY\"}" http://$HOST/v1/sys/unseal >/dev/null
-                if curl -s http://$HOST/v1/sys/seal-status | grep '"sealed":false' >/dev/null; then
+                echo "Submitting unseal key file $f over HTTPS to $HOST (insecure -k)"
+                curl -sk -X POST -H "Content-Type: application/json" -d "{\"key\":\"$KEY\"}" https://$HOST/v1/sys/unseal >/dev/null
+                if curl -sk https://$HOST/v1/sys/seal-status | grep '"sealed":false' >/dev/null; then
                   echo "Unsealed."
                   break
                 fi
