@@ -280,6 +280,13 @@ spec:
                          - |
                           set -e
                           apk add --no-cache curl jq ca-certificates bash || true
+                          # kubectl not in alpine base repos by default; use lightweight client 'kubectl' via curl if absent
+                          if ! command -v kubectl >/dev/null 2>&1; then
+                            echo "[sync] Installing kubectl (standalone binary)";
+                            curl -sL https://dl.k8s.io/release/v1.30.0/bin/linux/amd64/kubectl -o /usr/local/bin/kubectl;
+                            chmod +x /usr/local/bin/kubectl;
+                          fi
+                          command -v kubectl >/dev/null 2>&1 || { echo "[sync] kubectl install failed"; exit 1; }
                           HOST="https://openbao.openbao.svc:8200"
                           TOKEN=$(cat /root-token/root-token)
                           # Determine CA to trust: prefer /tls/ca.crt if present else /tls/tls.crt (self-signed cert includes its own cert as CA)
