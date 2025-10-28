@@ -83,7 +83,7 @@ spec:
               ls -al /unseal || true
               HOST="127.0.0.1:8200"
               # Determine CA cert: prefer explicit OPENBAO_CACERT env or fallback to /tls/tls.crt (self-signed)
-              CA_CERT="${OPENBAO_CACERT:-/tls/tls.crt}"
+              CA_CERT="/tls/tls.crt"
               CLIENT_CERT="/admin/tls.crt"
               CLIENT_KEY="/admin/tls.key"
               if [ ! -f "$CLIENT_CERT" ] || [ ! -f "$CLIENT_KEY" ]; then
@@ -126,8 +126,8 @@ spec:
               readOnly: true
       extraEnvironmentVars:
         OPENBAO_CACERT: /tls/tls.crt
-        BAO_CLUSTER_ADDR: https://openbao.openbao.svc:8201
-        BAO_API_ADDR: https://openbao.openbao.svc:8200
+        #BAO_CLUSTER_ADDR: https://openbao.openbao.svc:8201
+        #BAO_API_ADDR: https://openbao.openbao.svc:8200
 
 
     injector:
