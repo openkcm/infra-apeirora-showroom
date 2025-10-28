@@ -176,6 +176,10 @@ spec:
             annotations:
               openbao.cert.auth/policy: app1-policy
           commonName: app1-client
+          usages:
+            - digital signature
+            - key encipherment
+            - client auth
           privateKey:
             rotationPolicy: Always
             algorithm: RSA
@@ -194,6 +198,10 @@ spec:
             annotations:
               openbao.cert.auth/policy: admin-policy
           commonName: openbao-admin
+          usages:
+            - digital signature
+            - key encipherment
+            - client auth
           privateKey:
             rotationPolicy: Always
             algorithm: RSA
