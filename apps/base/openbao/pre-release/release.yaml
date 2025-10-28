@@ -217,6 +217,9 @@ spec:
                     - name: root-token
                       secret:
                         secretName: openbao-root
+                    - name: tls
+                      secret:
+                        secretName: openbao-tls
                   containers:
                     - name: sync
                       image: alpine:3.19
@@ -231,15 +234,16 @@ spec:
                       args:
                          - |
                           set -e
-                          apk add --no-cache curl jq ca-certificates bash && update-ca-certificates || true
+                          apk add --no-cache curl jq ca-certificates bash || true
                           HOST="https://openbao.openbao.svc:8200"
                           TOKEN=$(cat /root-token/root-token)
-                          CA_CERT="/tls/ca.crt"
+                          # Determine CA to trust: prefer /tls/ca.crt if present else /tls/tls.crt (self-signed cert includes its own cert as CA)
+                          if [ -f /tls/ca.crt ]; then CA_CERT=/tls/ca.crt; else CA_CERT=/tls/tls.crt; fi
                           echo "[sync] Waiting for unseal..."
-                          until curl --cacert $CA_CERT -sk $HOST/v1/sys/seal-status | grep '"sealed":false' >/dev/null; do sleep 3; done
+                          until curl --cacert $CA_CERT -s $HOST/v1/sys/seal-status | grep '"sealed":false' >/dev/null; do sleep 3; done
                           echo "[sync] Ensure cert auth enabled..."
-                          if ! curl --cacert $CA_CERT -sk -H "X-Vault-Token: $TOKEN" $HOST/v1/sys/auth | jq -e 'has("cert/")' >/dev/null 2>&1; then
-                          curl --cacert $CA_CERT -sk -H "X-Vault-Token: $TOKEN" -X POST $HOST/v1/sys/auth/cert -d '{"type":"cert"}'
+                          if ! curl --cacert $CA_CERT -s -H "X-Vault-Token: $TOKEN" $HOST/v1/sys/auth | jq -e 'has("cert/")' >/dev/null 2>&1; then
+                          curl --cacert $CA_CERT -s -H "X-Vault-Token: $TOKEN" -X POST $HOST/v1/sys/auth/cert -d '{"type":"cert"}'
                           echo "[sync] Enabled cert auth";
                           fi
                           echo "[sync] Processing annotated secrets..."
@@ -248,7 +252,7 @@ spec:
                           CERT=$(kubectl -n openbao get secret "$S" -o jsonpath='{.data.tls\.crt}' | base64 -d)
                           echo "[sync] Mapping $S -> $POLICY"
                           PAYLOAD=$(printf '{"certificate":"%s","policies":"%s","ttl":"1h"}' "$(printf '%s' "$CERT")" "$POLICY")
-                          curl --cacert $CA_CERT -sk -H "X-Vault-Token: $TOKEN" -X POST "$HOST/v1/auth/cert/certs/$S" -d "$PAYLOAD"
-                          curl --cacert $CA_CERT -sk -H "X-Vault-Token: $TOKEN" $HOST/v1/auth/cert/certs/$S | jq '.policies' || { echo "[sync] Verification failed for $S"; exit 1; }
+                          curl --cacert $CA_CERT -s -H "X-Vault-Token: $TOKEN" -X POST "$HOST/v1/auth/cert/certs/$S" -d "$PAYLOAD"
+                          curl --cacert $CA_CERT -s -H "X-Vault-Token: $TOKEN" $HOST/v1/auth/cert/certs/$S | jq '.policies' >/dev/null || { echo "[sync] Verification failed for $S"; exit 1; }
                           done
                           echo "[sync] Done."
