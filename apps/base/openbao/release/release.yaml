@@ -81,7 +81,7 @@ spec:
               set -e
               echo "Listing mounted unseal keys directory..."
               ls -al /unseal || true
-              HOST="127.0.0.1:8200"
+              HOST=openbao.openbao.svc:8200"
               # Prefer server CA chain if present; fallback to leaf cert until CA issued
               if [ -f /tls/ca.crt ]; then CA_CERT=/tls/ca.crt; else CA_CERT=/tls/tls.crt; fi
               CLIENT_CERT="/admin/tls.crt"
