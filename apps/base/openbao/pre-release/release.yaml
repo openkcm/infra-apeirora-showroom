@@ -56,6 +56,29 @@ spec:
           name: openbao-selfsigned
         spec:
           selfSigned: {}
+      openbao-server-ca:
+        apiVersion: cert-manager.io/v1
+        kind: Certificate
+        metadata:
+          name: openbao-server-ca
+        spec:
+          isCA: true
+          secretName: openbao-server-ca-secret
+          commonName: openbao-server-ca
+          privateKey:
+            algorithm: RSA
+            size: 2048
+          issuerRef:
+            name: openbao-selfsigned
+            kind: Issuer
+      openbao-server-ca-issuer:
+        apiVersion: cert-manager.io/v1
+        kind: Issuer
+        metadata:
+          name: openbao-server-ca-issuer
+        spec:
+          ca:
+            secretName: openbao-server-ca-secret
       certificate-openbao-tls:
         apiVersion: cert-manager.io/v1
         kind: Certificate
@@ -68,7 +91,7 @@ spec:
             - openbao.openbao.svc
             - openbao.openbao.svc.cluster.local
           issuerRef:
-            name: openbao-selfsigned
+            name: openbao-server-ca-issuer
             kind: Issuer
       injector-selfsigned-ca:
         apiVersion: cert-manager.io/v1

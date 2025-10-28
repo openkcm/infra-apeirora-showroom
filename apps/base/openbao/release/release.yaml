@@ -82,19 +82,19 @@ spec:
               echo "Listing mounted unseal keys directory..."
               ls -al /unseal || true
               HOST="127.0.0.1:8200"
-              # Determine CA cert: prefer explicit OPENBAO_CACERT env or fallback to /tls/tls.crt (self-signed)
-              CA_CERT="/tls/tls.crt"
+              # Use proper CA chain (server leaf now signed by server-ca); expect ca.crt present in secret
+              CA_CERT="/tls/ca.crt"
               CLIENT_CERT="/admin/tls.crt"
               CLIENT_KEY="/admin/tls.key"
               if [ ! -f "$CLIENT_CERT" ] || [ ! -f "$CLIENT_KEY" ]; then
                 echo "Admin client cert/key not found at /admin; cannot perform mTLS. Exiting." >&2
                 exit 1
               fi
-              echo "Waiting for OpenBao HTTPS port at $HOST with mTLS ..."
-              until curl -k --cacert "$CA_CERT" --cert "$CLIENT_CERT" --key "$CLIENT_KEY" -s https://$HOST/v1/sys/health >/dev/null 2>&1; do
+              echo "Waiting for OpenBao HTTPS port at $HOST with mTLS (verified) ..."
+              until curl --cacert "$CA_CERT" --cert "$CLIENT_CERT" --key "$CLIENT_KEY" -s https://$HOST/v1/sys/health >/dev/null 2>&1; do
                 sleep 2
               done
-              if curl -k --cacert "$CA_CERT" --cert "$CLIENT_CERT" --key "$CLIENT_KEY" -s https://$HOST/v1/sys/seal-status | grep '"sealed":false' >/dev/null; then
+              if curl --cacert "$CA_CERT" --cert "$CLIENT_CERT" --key "$CLIENT_KEY" -s https://$HOST/v1/sys/seal-status | grep '"sealed":false' >/dev/null; then
                 echo "Already unsealed."
                 sleep 3600
               fi
@@ -104,8 +104,8 @@ spec:
                 FOUND=1
                 KEY=$(cat "$f")
                 echo "Submitting unseal key file $f over HTTPS to $HOST with mTLS"
-                curl -k --cacert "$CA_CERT" --cert "$CLIENT_CERT" --key "$CLIENT_KEY" -s -X POST -H "Content-Type: application/json" -d "{\"key\":\"$KEY\"}" https://$HOST/v1/sys/unseal >/dev/null
-                if curl -k --cacert "$CA_CERT" --cert "$CLIENT_CERT" --key "$CLIENT_KEY" -s https://$HOST/v1/sys/seal-status | grep '"sealed":false' >/dev/null; then
+                curl --cacert "$CA_CERT" --cert "$CLIENT_CERT" --key "$CLIENT_KEY" -s -X POST -H "Content-Type: application/json" -d "{\"key\":\"$KEY\"}" https://$HOST/v1/sys/unseal >/dev/null
+                if curl --cacert "$CA_CERT" --cert "$CLIENT_CERT" --key "$CLIENT_KEY" -s https://$HOST/v1/sys/seal-status | grep '"sealed":false' >/dev/null; then
                   echo "Unsealed."
                   break
                 fi
