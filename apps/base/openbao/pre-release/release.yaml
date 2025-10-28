@@ -63,6 +63,7 @@ spec:
           name: openbao-tls
         spec:
           secretName: openbao-tls
+          commonName: openbao.openbao.svc
           dnsNames:
             - openbao.openbao.svc
             - openbao.openbao.svc.cluster.local
