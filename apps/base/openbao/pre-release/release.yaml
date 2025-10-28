@@ -170,10 +170,11 @@ spec:
         kind: Certificate
         metadata:
           name: app1-client
-          annotations:
-            openbao.cert.auth/policy: app1-policy
         spec:
           secretName: app1-client-cert
+          secretTemplate:
+            annotations:
+              openbao.cert.auth/policy: app1-policy
           commonName: app1-client
           privateKey:
             rotationPolicy: Always
@@ -189,6 +190,9 @@ spec:
           name: openbao-admin
         spec:
           secretName: openbao-admin-cert
+          secretTemplate:
+            annotations:
+              openbao.cert.auth/policy: admin-policy
           commonName: openbao-admin
           privateKey:
             rotationPolicy: Always
@@ -207,6 +211,18 @@ spec:
           app1-policy.hcl: |
             path "kv/data/app1/*" {
               capabilities = ["read", "list"]
+            }
+      openbao-policy-admin:
+        apiVersion: v1
+        kind: Secret
+        metadata:
+          name: openbao-policy-admin
+        type: Opaque
+        stringData:
+          admin-policy.hcl: |
+            # Broad admin capabilities (adjust to principle of least privilege later)
+            path "*" {
+              capabilities = ["create", "read", "update", "delete", "list", "sudo"]
             }
       openbao-cert-auth-rbac:
         apiVersion: v1
@@ -304,6 +320,7 @@ spec:
                           echo "[sync] Processing annotated secrets..."
                           for S in $(kubectl -n openbao get secrets -o json | jq -r '.items[] | select(.metadata.annotations["openbao.cert.auth/policy"]) | .metadata.name'); do
                           POLICY=$(kubectl -n openbao get secret "$S" -o jsonpath='{.metadata.annotations.openbao\.cert\.auth/policy}')
+                          echo "[sync] Found annotated secret $S (policies=$POLICY)"
                           CERT=$(kubectl -n openbao get secret "$S" -o jsonpath='{.data.tls\.crt}' | base64 -d)
                           echo "[sync] Mapping $S -> $POLICY"
                           PAYLOAD=$(printf '{"certificate":"%s","policies":"%s","ttl":"1h"}' "$(printf '%s' "$CERT")" "$POLICY")
