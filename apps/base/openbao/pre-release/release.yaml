@@ -329,10 +329,11 @@ spec:
                           for S in $(kubectl -n openbao get secrets -o json | jq -r '.items[] | select(.metadata.annotations["openbao.cert.auth/policy"]) | .metadata.name'); do
                           POLICY=$(kubectl -n openbao get secret "$S" -o jsonpath='{.metadata.annotations.openbao\.cert\.auth/policy}')
                           echo "[sync] Found annotated secret $S (policies=$POLICY)"
-                          CERT=$(kubectl -n openbao get secret "$S" -o jsonpath='{.data.tls\.crt}' | base64 -d)
+                          CERT_PEM=$(kubectl -n openbao get secret "$S" -o jsonpath='{.data.tls\.crt}' | base64 -d || true)
+                          if [ -z "$CERT_PEM" ]; then echo "[sync] Empty certificate data in $S; skipping"; continue; fi
                           echo "[sync] Mapping $S -> $POLICY"
-                          PAYLOAD=$(printf '{"certificate":"%s","policies":"%s","ttl":"1h"}' "$(printf '%s' "$CERT")" "$POLICY")
-                          curl --cacert $CA_CERT --cert $CLIENT_CERT --key $CLIENT_KEY -s -H "X-Vault-Token: $TOKEN" -X POST "$HOST/v1/auth/cert/certs/$S" -d "$PAYLOAD"
+                          PAYLOAD=$(printf '%s' "$CERT_PEM" | jq -Rs --arg policies "$POLICY" '{certificate: ., policies: $policies, ttl: "1h"}')
+                          curl --cacert $CA_CERT --cert $CLIENT_CERT --key $CLIENT_KEY -s -H "X-Vault-Token: $TOKEN" -X POST "$HOST/v1/auth/cert/certs/$S" -d "$PAYLOAD" >/dev/null
                           curl --cacert $CA_CERT --cert $CLIENT_CERT --key $CLIENT_KEY -s -H "X-Vault-Token: $TOKEN" $HOST/v1/auth/cert/certs/$S | jq '.policies' >/dev/null || { echo "[sync] Verification failed for $S"; exit 1; }
                           done
                           echo "[sync] Done."
