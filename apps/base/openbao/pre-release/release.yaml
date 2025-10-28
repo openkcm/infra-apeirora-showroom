@@ -110,3 +110,145 @@ spec:
           issuerRef:
             name: injector-ca-issuer
           commonName: Agent Inject Cert
+      openbao-client-ca-bootstrap:
+        apiVersion: cert-manager.io/v1
+        kind: Issuer
+        metadata:
+          name: openbao-client-ca-bootstrap
+        spec:
+          selfSigned: {}
+      openbao-client-ca:
+        apiVersion: cert-manager.io/v1
+        kind: Certificate
+        metadata:
+          name: openbao-client-ca
+        spec:
+          isCA: true
+          secretName: openbao-client-ca-secret
+          commonName: openbao-client-ca
+          privateKey:
+            rotationPolicy: Always
+            algorithm: RSA
+            size: 2048
+          issuerRef:
+            name: openbao-client-ca-bootstrap
+            kind: Issuer
+      openbao-client-issuer:
+        apiVersion: cert-manager.io/v1
+        kind: Issuer
+        metadata:
+          name: openbao-client-issuer
+        spec:
+          ca:
+            secretName: openbao-client-ca-secret
+      app1-client-certificate:
+        apiVersion: cert-manager.io/v1
+        kind: Certificate
+        metadata:
+          name: app1-client
+          annotations:
+            openbao.cert.auth/policy: app1-policy
+        spec:
+          secretName: app1-client-cert
+          commonName: app1-client
+          privateKey:
+            rotationPolicy: Always
+            algorithm: RSA
+            size: 2048
+          issuerRef:
+            name: openbao-client-issuer
+            kind: Issuer
+      openbao-policy-app1:
+        apiVersion: v1
+        kind: Secret
+        metadata:
+          name: openbao-policy-app1
+        type: Opaque
+        stringData:
+          app1-policy.hcl: |
+            path "kv/data/app1/*" {
+              capabilities = ["read", "list"]
+            }
+      openbao-cert-auth-rbac:
+        apiVersion: v1
+        kind: List
+        metadata:
+          name: openbao-cert-auth-rbac-bundle
+        items:
+          - apiVersion: v1
+            kind: ServiceAccount
+            metadata:
+              name: openbao-cert-auth-sync
+          - apiVersion: rbac.authorization.k8s.io/v1
+            kind: Role
+            metadata:
+              name: openbao-cert-auth-sync
+            rules:
+              - apiGroups: [""]
+                resources: ["secrets"]
+                verbs: ["get", "list"]
+          - apiVersion: rbac.authorization.k8s.io/v1
+            kind: RoleBinding
+            metadata:
+              name: openbao-cert-auth-sync
+            subjects:
+              - kind: ServiceAccount
+                name: openbao-cert-auth-sync
+            roleRef:
+              kind: Role
+              name: openbao-cert-auth-sync
+              apiGroup: rbac.authorization.k8s.io
+      openbao-cert-auth-cronjob:
+        apiVersion: batch/v1
+        kind: CronJob
+        metadata:
+          name: openbao-cert-auth-sync
+        spec:
+          schedule: "*/10 * * * *"
+          successfulJobsHistoryLimit: 1
+          failedJobsHistoryLimit: 3
+          jobTemplate:
+            spec:
+              template:
+                spec:
+                  serviceAccountName: openbao-cert-auth-sync
+                  restartPolicy: Never
+                  volumes:
+                    - name: root-token
+                      secret:
+                        secretName: openbao-root
+                  containers:
+                    - name: sync
+                      image: alpine:3.19
+                      volumeMounts:
+                        - name: root-token
+                          mountPath: /root-token
+                          readOnly: true
+                        - name: tls
+                          mountPath: /tls
+                          readOnly: true
+                      command: ["sh","-c"]
+                      args:
+                         - |
+                          set -e
+                          apk add --no-cache curl jq ca-certificates bash && update-ca-certificates || true
+                          HOST="https://openbao.openbao.svc:8200"
+                          TOKEN=$(cat /root-token/root-token)
+                          CA_CERT="/tls/ca.crt"
+                          echo "[sync] Waiting for unseal..."
+                          until curl --cacert $CA_CERT -sk $HOST/v1/sys/seal-status | grep '"sealed":false' >/dev/null; do sleep 3; done
+                          echo "[sync] Ensure cert auth enabled..."
+                          if ! curl --cacert $CA_CERT -sk -H "X-Vault-Token: $TOKEN" $HOST/v1/sys/auth | jq -e 'has("cert/")' >/dev/null 2>&1; then
+                          curl --cacert $CA_CERT -sk -H "X-Vault-Token: $TOKEN" -X POST $HOST/v1/sys/auth/cert -d '{"type":"cert"}'
+                          echo "[sync] Enabled cert auth";
+                          fi
+                          echo "[sync] Processing annotated secrets..."
+                          for S in $(kubectl -n openbao get secrets -o json | jq -r '.items[] | select(.metadata.annotations["openbao.cert.auth/policy"]) | .metadata.name'); do
+                          POLICY=$(kubectl -n openbao get secret "$S" -o jsonpath='{.metadata.annotations.openbao\.cert\.auth/policy}')
+                          CERT=$(kubectl -n openbao get secret "$S" -o jsonpath='{.data.tls\.crt}' | base64 -d)
+                          echo "[sync] Mapping $S -> $POLICY"
+                          PAYLOAD=$(printf '{"certificate":"%s","policies":"%s","ttl":"1h"}' "$(printf '%s' "$CERT")" "$POLICY")
+                          curl --cacert $CA_CERT -sk -H "X-Vault-Token: $TOKEN" -X POST "$HOST/v1/auth/cert/certs/$S" -d "$PAYLOAD"
+                          curl --cacert $CA_CERT -sk -H "X-Vault-Token: $TOKEN" $HOST/v1/auth/cert/certs/$S | jq '.policies' || { echo "[sync] Verification failed for $S"; exit 1; }
+                          done
+                          echo "[sync] Done."

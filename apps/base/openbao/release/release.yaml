@@ -38,7 +38,8 @@ spec:
             cluster_address = "[::]:8201"
             tls_cert_file = "/tls/tls.crt"
             tls_key_file  = "/tls/tls.key"
-            tls_client_ca_file = "/tls/tls.ca"
+            tls_client_ca_file = "/client-ca/ca.crt"
+            tls_require_and_verify_client_cert = true
           }
       volumes:
         - name: userconfig-openbao-storage-config
@@ -51,12 +52,18 @@ spec:
         - name: tls
           secret:
             secretName: openbao-tls
+        - name: client-ca                    # added: CA secret issued earlier
+          secret:
+            secretName: openbao-client-ca-secret
       volumeMounts:
         - name: userconfig-openbao-storage-config
           mountPath: /openbao/userconfig/openbao-storage-config
           readOnly: true
         - name: tls
           mountPath: /tls
+          readOnly: true
+        - name: client-ca                    # added mount
+          mountPath: /client-ca
           readOnly: true
       extraArgs: "-config=/openbao/userconfig/openbao-storage-config/config.hcl"
       extraContainers:
@@ -102,6 +109,9 @@ spec:
               readOnly: true
       extraEnvironmentVars:
         OPENBAO_CACERT: /tls/tls.ca
+        BAO_CLUSTER_ADDR: https://openbao.openbao.svc:8201
+        BAO_API_ADDR: https://openbao.openbao.svc:8200
+
 
     injector:
       replicas: 2
