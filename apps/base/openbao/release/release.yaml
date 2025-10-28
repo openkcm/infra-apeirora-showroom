@@ -55,6 +55,9 @@ spec:
         - name: client-ca                    # added: CA secret issued earlier
           secret:
             secretName: openbao-client-ca-secret
+        - name: admin-client-cert
+          secret:
+            secretName: openbao-admin-cert
       volumeMounts:
         - name: userconfig-openbao-storage-config
           mountPath: /openbao/userconfig/openbao-storage-config
@@ -64,6 +67,9 @@ spec:
           readOnly: true
         - name: client-ca                    # added mount
           mountPath: /client-ca
+          readOnly: true
+        - name: admin-client-cert
+          mountPath: /admin
           readOnly: true
       extraArgs: "-config=/openbao/userconfig/openbao-storage-config/config.hcl"
       extraContainers:
@@ -76,11 +82,19 @@ spec:
               echo "Listing mounted unseal keys directory..."
               ls -al /unseal || true
               HOST="127.0.0.1:8200"
-              echo "Waiting for OpenBao HTTPS port at $HOST (localhost, ignoring TLS verify) ..."
-              until curl -sk https://$HOST/v1/sys/health >/dev/null 2>&1; do
+              # Determine CA cert: prefer explicit OPENBAO_CACERT env or fallback to /tls/tls.crt (self-signed)
+              CA_CERT="${OPENBAO_CACERT:-/tls/tls.crt}"
+              CLIENT_CERT="/admin/tls.crt"
+              CLIENT_KEY="/admin/tls.key"
+              if [ ! -f "$CLIENT_CERT" ] || [ ! -f "$CLIENT_KEY" ]; then
+                echo "Admin client cert/key not found at /admin; cannot perform mTLS. Exiting." >&2
+                exit 1
+              fi
+              echo "Waiting for OpenBao HTTPS port at $HOST with mTLS ..."
+              until curl --cacert "$CA_CERT" --cert "$CLIENT_CERT" --key "$CLIENT_KEY" -s https://$HOST/v1/sys/health >/dev/null 2>&1; do
                 sleep 2
               done
-              if curl -sk https://$HOST/v1/sys/seal-status | grep '"sealed":false' >/dev/null; then
+              if curl --cacert "$CA_CERT" --cert "$CLIENT_CERT" --key "$CLIENT_KEY" -s https://$HOST/v1/sys/seal-status | grep '"sealed":false' >/dev/null; then
                 echo "Already unsealed."
                 sleep 3600
               fi
@@ -89,9 +103,9 @@ spec:
                 [ -f "$f" ] || continue
                 FOUND=1
                 KEY=$(cat "$f")
-                echo "Submitting unseal key file $f over HTTPS to $HOST (insecure -k)"
-                curl -sk -X POST -H "Content-Type: application/json" -d "{\"key\":\"$KEY\"}" https://$HOST/v1/sys/unseal >/dev/null
-                if curl -sk https://$HOST/v1/sys/seal-status | grep '"sealed":false' >/dev/null; then
+                echo "Submitting unseal key file $f over HTTPS to $HOST with mTLS"
+                curl --cacert "$CA_CERT" --cert "$CLIENT_CERT" --key "$CLIENT_KEY" -s -X POST -H "Content-Type: application/json" -d "{\"key\":\"$KEY\"}" https://$HOST/v1/sys/unseal >/dev/null
+                if curl --cacert "$CA_CERT" --cert "$CLIENT_CERT" --key "$CLIENT_KEY" -s https://$HOST/v1/sys/seal-status | grep '"sealed":false' >/dev/null; then
                   echo "Unsealed."
                   break
                 fi
@@ -107,8 +121,11 @@ spec:
             - name: tls
               mountPath: /tls
               readOnly: true
+            - name: admin-client-cert
+              mountPath: /admin
+              readOnly: true
       extraEnvironmentVars:
-        OPENBAO_CACERT: /tls/tls.ca
+        OPENBAO_CACERT: /tls/tls.crt
         BAO_CLUSTER_ADDR: https://openbao.openbao.svc:8201
         BAO_API_ADDR: https://openbao.openbao.svc:8200
 
