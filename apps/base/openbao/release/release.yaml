@@ -91,10 +91,10 @@ spec:
                 exit 1
               fi
               echo "Waiting for OpenBao HTTPS port at $HOST with mTLS ..."
-              until curl --cacert "$CA_CERT" --cert "$CLIENT_CERT" --key "$CLIENT_KEY" -s https://$HOST/v1/sys/health >/dev/null 2>&1; do
+              until curl -k --cacert "$CA_CERT" --cert "$CLIENT_CERT" --key "$CLIENT_KEY" -s https://$HOST/v1/sys/health >/dev/null 2>&1; do
                 sleep 2
               done
-              if curl --cacert "$CA_CERT" --cert "$CLIENT_CERT" --key "$CLIENT_KEY" -s https://$HOST/v1/sys/seal-status | grep '"sealed":false' >/dev/null; then
+              if curl -k --cacert "$CA_CERT" --cert "$CLIENT_CERT" --key "$CLIENT_KEY" -s https://$HOST/v1/sys/seal-status | grep '"sealed":false' >/dev/null; then
                 echo "Already unsealed."
                 sleep 3600
               fi
@@ -104,8 +104,8 @@ spec:
                 FOUND=1
                 KEY=$(cat "$f")
                 echo "Submitting unseal key file $f over HTTPS to $HOST with mTLS"
-                curl --cacert "$CA_CERT" --cert "$CLIENT_CERT" --key "$CLIENT_KEY" -s -X POST -H "Content-Type: application/json" -d "{\"key\":\"$KEY\"}" https://$HOST/v1/sys/unseal >/dev/null
-                if curl --cacert "$CA_CERT" --cert "$CLIENT_CERT" --key "$CLIENT_KEY" -s https://$HOST/v1/sys/seal-status | grep '"sealed":false' >/dev/null; then
+                curl -k --cacert "$CA_CERT" --cert "$CLIENT_CERT" --key "$CLIENT_KEY" -s -X POST -H "Content-Type: application/json" -d "{\"key\":\"$KEY\"}" https://$HOST/v1/sys/unseal >/dev/null
+                if curl -k --cacert "$CA_CERT" --cert "$CLIENT_CERT" --key "$CLIENT_KEY" -s https://$HOST/v1/sys/seal-status | grep '"sealed":false' >/dev/null; then
                   echo "Unsealed."
                   break
                 fi
