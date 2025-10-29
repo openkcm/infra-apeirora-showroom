@@ -325,6 +325,20 @@ spec:
                           curl --cacert $CA_CERT --cert $CLIENT_CERT --key $CLIENT_KEY -s -H "X-Vault-Token: $TOKEN" -X POST $HOST/v1/sys/auth/cert -d '{"type":"cert"}'
                           echo "[sync] Enabled cert auth";
                           fi
+                          echo "[sync] Syncing policy secrets into Vault..."
+                          for PSEC in $(kubectl -n openbao get secrets -o json | jq -r '.items[] | select(.metadata.name | startswith("openbao-policy-")) | .metadata.name'); do
+                            for KEY in $(kubectl -n openbao get secret "$PSEC" -o json | jq -r '.data | keys[]'); do
+                              PNAME=$(echo "$KEY" | sed 's/.hcl$//')
+                              PCONTENT=$(kubectl -n openbao get secret "$PSEC" -o json | jq -r --arg k "$KEY" '.data[$k]' | base64 -d)
+                              if [ -z "$PCONTENT" ]; then echo "[sync] Empty policy content for $PNAME in $PSEC; skipping"; continue; fi
+                              echo "[sync] Upserting policy $PNAME"
+                              curl --cacert $CA_CERT --cert $CLIENT_CERT --key $CLIENT_KEY -s -H "X-Vault-Token: $TOKEN" -X PUT $HOST/v1/sys/policies/acl/$PNAME -d "{\"policy\":$(printf '%s' "$PCONTENT" | jq -Rs .)}" >/dev/null || echo "[sync] Failed to upsert policy $PNAME"
+                            done
+                          done
+                          echo "[sync] Ensuring transit mount..."
+                          if ! curl --cacert $CA_CERT --cert $CLIENT_CERT --key $CLIENT_KEY -s -H "X-Vault-Token: $TOKEN" $HOST/v1/sys/mounts | jq -e 'has("transit/")' >/dev/null 2>&1; then
+                            curl --cacert $CA_CERT --cert $CLIENT_CERT --key $CLIENT_KEY -s -H "X-Vault-Token: $TOKEN" -X POST $HOST/v1/sys/mounts/transit -d '{"type":"transit"}' && echo "[sync] Mounted transit" || echo "[sync] Failed to mount transit"
+                          fi
                           echo "[sync] Processing annotated secrets..."
                           for S in $(kubectl -n openbao get secrets -o json | jq -r '.items[] | select(.metadata.annotations["openbao.cert.auth/policy"]) | .metadata.name'); do
                           POLICY=$(kubectl -n openbao get secret "$S" -o jsonpath='{.metadata.annotations.openbao\.cert\.auth/policy}')
