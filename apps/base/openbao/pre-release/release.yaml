@@ -228,9 +228,37 @@ spec:
         type: Opaque
         stringData:
           admin-policy.hcl: |
-            # Broad admin capabilities (adjust to principle of least privilege later)
+            # Admin policy (explicit paths; refine further later)
+            path "auth/token/lookup-self" {
+              capabilities = ["read","update"]
+            }
+            path "auth/token/lookup" {
+              capabilities = ["read","update"]
+            }
+            path "auth/token/renew-self" {
+              capabilities = ["read","update"]
+            }
+            path "auth/token/renew" {
+              capabilities = ["read","update"]
+            }
+            path "auth/token/revoke-self" {
+              capabilities = ["read","update"]
+            }
+            path "sys/policies/acl/*" {
+              capabilities = ["create","read","update","delete","list"]
+            }
+            path "sys/mounts/*" {
+              capabilities = ["create","read","update","delete","list","sudo"]
+            }
+            path "transit/*" {
+              capabilities = ["create","read","update","delete","list","sudo"]
+            }
+            path "secret/*" {
+              capabilities = ["create","read","update","delete","list"]
+            }
+            # Fallback read/list only for everything else
             path "*" {
-              capabilities = ["create", "read", "update", "delete", "list", "sudo"]
+              capabilities = ["read","list"]
             }
       openbao-cert-auth-rbac:
         apiVersion: v1
