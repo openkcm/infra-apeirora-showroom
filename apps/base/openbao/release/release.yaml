@@ -41,6 +41,7 @@ spec:
             tls_client_ca_file = "/client-ca/ca.crt"
             tls_require_and_verify_client_cert = false
           }
+          ui = true
       volumes:
         - name: userconfig-openbao-storage-config
           secret:
