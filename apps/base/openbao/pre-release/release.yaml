@@ -209,6 +209,50 @@ spec:
           issuerRef:
             name: openbao-client-issuer
             kind: Issuer
+      namespace-admin-client-certificate:
+        apiVersion: cert-manager.io/v1
+        kind: Certificate
+        metadata:
+          name: namespace-admin
+        spec:
+          secretName: namespace-admin-client-cert
+          secretTemplate:
+            annotations:
+              openbao.cert.auth/policy: namespace-admin-policy
+          commonName: namespace-admin
+          usages:
+            - digital signature
+            - key encipherment
+            - client auth
+          privateKey:
+            rotationPolicy: Always
+            algorithm: RSA
+            size: 2048
+          issuerRef:
+            name: openbao-client-issuer
+            kind: Issuer
+      key-admin-client-certificate:
+        apiVersion: cert-manager.io/v1
+        kind: Certificate
+        metadata:
+          name: key-admin
+        spec:
+          secretName: key-admin-client-cert
+          secretTemplate:
+            annotations:
+              openbao.cert.auth/policy: key-admin-policy
+          commonName: key-admin
+          usages:
+            - digital signature
+            - key encipherment
+            - client auth
+          privateKey:
+            rotationPolicy: Always
+            algorithm: RSA
+            size: 2048
+          issuerRef:
+            name: openbao-client-issuer
+            kind: Issuer
       openbao-policy-app1:
         apiVersion: v1
         kind: Secret
@@ -259,6 +303,64 @@ spec:
             # Fallback read/list only for everything else
             path "*" {
               capabilities = ["read","list"]
+            }
+      openbao-policy-namespace-admin:
+        apiVersion: v1
+        kind: Secret
+        metadata:
+          name: openbao-policy-namespace-admin
+        type: Opaque
+        stringData:
+          namespace-admin-policy.hcl: |
+            # NOTE: Namespace management only works in Enterprise editions. May be ignored in OSS.
+            path "sys/namespaces/*" {
+              capabilities = ["create","read","update","delete","list"]
+            }
+            # Allow listing mounts for context
+            path "sys/mounts" {
+              capabilities = ["read"]
+            }
+            path "sys/mounts/*" {
+              capabilities = ["read","list"]
+            }
+            # Token self lookup
+            path "auth/token/lookup-self" {
+              capabilities = ["read"]
+            }
+            path "auth/token/renew-self" {
+              capabilities = ["read","update"]
+            }
+      openbao-policy-key-admin:
+        apiVersion: v1
+        kind: Secret
+        metadata:
+          name: openbao-policy-key-admin
+        type: Opaque
+        stringData:
+          key-admin-policy.hcl: |
+            # Manage KV secrets across mounts (v2 common names secret/ and kv/ if present)
+            path "secret/*" {
+              capabilities = ["create","read","update","delete","list"]
+            }
+            path "kv/*" {
+              capabilities = ["create","read","update","delete","list"]
+            }
+            # Transit key management
+            path "transit/keys/*" {
+              capabilities = ["create","read","update","delete","list"]
+            }
+            path "transit/encrypt/*" {
+              capabilities = ["update","read"]
+            }
+            path "transit/decrypt/*" {
+              capabilities = ["update","read"]
+            }
+            # Token self ops
+            path "auth/token/lookup-self" {
+              capabilities = ["read"]
+            }
+            path "auth/token/renew-self" {
+              capabilities = ["read","update"]
             }
       openbao-cert-auth-rbac:
         apiVersion: v1
