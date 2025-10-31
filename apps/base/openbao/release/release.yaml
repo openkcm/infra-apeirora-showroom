@@ -140,3 +140,8 @@ spec:
       webhook:
         annotations:
           cert-manager.io/inject-ca-from: openbao/injector-certificate"
+        failurePolicy: Ignore          # keep or set Fail if you prefer strict blocking
+        timeoutSeconds: 5              # reduced from 30
+        reinvocationPolicy: Never
+        admissionReviewVersions:
+          - v1
