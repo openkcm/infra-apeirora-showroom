@@ -468,8 +468,9 @@ spec:
                           curl --cacert $CA_CERT --cert $CLIENT_CERT --key $CLIENT_KEY -s -H "X-Vault-Token: $TOKEN" -X POST $HOST/v1/auth/jwt/config -d '{"oidc_discovery_url":"'$JWT_ISSUER'","default_role":"jwt-admin","bound_issuer":"'$JWT_ISSUER'"}' >/dev/null || echo "[sync] jwt config failed (may already exist)"
                           echo "[sync] Ensuring jwt-admin role exists..."
                           if ! curl --cacert $CA_CERT --cert $CLIENT_CERT --key $CLIENT_KEY -s -H "X-Vault-Token: $TOKEN" $HOST/v1/auth/jwt/role/jwt-admin | jq -e '.data' >/dev/null 2>&1; then
-                            echo "[sync] jwt-admin role not found; creating"
-                            RESP=$(curl --cacert $CA_CERT --cert $CLIENT_CERT --key $CLIENT_KEY -s -w '\n%{http_code}' -H "X-Vault-Token: $TOKEN" -X POST $HOST/v1/auth/jwt/role/jwt-admin -d '{"user_claim":"sub","bound_audiences":["vault","openbao","api"],"policies":["admin-policy"],"token_ttl":"1h","token_max_ttl":"2h"}')
+                            echo "[sync] jwt-admin role not found; creating (role_type=jwt)"
+                            # Using role_type=jwt to avoid OIDC redirect requirements since we only validate bearer tokens.
+                            RESP=$(curl --cacert $CA_CERT --cert $CLIENT_CERT --key $CLIENT_KEY -s -w '\n%{http_code}' -H "X-Vault-Token: $TOKEN" -X POST $HOST/v1/auth/jwt/role/jwt-admin -d '{"role_type":"jwt","user_claim":"sub","bound_audiences":["vault","openbao","api"],"policies":["admin-policy"],"token_ttl":"1h","token_max_ttl":"2h"}')
                             BODY=$(printf "%s" "$RESP" | sed '$d')
                             CODE=$(printf "%s" "$RESP" | tail -n1)
                             if [ "$CODE" != "200" ] && [ "$CODE" != "204" ]; then
