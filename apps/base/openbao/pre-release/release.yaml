@@ -300,6 +300,10 @@ spec:
             path "secret/*" {
               capabilities = ["create","read","update","delete","list"]
             }
+            # JWT auth management
+            path "auth/jwt/*" {
+              capabilities = ["create","read","update","delete","list","sudo"]
+            }
             # Fallback read/list only for everything else
             path "*" {
               capabilities = ["read","list"]
@@ -455,6 +459,15 @@ spec:
                           curl --cacert $CA_CERT --cert $CLIENT_CERT --key $CLIENT_KEY -s -H "X-Vault-Token: $TOKEN" -X POST $HOST/v1/sys/auth/cert -d '{"type":"cert"}'
                           echo "[sync] Enabled cert auth";
                           fi
+                          echo "[sync] Ensure jwt auth enabled..."
+                          if ! curl --cacert $CA_CERT --cert $CLIENT_CERT --key $CLIENT_KEY -s -H "X-Vault-Token: $TOKEN" $HOST/v1/sys/auth | jq -e 'has("jwt/")' >/dev/null 2>&1; then
+                            curl --cacert $CA_CERT --cert $CLIENT_CERT --key $CLIENT_KEY -s -H "X-Vault-Token: $TOKEN" -X POST $HOST/v1/sys/auth/jwt -d '{"type":"jwt"}' && echo "[sync] Enabled jwt auth" || echo "[sync] Failed to enable jwt auth";
+                          fi
+                          JWT_ISSUER="https://discovery.ingress.garden.gardener.cc-one.showroom.apeirora.eu/projects/kms/shoots/53ec7160-dfe7-47b0-9d96-75daa9c7a687/issuer"
+                          echo "[sync] Configuring jwt auth (issuer=$JWT_ISSUER)..."
+                          curl --cacert $CA_CERT --cert $CLIENT_CERT --key $CLIENT_KEY -s -H "X-Vault-Token: $TOKEN" -X POST $HOST/v1/auth/jwt/config -d '{"oidc_discovery_url":"'$JWT_ISSUER'","default_role":"jwt-admin","bound_issuer":"'$JWT_ISSUER'"}' >/dev/null || echo "[sync] jwt config failed (may already exist)"
+                          echo "[sync] Upserting jwt-admin role..."
+                          curl --cacert $CA_CERT --cert $CLIENT_CERT --key $CLIENT_KEY -s -H "X-Vault-Token: $TOKEN" -X POST $HOST/v1/auth/jwt/role/jwt-admin -d '{"user_claim":"sub","bound_audiences":["vault","openbao","api"],"policies":["admin-policy"],"token_ttl":"1h","token_max_ttl":"2h"}' >/dev/null || echo "[sync] jwt-admin role failed"
                           echo "[sync] Syncing policy secrets into Vault..."
                           for PSEC in $(kubectl -n openbao get secrets -o json | jq -r '.items[] | select(.metadata.name | startswith("openbao-policy-")) | .metadata.name'); do
                             for KEY in $(kubectl -n openbao get secret "$PSEC" -o json | jq -r '.data | keys[]'); do
