@@ -1,0 +1,10 @@
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: apisync
+spec:
+  chart:
+    spec:
+      version: 0.19.1
+  targetNamespace: apisync
+  storageNamespace: apisync
