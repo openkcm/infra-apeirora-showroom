@@ -1,0 +1,28 @@
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: apisync
+spec:
+  chart:
+    spec:
+      chart: api-syncagent
+      reconcileStrategy: ChartVersion
+      sourceRef:
+        kind: HelmRepository
+        name: kcp
+      version: 0.4.2
+  install:
+    createNamespace: false
+    remediation:
+      retries: -1
+      remediateLastFailure: true
+  upgrade:
+    remediation:
+      retries: -1
+      remediateLastFailure: true
+  interval: 1m0s
+  releaseName: openbapisyncao
+  values:
+    apiExportName: mesh.openkcm.io
+    agentName: openkcp-plattform-mesh
+    kcpKubeconfig: kubeconfig
