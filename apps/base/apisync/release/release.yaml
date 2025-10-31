@@ -24,5 +24,6 @@ spec:
   releaseName: openbapisyncao
   values:
     apiExportName: mesh.openkcm.io
-    agentName: openkcp-plattform-mesh
+    agentName: openkcp-plattform-mesh-worker01
     kcpKubeconfig: kubeconfig
+    workspacePath: root:providers:openkcm-provider
