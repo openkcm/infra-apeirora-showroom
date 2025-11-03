@@ -23,7 +23,7 @@ spec:
   interval: 1m0s
   releaseName: openbapisyncao
   values:
-    apiExportName: core.platform-mesh.io
+    apiExportName: mesh.openkcm.io
     agentName: openkcp-plattform-mesh
     kcpKubeconfig: kubeconfig
     workspacePath: root:providers:openkcm-provider
