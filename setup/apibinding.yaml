@@ -1,0 +1,9 @@
+apiVersion: apis.kcp.io/v1alpha1
+kind: APIBinding
+metadata:
+  name: mesh-openkcm-io
+spec:
+  reference:
+    export:
+      path: root:providers:openkcm-provider
+      name: mesh.openkcm.io
