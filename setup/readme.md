@@ -371,3 +371,125 @@ kubectl get secret -n worker01 linkerd-identity-issuer -o yaml | head -n 20
 kubectl --context worker01 get secret -n linkerd linkerd-identity-issuer -o yaml | head -n 20
 ```
 Compare data keys; they should match. `creationPolicy: Owner` means deleting the ExternalSecret will remove the synced Secret (unless `Retain` chosen otherwise).
+
+### 17. OpenBao Setup Guide
+
+This document describes how OpenBao is deployed, secured, and automated in this repository.
+
+## Goals
+
+* Use PostgreSQL as the storage backend.
+* Using External Secret to template Database Connection.
+* Enforce TLS and later mTLS for all client connections.
+* Automate certificate → policy mapping using annotations.
+* Provide least-privilege policies (admin, app1, key-admin, namespace-admin).
+* Enable JWT authentication (Local Cluster issuer discovery) alongside certificate auth. For UI AUTH.
+* UI Only accesable with port forwarding.
+* Automate unseal via sidecar container.
+* Keep secrets encrypted at rest in Git with SOPS/AGE.
+
+## Components Overview
+
+| Component | Location | Purpose |
+|-----------|----------|---------|
+| Pre-release HelmRelease | `apps/base/openbao/pre-release/release.yaml` | Bootstraps storage secret, CA issuers/certs, client certs, policy Secrets, and CronJob automation. |
+| Main HelmRelease | `apps/base/openbao/release/release.yaml` | Deploys OpenBao server chart with TLS, storage config, and unseal sidecar. |
+| ExternalSecret (Postgres) | Pre-release values | Generates `openbao-postgres-storage` secret with `config.hcl`. |
+| cert-manager Issuers & Certificates | Pre-release values | Establish server CA, client CA, injector CA, and client certificates. |
+| Policy Secrets | Pre-release values | Store HCL policy definitions used by sync CronJob. |
+| CronJob `openbao-cert-auth-sync` | Pre-release values | Upserts policies, enables auth methods, maps annotated cert Secrets to cert auth roles. |
+| Unseal Sidecar | Main HelmRelease values (`extraContainers`) | Submits unseal keys automatically after pod start. |
+| Root Token Secret | (External to chart) | Provides with sops |
+
+## Storage Backend (PostgreSQL)
+
+Defined in the ExternalSecret template:
+```
+storage "postgresql" {
+  connection_url = "postgres://openbao:${openbao}@openbao-postgresql.openbao.svc.cluster.local:5432/openbao?sslmode=require"
+}
+```
+The password is sourced from the Zalando Postgres operator secret, exposed into `openbao-postgres-storage` and mounted by the main release via `userconfig-openbao-storage-config`.
+
+## TLS & mTLS
+
+1. Self-signed issuer `openbao-selfsigned` creates the server CA (`openbao-server-ca`).
+2. Server certificate `openbao-tls` signed by server CA.
+3. Client CA bootstrap and rotation policy create a persistent client CA (`openbao-client-ca`) and issuer.
+4. Client certificates (admin, key-admin, namespace-admin, app1) request `client auth` usage and are annotated with `openbao.cert.auth/policy`.
+5. Main HelmRelease mounts server cert, client CA, and admin client cert.
+
+## Policy Management
+
+Policies live as Secrets with names prefixed by `openbao-policy-`. Each Secret may contain multiple `*.hcl` keys; the CronJob iterates, extracts content, and PUTs to `/v1/sys/policies/acl/<name>`.
+
+Policies implemented:
+
+* `admin-policy.hcl`: Explicit paths for token ops, mounts, transit, policy management, JWT auth, and read/list fallback.
+* `app1-policy.hcl`: Read/list on `kv/data/app1/*`.
+* `key-admin-policy.hcl`: Manage KV + transit keys & encrypt/decrypt operations.
+* `namespace-admin-policy.hcl`: Namespace management (ignored by OSS OpenBao but retained for possible Enterprise usage).
+
+## Certificate → Policy Mapping
+
+The CronJob scans Secrets with annotation `openbao.cert.auth/policy`. For each secret with a `tls.crt`, it posts a role to `/v1/auth/cert/certs/<secret>` binding the certificate's Common Name(s) to the specified policy list.
+
+Annotation format supports multiple comma-separated policies (e.g. `admin-policy,key-admin-policy`).
+
+## Authentication Methods
+
+### Certificate Auth
+Enabled automatically when missing:
+```
+POST /v1/sys/auth/cert {"type":"cert"}
+```
+Roles created per annotated Secret.
+
+### JWT Auth
+CronJob:
+* Enables `/jwt` auth method if absent.
+* Configures discovery with `oidc_discovery_url` == external issuer.
+* Creates `jwt-admin` role (`role_type=jwt`) bound to audiences `["vault","openbao","api"]` and attaches `admin-policy`.
+
+Future hardening: introduce additional JWT roles mapping to app policies.
+
+## Transit Engine
+
+Mounted if `/transit/` is absent:
+```
+POST /v1/sys/mounts/transit {"type":"transit"}
+```
+`key-admin` policy allows key management and encryption/decryption; you must set `deletion_allowed=true` per key when generating if you intend to remove keys later.
+
+## Unseal Automation
+
+The unseal sidecar:
+* Waits for HTTPS health endpoint with mTLS using admin client cert.
+* Iterates through mounted unseal key files in `openbao-unseal-keys` Secret.
+* POSTs each key to `/v1/sys/unseal` until unsealed.
+* Only works after Initials Setup in a new Cluster is done.
+
+## CronJob Workflow Details
+
+Sequence (every 10 minutes):
+1. Waits for unseal status.
+2. Enables cert & jwt auth methods if missing.
+3. Configures JWT issuer & ensures role `jwt-admin` with proper `role_type`.
+4. Upserts all policy Secrets.
+5. Mounts transit engine if needed.
+6. Processes annotated certificate Secrets and creates/updates cert auth roles.
+
+Resilience: Each step checks presence before creation to avoid overwriting.
+
+## How to Add a New Client Policy & Certificate
+
+1. Add a new policy Secret (e.g. `openbao-policy-myapp`) with `myapp-policy.hcl`.
+2. Create a `Certificate` specifying `secretTemplate.annotations.openbao.cert.auth/policy: myapp-policy`.
+3. Commit and let Flux reconcile.
+4. CronJob run will publish the policy and certificate auth role automatically.
+
+## References
+
+* OpenBao Docs: https://www.openbao.org/
+* cert-manager: https://cert-manager.io/docs/
+* External Secrets Operator: https://external-secrets.io/latest/
