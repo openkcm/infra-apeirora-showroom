@@ -452,6 +452,18 @@ spec:
               kind: ClusterRole
               name: openbao-cert-auth-sync-clusterissuer
               apiGroup: rbac.authorization.k8s.io
+          - apiVersion: rbac.authorization.k8s.io/v1
+            kind: ClusterRoleBinding
+            metadata:
+              name: openbao-cert-auth-sync-auth-delegator
+            subjects:
+              - kind: ServiceAccount
+                name: openbao-cert-auth-sync
+                namespace: openbao
+            roleRef:
+              kind: ClusterRole
+              name: system:auth-delegator
+              apiGroup: rbac.authorization.k8s.io
       openbao-cert-auth-cronjob:
         apiVersion: batch/v1
         kind: CronJob
@@ -572,10 +584,17 @@ spec:
                           SA_JWT=$(cat /var/run/secrets/kubernetes.io/serviceaccount/token || true)
                           KUBE_CA=$(cat /var/run/secrets/kubernetes.io/serviceaccount/ca.crt || true)
                           if [ -n "$SA_JWT" ] && [ -n "$KUBE_CA" ]; then
-                            SA_JWT_JSON=$(printf '%s' "$SA_JWT" | jq -Rs .)
-                            KUBE_CA_JSON=$(printf '%s' "$KUBE_CA" | jq -Rs .)
                             PAYLOAD=$(jq -n --arg jwt "$SA_JWT" --arg ca "$KUBE_CA" '{token_reviewer_jwt:$jwt, kubernetes_host:"https://kubernetes.default.svc:443", kubernetes_ca_cert:$ca, issuer:"https://kubernetes.default.svc.cluster.local"}')
                             curl --cacert $CA_CERT --cert $CLIENT_CERT --key $CLIENT_KEY -s -H "X-Vault-Token: $TOKEN" -X POST $HOST/v1/auth/kubernetes/config -d "$PAYLOAD" >/dev/null || echo "[sync] kubernetes auth config failed (may already exist)"
+                            echo "[sync] Testing kubernetes login for cert-manager role..."
+                            LOGIN_RESP=$(curl --cacert $CA_CERT -s -w '\n%{http_code}' -X POST $HOST/v1/auth/kubernetes/login -d '{"role":"cert-manager-pki","jwt":"'$SA_JWT'"}')
+                            LOGIN_BODY=$(printf '%s' "$LOGIN_RESP" | sed '$d')
+                            LOGIN_CODE=$(printf '%s' "$LOGIN_RESP" | tail -n1)
+                            if [ "$LOGIN_CODE" != "200" ]; then
+                              echo "[sync] Kubernetes login test failed (HTTP $LOGIN_CODE)"; echo "$LOGIN_BODY" | jq '.errors? // empty' || true
+                            else
+                              echo "[sync] Kubernetes login test succeeded"
+                            fi
                           else
                             echo "[sync] Missing SA JWT or CA for kubernetes auth config; skipping"
                           fi
