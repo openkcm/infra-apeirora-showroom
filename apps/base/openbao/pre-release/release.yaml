@@ -625,12 +625,11 @@ spec:
               kubernetes:
                 mountPath: /v1/auth/kubernetes
                 role: cert-manager-pki
+                serviceAccountRef:
+                  name: cert-manager
             # Optionally set caBundle if needed; rely on system trust since we inject root CA into pods
             # caBundle: |
             #   -----BEGIN CERTIFICATE-----
             #   ...
             #   -----END CERTIFICATE-----
-          issuerRef:
-            kind: Secret
-            group: ""
-            name: openbao-client-ca-secret
+          # issuerRef not required for Vault issuer; removed erroneous secret reference
