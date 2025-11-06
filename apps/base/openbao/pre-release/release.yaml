@@ -415,7 +415,7 @@ spec:
           - apiVersion: rbac.authorization.k8s.io/v1
             kind: Role
             metadata:
-              name: openbao-cert-auth-sync
+              name: openbao-cert-auth-sync-secrets
             rules:
               - apiGroups: [""]
                 resources: ["secrets"]
@@ -423,13 +423,33 @@ spec:
           - apiVersion: rbac.authorization.k8s.io/v1
             kind: RoleBinding
             metadata:
-              name: openbao-cert-auth-sync
+              name: openbao-cert-auth-sync-secrets
             subjects:
               - kind: ServiceAccount
                 name: openbao-cert-auth-sync
             roleRef:
               kind: Role
-              name: openbao-cert-auth-sync
+              name: openbao-cert-auth-sync-secrets
+              apiGroup: rbac.authorization.k8s.io
+          - apiVersion: rbac.authorization.k8s.io/v1
+            kind: ClusterRole
+            metadata:
+              name: openbao-cert-auth-sync-clusterissuer
+            rules:
+              - apiGroups: ["cert-manager.io"]
+                resources: ["clusterissuers"]
+                verbs: ["get","patch","update"]
+          - apiVersion: rbac.authorization.k8s.io/v1
+            kind: ClusterRoleBinding
+            metadata:
+              name: openbao-cert-auth-sync-clusterissuer
+            subjects:
+              - kind: ServiceAccount
+                name: openbao-cert-auth-sync
+                namespace: openbao
+            roleRef:
+              kind: ClusterRole
+              name: openbao-cert-auth-sync-clusterissuer
               apiGroup: rbac.authorization.k8s.io
       openbao-cert-auth-cronjob:
         apiVersion: batch/v1
@@ -628,8 +648,5 @@ spec:
                 serviceAccountRef:
                   name: cert-manager
             # Optionally set caBundle if needed; rely on system trust since we inject root CA into pods
-            # caBundle: |
-            #   -----BEGIN CERTIFICATE-----
-            #   ...
-            #   -----END CERTIFICATE-----
+            # caBundle will be auto-synchronized by CronJob from secret openbao-tls (tls.crt) each run; initial placeholder removed.
           # issuerRef not required for Vault issuer; removed erroneous secret reference

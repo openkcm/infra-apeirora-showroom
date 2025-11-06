@@ -1,0 +1,19 @@
+apiVersion: cert-manager.io/v1
+kind: ClusterIssuer
+metadata:
+  name: openbao-pki
+spec:
+  vault:
+    server: https://openbao.openbao.svc:8200
+    path: pki_int/issue/client-cert
+    auth:
+      kubernetes:
+        mountPath: /v1/auth/kubernetes
+        role: cert-manager-pki
+        serviceAccountRef:
+          name: cert-manager
+    # Static CA bundle managed via Git to avoid drift; replace with actual server CA or chain.
+    caBundle: |
+      -----BEGIN CERTIFICATE-----
+      PLACEHOLDER_REPLACE_WITH_SERVER_CA_CHAIN
+      -----END CERTIFICATE-----
