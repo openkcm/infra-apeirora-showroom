@@ -382,6 +382,10 @@ spec:
             path "pki/sign/client-cert" {
               capabilities = ["create","update"]
             }
+            # Allow issuing via root PKI (fallback path)
+            path "pki/issue/client-cert" {
+              capabilities = ["create","update"]
+            }
             # Read CA chains & CRL
             path "pki/cert/ca" {
               capabilities = ["read","list"]
@@ -416,6 +420,7 @@ spec:
             kind: ServiceAccount
             metadata:
               name: openbao-cert-auth-sync
+          # Legacy Role retained for Helm rollback compatibility (v66 expectations)
           - apiVersion: rbac.authorization.k8s.io/v1
             kind: Role
             metadata:
