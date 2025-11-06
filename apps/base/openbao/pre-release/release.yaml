@@ -620,6 +620,22 @@ spec:
                           else
                             echo "[sync] PKI role client-cert already present"
                           fi
+                            echo "[sync] Dynamic caBundle sync (openbao-tls secret tls.crt)"
+                            # Use server certificate (tls.crt) from openbao-tls secret; assume it is self-signed or chains to desired CA.
+                            # If later replaced by a chain, you may need to expose the CA separately or concatenate chain here.
+                            ROOT_CA=$(kubectl -n openbao get secret openbao-tls -o jsonpath='{.data.tls\.crt}' 2>/dev/null | base64 -d || true)
+                            if [ -n "$ROOT_CA" ]; then
+                              CURRENT=$(kubectl get clusterissuer openbao-pki -o jsonpath='{.spec.vault.caBundle}' 2>/dev/null || true)
+                              if [ "$CURRENT" != "$ROOT_CA" ]; then
+                                echo "[sync] Updating ClusterIssuer caBundle from openbao-tls secret"
+                                PATCH=$(jq -n --arg cb "$ROOT_CA" '{spec:{vault:{caBundle:$cb}}}')
+                                kubectl patch clusterissuer openbao-pki --type=merge -p "$PATCH" || echo "[sync] Failed to patch caBundle"
+                              else
+                                echo "[sync] ClusterIssuer caBundle already up to date"
+                              fi
+                            else
+                              echo "[sync] Could not read tls.crt from secret openbao-tls"
+                            fi
                           echo "[sync] Processing annotated secrets..."
                           for S in $(kubectl -n openbao get secrets -o json | jq -r '.items[] | select(.metadata.annotations["openbao.cert.auth/policy"]) | .metadata.name'); do
                           POLICY=$(kubectl -n openbao get secret "$S" -o jsonpath='{.metadata.annotations.openbao\.cert\.auth/policy}')
@@ -637,17 +653,16 @@ spec:
         kind: ClusterIssuer
         metadata:
           name: openbao-pki
+          annotations:
+            openbao.io/managed: "helm"
         spec:
           vault:
-            path: pki_int/issue/client-cert
             server: https://openbao.openbao.svc:8200
+            path: pki_int/issue/client-cert
             auth:
               kubernetes:
                 mountPath: /v1/auth/kubernetes
                 role: cert-manager-pki
                 serviceAccountRef:
                   name: cert-manager
-            caBundle: |
-              -----BEGIN CERTIFICATE-----
-              PLACEHOLDER_REPLACE_WITH_SERVER_CA_CHAIN
-              -----END CERTIFICATE-----
+            # caBundle omitted here; CronJob dynamically patches spec.vault.caBundle from secret openbao-server-ca-secret.
