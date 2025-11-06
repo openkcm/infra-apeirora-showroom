@@ -642,7 +642,36 @@ spec:
                           # Guard: if ClusterIssuer already points to root PKI path, skip intermediate default issuer attempts to reduce noise
                           CI_PATH=$(kubectl get clusterissuer openbao-pki -o jsonpath='{.spec.vault.path}' 2>/dev/null || true)
                           if [ "$CI_PATH" = "pki/issue/client-cert" ]; then
-                            echo "[sync] ClusterIssuer using root PKI path; skipping intermediate default issuer logic"
+                            echo "[sync] ClusterIssuer using root PKI path; attempting intermediate recovery"
+                            # Try to import issuer if intermediate has cert but no issuers
+                            INT_CERT=$(curl --cacert $CA_CERT --cert $CLIENT_CERT --key $CLIENT_KEY -s -H "X-Vault-Token: $TOKEN" $HOST/v1/pki_int/cert/ca | jq -r '.data.certificate' || true)
+                            if echo "$INT_CERT" | grep -q 'BEGIN CERTIFICATE'; then
+                              ISSUERS_JSON=$(curl --cacert $CA_CERT --cert $CLIENT_CERT --key $CLIENT_KEY -s -H "X-Vault-Token: $TOKEN" $HOST/v1/pki_int/issuers || true)
+                              ISSUER_ID=$(echo "$ISSUERS_JSON" | jq -r '.data.issuers[0].issuer_id // empty' || true)
+                              if [ -z "$ISSUER_ID" ]; then
+                                echo "[sync] No issuers yet; attempting manual issuer import while on root path"
+                                IMPORT_RESP=$(curl --cacert $CA_CERT --cert $CLIENT_CERT --key $CLIENT_KEY -s -w '\n%{http_code}' -H "X-Vault-Token: $TOKEN" -X POST $HOST/v1/pki_int/issuers/import -d '{"pem_bundle":'"$(printf '%s' "$INT_CERT" | jq -Rs .)"',"set_slices":true,"set_default":true}')
+                                IMPORT_BODY=$(printf '%s' "$IMPORT_RESP" | sed '$d')
+                                IMPORT_CODE=$(printf '%s' "$IMPORT_RESP" | tail -n1)
+                                if [ "$IMPORT_CODE" = "200" ] || [ "$IMPORT_CODE" = "204" ]; then
+                                  echo "[sync] Intermediate issuer import succeeded during recovery"
+                                  ISSUERS_JSON=$(curl --cacert $CA_CERT --cert $CLIENT_CERT --key $CLIENT_KEY -s -H "X-Vault-Token: $TOKEN" $HOST/v1/pki_int/issuers || true)
+                                  ISSUER_ID=$(echo "$ISSUERS_JSON" | jq -r '.data.issuers[0].issuer_id // empty' || true)
+                                else
+                                  echo "[sync] Intermediate issuer import failed (HTTP $IMPORT_CODE): $IMPORT_BODY"
+                                fi
+                              fi
+                              if [ -n "$ISSUER_ID" ]; then
+                                echo "[sync] Switching ClusterIssuer back to intermediate path (issuer_id=$ISSUER_ID)"
+                                PATCH=$(jq -n '{spec:{vault:{path:"pki_int/issue/client-cert"}}}')
+                                kubectl patch clusterissuer openbao-pki --type=merge -p "$PATCH" || echo "[sync] Failed to patch ClusterIssuer back to intermediate"
+                              else
+                                echo "[sync] Intermediate still lacks issuers; remain on root path"
+                              fi
+                            else
+                              echo "[sync] Intermediate CA certificate not present; cannot recover issuers"
+                            fi
+                            echo "[sync] Recovery attempt complete"
                           else
                           # Set issuing & CRL URLs for intermediate (optional but avoids missing chain issues)
                           curl --cacert $CA_CERT --cert $CLIENT_CERT --key $CLIENT_KEY -s -H "X-Vault-Token: $TOKEN" -X POST $HOST/v1/pki_int/config/urls -d '{"issuing_certificates":"'$HOST'/v1/pki_int/ca","crl_distribution_points":"'$HOST'/v1/pki_int/crl"}' >/dev/null || echo "[sync] Failed to set pki_int URLs"
