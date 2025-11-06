@@ -412,6 +412,26 @@ spec:
             kind: ServiceAccount
             metadata:
               name: openbao-cert-auth-sync
+          # Legacy Role retained for Helm rollback compatibility (v66 expectations)
+          - apiVersion: rbac.authorization.k8s.io/v1
+            kind: Role
+            metadata:
+              name: openbao-cert-auth-sync
+            rules:
+              - apiGroups: [""]
+                resources: ["secrets"]
+                verbs: ["get","list"]
+          - apiVersion: rbac.authorization.k8s.io/v1
+            kind: RoleBinding
+            metadata:
+              name: openbao-cert-auth-sync
+            subjects:
+              - kind: ServiceAccount
+                name: openbao-cert-auth-sync
+            roleRef:
+              kind: Role
+              name: openbao-cert-auth-sync
+              apiGroup: rbac.authorization.k8s.io
           - apiVersion: rbac.authorization.k8s.io/v1
             kind: Role
             metadata:
@@ -620,21 +640,26 @@ spec:
                           else
                             echo "[sync] PKI role client-cert already present"
                           fi
-                            echo "[sync] Dynamic caBundle sync (openbao-tls secret tls.crt)"
-                            # Use server certificate (tls.crt) from openbao-tls secret; assume it is self-signed or chains to desired CA.
-                            # If later replaced by a chain, you may need to expose the CA separately or concatenate chain here.
-                            ROOT_CA=$(kubectl -n openbao get secret openbao-tls -o jsonpath='{.data.tls\.crt}' 2>/dev/null | base64 -d || true)
-                            if [ -n "$ROOT_CA" ]; then
+                            echo "[sync] Dynamic caBundle sync (openbao-tls secret tls.crt -> base64)"
+                            # Field spec.vault.caBundle expects bytes; we must patch with base64 (raw JSON string containing base64 data)
+                            CERT_PEM=$(kubectl -n openbao get secret openbao-tls -o jsonpath='{.data.tls\.crt}' 2>/dev/null | base64 -d || true)
+                            if echo "$CERT_PEM" | grep -q "BEGIN CERTIFICATE"; then
+                              CA_B64=$(printf '%s' "$CERT_PEM" | base64 -w0)
+                            else
+                              # Secret may already store base64 of DER; use raw if no PEM markers
+                              CA_B64=$(kubectl -n openbao get secret openbao-tls -o jsonpath='{.data.tls\.crt}' 2>/dev/null || true)
+                            fi
+                            if [ -n "$CA_B64" ]; then
                               CURRENT=$(kubectl get clusterissuer openbao-pki -o jsonpath='{.spec.vault.caBundle}' 2>/dev/null || true)
-                              if [ "$CURRENT" != "$ROOT_CA" ]; then
-                                echo "[sync] Updating ClusterIssuer caBundle from openbao-tls secret"
-                                PATCH=$(jq -n --arg cb "$ROOT_CA" '{spec:{vault:{caBundle:$cb}}}')
+                              if [ "$CURRENT" != "$CA_B64" ]; then
+                                echo "[sync] Patching ClusterIssuer caBundle (base64)"
+                                PATCH=$(jq -n --arg cb "$CA_B64" '{spec:{vault:{caBundle:$cb}}}')
                                 kubectl patch clusterissuer openbao-pki --type=merge -p "$PATCH" || echo "[sync] Failed to patch caBundle"
                               else
                                 echo "[sync] ClusterIssuer caBundle already up to date"
                               fi
                             else
-                              echo "[sync] Could not read tls.crt from secret openbao-tls"
+                              echo "[sync] Could not construct base64 caBundle from secret openbao-tls"
                             fi
                           echo "[sync] Processing annotated secrets..."
                           for S in $(kubectl -n openbao get secrets -o json | jq -r '.items[] | select(.metadata.annotations["openbao.cert.auth/policy"]) | .metadata.name'); do
@@ -665,4 +690,4 @@ spec:
                 role: cert-manager-pki
                 serviceAccountRef:
                   name: cert-manager
-            # caBundle omitted here; CronJob dynamically patches spec.vault.caBundle from secret openbao-server-ca-secret.
+            # caBundle omitted here; CronJob dynamically patches spec.vault.caBundle using base64 of tls.crt from secret openbao-tls.
