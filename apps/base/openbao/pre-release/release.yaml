@@ -676,7 +676,23 @@ spec:
                                 echo "[sync] Failed to set default issuer (HTTP $CODE): $BODY"
                               fi
                             else
-                              echo "[sync] No issuers found under pki_int; default issuer cannot be set yet"
+                              echo "[sync] No issuers found under pki_int after fallback; switching ClusterIssuer to root PKI path as temporary workaround"
+                              # Create root PKI role if absent
+                              if ! curl --cacert $CA_CERT --cert $CLIENT_CERT --key $CLIENT_KEY -s -H "X-Vault-Token: $TOKEN" $HOST/v1/pki/roles/client-cert | jq -e '.data' >/dev/null 2>&1; then
+                                curl --cacert $CA_CERT --cert $CLIENT_CERT --key $CLIENT_KEY -s -H "X-Vault-Token: $TOKEN" -X POST $HOST/v1/pki/roles/client-cert -d '{"allow_any_name":true,"key_type":"rsa","key_bits":2048,"max_ttl":"720h","ttl":"24h","generate_lease":true}' >/dev/null && echo "[sync] Created root PKI role client-cert" || echo "[sync] Failed to create root PKI role client-cert"
+                              else
+                                echo "[sync] Root PKI role client-cert already present"
+                              fi
+                              # Patch ClusterIssuer path from pki_int to pki (root)
+                              CI_CURRENT=$(kubectl get clusterissuer openbao-pki -o jsonpath='{.spec.vault.path}' 2>/dev/null || true)
+                              if [ "$CI_CURRENT" != "pki/issue/client-cert" ]; then
+                                echo "[sync] Patching ClusterIssuer to use root PKI path"
+                                PATCH=$(jq -n '{spec:{vault:{path:"pki/issue/client-cert"}}}')
+                                kubectl patch clusterissuer openbao-pki --type=merge -p "$PATCH" || echo "[sync] Failed to patch ClusterIssuer path"
+                              else
+                                echo "[sync] ClusterIssuer already points to root PKI path"
+                              fi
+                              echo "[sync] WARNING: Using root PKI for issuance; intermediate not fully initialized. Investigate why issuers API is empty."
                             fi
                           else
                             echo "[sync] Default issuer already configured for pki_int"
