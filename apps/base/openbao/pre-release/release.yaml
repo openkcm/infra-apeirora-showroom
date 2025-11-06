@@ -640,11 +640,24 @@ spec:
                           echo "[sync] Configuring intermediate issuing & default issuer..."
                           # Set issuing & CRL URLs for intermediate (optional but avoids missing chain issues)
                           curl --cacert $CA_CERT --cert $CLIENT_CERT --key $CLIENT_KEY -s -H "X-Vault-Token: $TOKEN" -X POST $HOST/v1/pki_int/config/urls -d '{"issuing_certificates":"'$HOST'/v1/pki_int/ca","crl_distribution_points":"'$HOST'/v1/pki_int/crl"}' >/dev/null || echo "[sync] Failed to set pki_int URLs"
-                          # Ensure there is a default issuer configured (Vault 1.13+ multi-issuer). If endpoint returns error, attempt creation.
-                          if ! curl --cacert $CA_CERT --cert $CLIENT_CERT --key $CLIENT_KEY -s -H "X-Vault-Token: $TOKEN" $HOST/v1/pki_int/issuers/default | jq -e '.data' >/dev/null 2>&1; then
-                            echo "[sync] Setting default issuer for pki_int"
-                            # Some versions require selecting an existing issuer by ID; we attempt auto-creation against current intermediate.
-                            curl --cacert $CA_CERT --cert $CLIENT_CERT --key $CLIENT_KEY -s -H "X-Vault-Token: $TOKEN" -X POST $HOST/v1/pki_int/issuers/default -d '{}' >/dev/null || echo "[sync] Failed to set default issuer (may not be supported in this version)"
+                          # Ensure there is a default issuer configured (Vault 1.13+ multi-issuer)
+                          DEFAULT_STATUS=$(curl --cacert $CA_CERT --cert $CLIENT_CERT --key $CLIENT_KEY -s -o /dev/null -w '%{http_code}' -H "X-Vault-Token: $TOKEN" $HOST/v1/pki_int/issuers/default || true)
+                          if [ "$DEFAULT_STATUS" != "200" ]; then
+                            echo "[sync] Default issuer missing; attempting configuration"
+                            ISSUERS_JSON=$(curl --cacert $CA_CERT --cert $CLIENT_CERT --key $CLIENT_KEY -s -H "X-Vault-Token: $TOKEN" $HOST/v1/pki_int/issuers || true)
+                            ISSUER_ID=$(echo "$ISSUERS_JSON" | jq -r '.data.issuers[0].issuer_id // empty' || true)
+                            if [ -n "$ISSUER_ID" ]; then
+                              RESP=$(curl --cacert $CA_CERT --cert $CLIENT_CERT --key $CLIENT_KEY -s -w '\n%{http_code}' -H "X-Vault-Token: $TOKEN" -X POST $HOST/v1/pki_int/issuers/default -d '{"issuer_ref":"'$ISSUER_ID'"}')
+                              BODY=$(printf '%s' "$RESP" | sed '$d')
+                              CODE=$(printf '%s' "$RESP" | tail -n1)
+                              if [ "$CODE" = "200" ] || [ "$CODE" = "204" ]; then
+                                echo "[sync] Set default issuer to $ISSUER_ID"
+                              else
+                                echo "[sync] Failed to set default issuer (HTTP $CODE): $BODY"
+                              fi
+                            else
+                              echo "[sync] No issuers found under pki_int; default issuer cannot be set yet"
+                            fi
                           else
                             echo "[sync] Default issuer already configured for pki_int"
                           fi
