@@ -572,7 +572,10 @@ spec:
                           SA_JWT=$(cat /var/run/secrets/kubernetes.io/serviceaccount/token || true)
                           KUBE_CA=$(cat /var/run/secrets/kubernetes.io/serviceaccount/ca.crt || true)
                           if [ -n "$SA_JWT" ] && [ -n "$KUBE_CA" ]; then
-                            curl --cacert $CA_CERT --cert $CLIENT_CERT --key $CLIENT_KEY -s -H "X-Vault-Token: $TOKEN" -X POST $HOST/v1/auth/kubernetes/config -d '{"token_reviewer_jwt":"'$SA_JWT'","kubernetes_host":"https://kubernetes.default.svc:443","kubernetes_ca_cert":"'$KUBE_CA'","issuer":"https://kubernetes.default.svc.cluster.local"}' >/dev/null || echo "[sync] kubernetes auth config failed (may already exist)"
+                            SA_JWT_JSON=$(printf '%s' "$SA_JWT" | jq -Rs .)
+                            KUBE_CA_JSON=$(printf '%s' "$KUBE_CA" | jq -Rs .)
+                            PAYLOAD=$(jq -n --arg jwt "$SA_JWT" --arg ca "$KUBE_CA" '{token_reviewer_jwt:$jwt, kubernetes_host:"https://kubernetes.default.svc:443", kubernetes_ca_cert:$ca, issuer:"https://kubernetes.default.svc.cluster.local"}')
+                            curl --cacert $CA_CERT --cert $CLIENT_CERT --key $CLIENT_KEY -s -H "X-Vault-Token: $TOKEN" -X POST $HOST/v1/auth/kubernetes/config -d "$PAYLOAD" >/dev/null || echo "[sync] kubernetes auth config failed (may already exist)"
                           else
                             echo "[sync] Missing SA JWT or CA for kubernetes auth config; skipping"
                           fi
@@ -604,10 +607,11 @@ spec:
                           if ! curl --cacert $CA_CERT --cert $CLIENT_CERT --key $CLIENT_KEY -s -H "X-Vault-Token: $TOKEN" $HOST/v1/pki_int/cert/ca | jq -e '.data.certificate' >/dev/null 2>&1; then
                             CSR=$(curl --cacert $CA_CERT --cert $CLIENT_CERT --key $CLIENT_KEY -s -H "X-Vault-Token: $TOKEN" -X POST $HOST/v1/pki_int/intermediate/generate/internal -d '{"common_name":"openbao-intermediate","ttl":"43800h"}' | jq -r '.data.csr')
                             if [ -n "$CSR" ]; then
-                              SIGNED=$(printf '%s' "$CSR" | jq -Rs . | xargs -I '{}' curl --cacert $CA_CERT --cert $CLIENT_CERT --key $CLIENT_KEY -s -H "X-Vault-Token: $TOKEN" -X POST $HOST/v1/pki/root/sign-intermediate -d '{"csr":'$CSR',"format":"pem","ttl":"43800h"}' | jq -r '.data.certificate' || true)
+                              CSR_JSON=$(printf '%s' "$CSR" | jq -Rs .)
+                              SIGNED=$(curl --cacert $CA_CERT --cert $CLIENT_CERT --key $CLIENT_KEY -s -H "X-Vault-Token: $TOKEN" -X POST $HOST/v1/pki/root/sign-intermediate -d '{"csr":'$CSR_JSON',"format":"pem","ttl":"43800h"}' | jq -r '.data.certificate' || true)
                               if [ -n "$SIGNED" ]; then
-                                # Set signed intermediate
-                                curl --cacert $CA_CERT --cert $CLIENT_CERT --key $CLIENT_KEY -s -H "X-Vault-Token: $TOKEN" -X POST $HOST/v1/pki_int/intermediate/set-signed -d '{"certificate":"'$SIGNED'"}' >/dev/null && echo "[sync] Set signed intermediate" || echo "[sync] Failed to set signed intermediate"
+                                SIGNED_JSON=$(printf '%s' "$SIGNED" | jq -Rs .)
+                                curl --cacert $CA_CERT --cert $CLIENT_CERT --key $CLIENT_KEY -s -H "X-Vault-Token: $TOKEN" -X POST $HOST/v1/pki_int/intermediate/set-signed -d '{"certificate":'$SIGNED_JSON'}' >/dev/null && echo "[sync] Set signed intermediate" || echo "[sync] Failed to set signed intermediate"
                               else
                                 echo "[sync] Failed to sign intermediate CSR"
                               fi
