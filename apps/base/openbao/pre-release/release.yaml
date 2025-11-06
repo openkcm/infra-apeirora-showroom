@@ -374,8 +374,12 @@ spec:
         type: Opaque
         stringData:
           openbao-pki-client.hcl: |
-            # Allow issuing client certificates via intermediate PKI role
-            path "pki_int/issue/client-cert" {
+            # Allow signing client certificates via intermediate PKI role (CSR-based)
+            path "pki_int/sign/client-cert" {
+              capabilities = ["create","update"]
+            }
+            # Allow signing via root PKI (fallback path)
+            path "pki/sign/client-cert" {
               capabilities = ["create","update"]
             }
             # Allow issuing via root PKI (fallback path)
@@ -742,12 +746,12 @@ spec:
                               fi
                               # Patch ClusterIssuer path from pki_int to pki (root)
                               CI_CURRENT=$(kubectl get clusterissuer openbao-pki -o jsonpath='{.spec.vault.path}' 2>/dev/null || true)
-                              if [ "$CI_CURRENT" != "pki/issue/client-cert" ]; then
-                                echo "[sync] Patching ClusterIssuer to use root PKI path"
-                                PATCH=$(jq -n '{spec:{vault:{path:"pki/issue/client-cert"}}}')
+                              if [ "$CI_CURRENT" != "pki/sign/client-cert" ]; then
+                                echo "[sync] Patching ClusterIssuer to use root PKI sign path"
+                                PATCH=$(jq -n '{spec:{vault:{path:"pki/sign/client-cert"}}}')
                                 kubectl patch clusterissuer openbao-pki --type=merge -p "$PATCH" || echo "[sync] Failed to patch ClusterIssuer path"
                               else
-                                echo "[sync] ClusterIssuer already points to root PKI path"
+                                echo "[sync] ClusterIssuer already points to root PKI sign path"
                               fi
                               echo "[sync] WARNING: Using root PKI for issuance; intermediate not fully initialized. Investigate why issuers API is empty."
                             fi
@@ -804,7 +808,8 @@ spec:
         spec:
           vault:
             server: https://openbao.openbao.svc:8200
-            path: pki_int/issue/client-cert
+            # Use sign endpoint to avoid Vault generating its own key (lib vault 'issue' path produces a cert + key mismatch in our mTLS issuance context)
+            path: pki_int/sign/client-cert
             auth:
               kubernetes:
                 mountPath: /v1/auth/kubernetes
