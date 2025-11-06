@@ -366,6 +366,42 @@ spec:
             path "auth/token/renew-self" {
               capabilities = ["read","update"]
             }
+      openbao-policy-pki-client:
+        apiVersion: v1
+        kind: Secret
+        metadata:
+          name: openbao-policy-pki-client
+        type: Opaque
+        stringData:
+          openbao-pki-client.hcl: |
+            # Allow issuing client certificates via intermediate PKI role
+            path "pki_int/issue/client-cert" {
+              capabilities = ["create","update"]
+            }
+            # Read CA chains & CRL
+            path "pki/cert/ca" {
+              capabilities = ["read","list"]
+            }
+            path "pki_int/cert/ca" {
+              capabilities = ["read","list"]
+            }
+            path "pki_int/cert/crl" {
+              capabilities = ["read","list"]
+            }
+            # Allow token self introspection
+            path "auth/token/lookup-self" {
+              capabilities = ["read"]
+            }
+            path "auth/token/renew-self" {
+              capabilities = ["read","update"]
+            }
+            # (Optional) list mounts for debugging
+            path "sys/mounts" {
+              capabilities = ["read"]
+            }
+            path "sys/mounts/*" {
+              capabilities = ["read","list"]
+            }
       openbao-cert-auth-rbac:
         apiVersion: v1
         kind: List
@@ -420,6 +456,18 @@ spec:
                     - name: admin-client-cert
                       secret:
                         secretName: openbao-admin-cert
+                    - name: serviceaccount-token
+                      projected:
+                        defaultMode: 0444
+                        sources:
+                          - serviceAccountToken:
+                              path: token
+                              expirationSeconds: 3600
+                          - configMap:
+                              name: kube-root-ca.crt
+                              items:
+                                - key: ca.crt
+                                  path: ca.crt
                   containers:
                     - name: sync
                       image: alpine:3.19
@@ -432,6 +480,9 @@ spec:
                           readOnly: true
                         - name: admin-client-cert
                           mountPath: /admin
+                          readOnly: true
+                        - name: serviceaccount-token
+                          mountPath: /var/run/secrets/kubernetes.io/serviceaccount
                           readOnly: true
                       command: ["sh","-c"]
                       args:
@@ -492,6 +543,63 @@ spec:
                           if ! curl --cacert $CA_CERT --cert $CLIENT_CERT --key $CLIENT_KEY -s -H "X-Vault-Token: $TOKEN" $HOST/v1/sys/mounts | jq -e 'has("transit/")' >/dev/null 2>&1; then
                             curl --cacert $CA_CERT --cert $CLIENT_CERT --key $CLIENT_KEY -s -H "X-Vault-Token: $TOKEN" -X POST $HOST/v1/sys/mounts/transit -d '{"type":"transit"}' && echo "[sync] Mounted transit" || echo "[sync] Failed to mount transit"
                           fi
+                          echo "[sync] Ensuring kubernetes auth enabled..."
+                          if ! curl --cacert $CA_CERT --cert $CLIENT_CERT --key $CLIENT_KEY -s -H "X-Vault-Token: $TOKEN" $HOST/v1/sys/auth | jq -e 'has("kubernetes/")' >/dev/null 2>&1; then
+                            curl --cacert $CA_CERT --cert $CLIENT_CERT --key $CLIENT_KEY -s -H "X-Vault-Token: $TOKEN" -X POST $HOST/v1/sys/auth/kubernetes -d '{"type":"kubernetes"}' && echo "[sync] Enabled kubernetes auth" || echo "[sync] Failed to enable kubernetes auth"
+                          fi
+                          echo "[sync] Configuring kubernetes auth..."
+                          SA_JWT=$(cat /var/run/secrets/kubernetes.io/serviceaccount/token || true)
+                          KUBE_CA=$(cat /var/run/secrets/kubernetes.io/serviceaccount/ca.crt || true)
+                          if [ -n "$SA_JWT" ] && [ -n "$KUBE_CA" ]; then
+                            curl --cacert $CA_CERT --cert $CLIENT_CERT --key $CLIENT_KEY -s -H "X-Vault-Token: $TOKEN" -X POST $HOST/v1/auth/kubernetes/config -d '{"token_reviewer_jwt":"'$SA_JWT'","kubernetes_host":"https://kubernetes.default.svc:443","kubernetes_ca_cert":"'$KUBE_CA'","issuer":"https://kubernetes.default.svc.cluster.local"}' >/dev/null || echo "[sync] kubernetes auth config failed (may already exist)"
+                          else
+                            echo "[sync] Missing SA JWT or CA for kubernetes auth config; skipping"
+                          fi
+                          echo "[sync] Ensuring kubernetes role cert-manager-pki..."
+                          if ! curl --cacert $CA_CERT --cert $CLIENT_CERT --key $CLIENT_KEY -s -H "X-Vault-Token: $TOKEN" $HOST/v1/auth/kubernetes/role/cert-manager-pki | jq -e '.data' >/dev/null 2>&1; then
+                            RESP=$(curl --cacert $CA_CERT --cert $CLIENT_CERT --key $CLIENT_KEY -s -w '\n%{http_code}' -H "X-Vault-Token: $TOKEN" -X POST $HOST/v1/auth/kubernetes/role/cert-manager-pki -d '{"bound_service_account_names":["cert-manager"],"bound_service_account_namespaces":["cert-manager"],"policies":["openbao-pki-client"],"token_ttl":"1h","token_max_ttl":"4h"}')
+                            BODY=$(printf "%s" "$RESP" | sed '$d')
+                            CODE=$(printf "%s" "$RESP" | tail -n1)
+                            if [ "$CODE" != "200" ] && [ "$CODE" != "204" ]; then
+                              echo "[sync] Failed to create kubernetes role cert-manager-pki (HTTP $CODE): $BODY"; else echo "[sync] Created kubernetes role cert-manager-pki"; fi
+                          else
+                            echo "[sync] kubernetes role cert-manager-pki already present"
+                          fi
+                          echo "[sync] Ensuring PKI mounts..."
+                          CURRENT_MOUNTS=$(curl --cacert $CA_CERT --cert $CLIENT_CERT --key $CLIENT_KEY -s -H "X-Vault-Token: $TOKEN" $HOST/v1/sys/mounts)
+                          if ! echo "$CURRENT_MOUNTS" | jq -e 'has("pki/")' >/dev/null 2>&1; then
+                            curl --cacert $CA_CERT --cert $CLIENT_CERT --key $CLIENT_KEY -s -H "X-Vault-Token: $TOKEN" -X POST $HOST/v1/sys/mounts/pki -d '{"type":"pki","config":{"max_lease_ttl":"87600h"}}' && echo "[sync] Mounted pki" || echo "[sync] Failed to mount pki"
+                          fi
+                          if ! echo "$CURRENT_MOUNTS" | jq -e 'has("pki_int/")' >/dev/null 2>&1; then
+                            curl --cacert $CA_CERT --cert $CLIENT_CERT --key $CLIENT_KEY -s -H "X-Vault-Token: $TOKEN" -X POST $HOST/v1/sys/mounts/pki_int -d '{"type":"pki","config":{"max_lease_ttl":"43800h"}}' && echo "[sync] Mounted pki_int" || echo "[sync] Failed to mount pki_int"
+                          fi
+                          echo "[sync] Ensuring root CA generated..."
+                          if ! curl --cacert $CA_CERT --cert $CLIENT_CERT --key $CLIENT_KEY -s -H "X-Vault-Token: $TOKEN" $HOST/v1/pki/cert/ca | jq -e '.data.certificate' >/dev/null 2>&1; then
+                            curl --cacert $CA_CERT --cert $CLIENT_CERT --key $CLIENT_KEY -s -H "X-Vault-Token: $TOKEN" -X POST $HOST/v1/pki/root/generate/internal -d '{"common_name":"openbao-root-ca","ttl":"87600h"}' >/dev/null && echo "[sync] Generated root CA" || echo "[sync] Failed to generate root CA"
+                            # Configure URLs (best-effort)
+                            curl --cacert $CA_CERT --cert $CLIENT_CERT --key $CLIENT_KEY -s -H "X-Vault-Token: $TOKEN" -X POST $HOST/v1/pki/config/urls -d '{"issuing_certificates":"'$HOST'/v1/pki/ca","crl_distribution_points":"'$HOST'/v1/pki/crl"}' >/dev/null || true
+                          fi
+                          echo "[sync] Ensuring intermediate signed..."
+                          if ! curl --cacert $CA_CERT --cert $CLIENT_CERT --key $CLIENT_KEY -s -H "X-Vault-Token: $TOKEN" $HOST/v1/pki_int/cert/ca | jq -e '.data.certificate' >/dev/null 2>&1; then
+                            CSR=$(curl --cacert $CA_CERT --cert $CLIENT_CERT --key $CLIENT_KEY -s -H "X-Vault-Token: $TOKEN" -X POST $HOST/v1/pki_int/intermediate/generate/internal -d '{"common_name":"openbao-intermediate","ttl":"43800h"}' | jq -r '.data.csr')
+                            if [ -n "$CSR" ]; then
+                              SIGNED=$(printf '%s' "$CSR" | jq -Rs . | xargs -I '{}' curl --cacert $CA_CERT --cert $CLIENT_CERT --key $CLIENT_KEY -s -H "X-Vault-Token: $TOKEN" -X POST $HOST/v1/pki/root/sign-intermediate -d '{"csr":'$CSR',"format":"pem","ttl":"43800h"}' | jq -r '.data.certificate' || true)
+                              if [ -n "$SIGNED" ]; then
+                                # Set signed intermediate
+                                curl --cacert $CA_CERT --cert $CLIENT_CERT --key $CLIENT_KEY -s -H "X-Vault-Token: $TOKEN" -X POST $HOST/v1/pki_int/intermediate/set-signed -d '{"certificate":"'$SIGNED'"}' >/dev/null && echo "[sync] Set signed intermediate" || echo "[sync] Failed to set signed intermediate"
+                              else
+                                echo "[sync] Failed to sign intermediate CSR"
+                              fi
+                            else
+                              echo "[sync] Failed to generate intermediate CSR"
+                            fi
+                          fi
+                          echo "[sync] Ensuring PKI role client-cert..."
+                          if ! curl --cacert $CA_CERT --cert $CLIENT_CERT --key $CLIENT_KEY -s -H "X-Vault-Token: $TOKEN" $HOST/v1/pki_int/roles/client-cert | jq -e '.data' >/dev/null 2>&1; then
+                            curl --cacert $CA_CERT --cert $CLIENT_CERT --key $CLIENT_KEY -s -H "X-Vault-Token: $TOKEN" -X POST $HOST/v1/pki_int/roles/client-cert -d '{"allow_any_name":true,"key_type":"rsa","key_bits":2048,"max_ttl":"720h","ttl":"24h","generate_lease":true}' >/dev/null && echo "[sync] Created PKI role client-cert" || echo "[sync] Failed to create PKI role client-cert"
+                          else
+                            echo "[sync] PKI role client-cert already present"
+                          fi
                           echo "[sync] Processing annotated secrets..."
                           for S in $(kubectl -n openbao get secrets -o json | jq -r '.items[] | select(.metadata.annotations["openbao.cert.auth/policy"]) | .metadata.name'); do
                           POLICY=$(kubectl -n openbao get secret "$S" -o jsonpath='{.metadata.annotations.openbao\.cert\.auth/policy}')
@@ -504,3 +612,25 @@ spec:
                           curl --cacert $CA_CERT --cert $CLIENT_CERT --key $CLIENT_KEY -s -H "X-Vault-Token: $TOKEN" $HOST/v1/auth/cert/certs/$S | jq '.policies' >/dev/null || { echo "[sync] Verification failed for $S"; exit 1; }
                           done
                           echo "[sync] Done."
+      openbao-cluster-issuer:
+        apiVersion: cert-manager.io/v1
+        kind: ClusterIssuer
+        metadata:
+          name: openbao-pki
+        spec:
+          vault:
+            path: pki_int/issue/client-cert
+            server: https://openbao.openbao.svc:8200
+            auth:
+              kubernetes:
+                mountPath: /v1/auth/kubernetes
+                role: cert-manager-pki
+            # Optionally set caBundle if needed; rely on system trust since we inject root CA into pods
+            # caBundle: |
+            #   -----BEGIN CERTIFICATE-----
+            #   ...
+            #   -----END CERTIFICATE-----
+          issuerRef:
+            kind: Secret
+            group: ""
+            name: openbao-client-ca-secret
