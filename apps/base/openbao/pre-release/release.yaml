@@ -638,6 +638,17 @@ spec:
                               echo "[sync] Failed to generate intermediate CSR"
                             fi
                           fi
+                          echo "[sync] Configuring intermediate issuing & default issuer..."
+                          # Set issuing & CRL URLs for intermediate (optional but avoids missing chain issues)
+                          curl --cacert $CA_CERT --cert $CLIENT_CERT --key $CLIENT_KEY -s -H "X-Vault-Token: $TOKEN" -X POST $HOST/v1/pki_int/config/urls -d '{"issuing_certificates":"'$HOST'/v1/pki_int/ca","crl_distribution_points":"'$HOST'/v1/pki_int/crl"}' >/dev/null || echo "[sync] Failed to set pki_int URLs"
+                          # Ensure there is a default issuer configured (Vault 1.13+ multi-issuer). If endpoint returns error, attempt creation.
+                          if ! curl --cacert $CA_CERT --cert $CLIENT_CERT --key $CLIENT_KEY -s -H "X-Vault-Token: $TOKEN" $HOST/v1/pki_int/issuers/default | jq -e '.data' >/dev/null 2>&1; then
+                            echo "[sync] Setting default issuer for pki_int"
+                            # Some versions require selecting an existing issuer by ID; we attempt auto-creation against current intermediate.
+                            curl --cacert $CA_CERT --cert $CLIENT_CERT --key $CLIENT_KEY -s -H "X-Vault-Token: $TOKEN" -X POST $HOST/v1/pki_int/issuers/default -d '{}' >/dev/null || echo "[sync] Failed to set default issuer (may not be supported in this version)"
+                          else
+                            echo "[sync] Default issuer already configured for pki_int"
+                          fi
                           echo "[sync] Ensuring PKI role client-cert..."
                           if ! curl --cacert $CA_CERT --cert $CLIENT_CERT --key $CLIENT_KEY -s -H "X-Vault-Token: $TOKEN" $HOST/v1/pki_int/roles/client-cert | jq -e '.data' >/dev/null 2>&1; then
                             curl --cacert $CA_CERT --cert $CLIENT_CERT --key $CLIENT_KEY -s -H "X-Vault-Token: $TOKEN" -X POST $HOST/v1/pki_int/roles/client-cert -d '{"allow_any_name":true,"key_type":"rsa","key_bits":2048,"max_ttl":"720h","ttl":"24h","generate_lease":true}' >/dev/null && echo "[sync] Created PKI role client-cert" || echo "[sync] Failed to create PKI role client-cert"
