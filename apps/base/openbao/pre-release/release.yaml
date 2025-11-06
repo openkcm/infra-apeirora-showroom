@@ -647,6 +647,7 @@ spec:
                 role: cert-manager-pki
                 serviceAccountRef:
                   name: cert-manager
-            # Optionally set caBundle if needed; rely on system trust since we inject root CA into pods
-            # caBundle will be auto-synchronized by CronJob from secret openbao-tls (tls.crt) each run; initial placeholder removed.
-          # issuerRef not required for Vault issuer; removed erroneous secret reference
+            caBundle: |
+              -----BEGIN CERTIFICATE-----
+              PLACEHOLDER_REPLACE_WITH_SERVER_CA_CHAIN
+              -----END CERTIFICATE-----
