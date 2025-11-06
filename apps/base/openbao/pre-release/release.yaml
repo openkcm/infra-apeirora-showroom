@@ -647,6 +647,26 @@ spec:
                             echo "[sync] Default issuer missing; attempting configuration"
                             ISSUERS_JSON=$(curl --cacert $CA_CERT --cert $CLIENT_CERT --key $CLIENT_KEY -s -H "X-Vault-Token: $TOKEN" $HOST/v1/pki_int/issuers || true)
                             ISSUER_ID=$(echo "$ISSUERS_JSON" | jq -r '.data.issuers[0].issuer_id // empty' || true)
+                            if [ -z "$ISSUER_ID" ]; then
+                              echo "[sync] No issuers present; attempting intermediate re-generation (fallback)"
+                              # Fallback: regenerate CSR, sign, set-signed again (single retry)
+                              CSR=$(curl --cacert $CA_CERT --cert $CLIENT_CERT --key $CLIENT_KEY -s -H "X-Vault-Token: $TOKEN" -X POST $HOST/v1/pki_int/intermediate/generate/internal -d '{"common_name":"openbao-intermediate","ttl":"43800h"}' | jq -r '.data.csr')
+                              if [ -n "$CSR" ]; then
+                                CSR_JSON=$(printf '%s' "$CSR" | jq -Rs .)
+                                SIGNED=$(curl --cacert $CA_CERT --cert $CLIENT_CERT --key $CLIENT_KEY -s -H "X-Vault-Token: $TOKEN" -X POST $HOST/v1/pki/root/sign-intermediate -d '{"csr":'$CSR_JSON',"format":"pem","ttl":"43800h"}' | jq -r '.data.certificate' || true)
+                                if [ -n "$SIGNED" ]; then
+                                  SIGNED_JSON=$(printf '%s' "$SIGNED" | jq -Rs .)
+                                  curl --cacert $CA_CERT --cert $CLIENT_CERT --key $CLIENT_KEY -s -H "X-Vault-Token: $TOKEN" -X POST $HOST/v1/pki_int/intermediate/set-signed -d '{"certificate":'$SIGNED_JSON'}' >/dev/null && echo "[sync] Fallback: set signed intermediate" || echo "[sync] Fallback: failed to set signed intermediate"
+                                  # Re-list issuers after fallback
+                                  ISSUERS_JSON=$(curl --cacert $CA_CERT --cert $CLIENT_CERT --key $CLIENT_KEY -s -H "X-Vault-Token: $TOKEN" $HOST/v1/pki_int/issuers || true)
+                                  ISSUER_ID=$(echo "$ISSUERS_JSON" | jq -r '.data.issuers[0].issuer_id // empty' || true)
+                                else
+                                  echo "[sync] Fallback: signing intermediate CSR failed"
+                                fi
+                              else
+                                echo "[sync] Fallback: intermediate CSR generation failed"
+                              fi
+                            fi
                             if [ -n "$ISSUER_ID" ]; then
                               RESP=$(curl --cacert $CA_CERT --cert $CLIENT_CERT --key $CLIENT_KEY -s -w '\n%{http_code}' -H "X-Vault-Token: $TOKEN" -X POST $HOST/v1/pki_int/issuers/default -d '{"issuer_ref":"'$ISSUER_ID'"}')
                               BODY=$(printf '%s' "$RESP" | sed '$d')
