@@ -535,18 +535,41 @@ spec:
                           # ------------------------------------------------------------
                           # Install OpenBao CLI (bao) first; fallback to Vault CLI if bao not available
                           # ------------------------------------------------------------
-                          if ! command -v bao >/dev/null 2>&1; then
-                            echo "[sync] Installing bao CLI";
-                            # NOTE: Adjust version or source if OpenBao publishes different artifact paths.
-                            BAO_VERSION="1.16.2" # Placeholder aligned with Vault series; change to actual OpenBao release.
-                            curl -sL https://github.com/openbao/openbao/releases/download/v${BAO_VERSION}/bao_${BAO_VERSION}_linux_amd64.zip -o /tmp/bao.zip || echo "[sync] Could not download bao (check version/url)";
-                            if [ -f /tmp/bao.zip ]; then
-                              apk add --no-cache unzip >/dev/null 2>&1 || true
-                              unzip -o /tmp/bao.zip -d /usr/local/bin >/dev/null 2>&1 || true
-                              chmod +x /usr/local/bin/bao || true
+                          if ! command -v bao >/dev/null 2>&1 && ! command -v openbao >/dev/null 2>&1; then
+                            echo "[sync] Attempting dynamic OpenBao CLI install";
+                            # Target released tag (must match repository tags, e.g. v2.4.3). Use full tag with leading v.
+                            OPENBAO_TAG="v2.4.3"
+                            # Query GitHub API for assets to avoid guessing archive name.
+                            ASSET_JSON=$(curl -s https://api.github.com/repos/openbao/openbao/releases/tags/${OPENBAO_TAG} || true)
+                            # Pick first linux_amd64 asset (zip or tar.gz)
+                            ASSET_NAME=$(printf '%s' "$ASSET_JSON" | jq -r '.assets[] | .name' | grep -E 'linux_amd64' | head -n1 || true)
+                            if [ -n "$ASSET_NAME" ]; then
+                              ASSET_URL=$(printf '%s' "$ASSET_JSON" | jq -r --arg n "$ASSET_NAME" '.assets[] | select(.name==$n) | .browser_download_url')
+                              echo "[sync] Found OpenBao asset: $ASSET_NAME"
+                              curl -sL "$ASSET_URL" -o /tmp/openbao_asset || echo "[sync] Download failed for $ASSET_NAME"
+                              if [ -s /tmp/openbao_asset ]; then
+                                FILE_TYPE="$(file -b /tmp/openbao_asset || true)"
+                                apk add --no-cache unzip tar >/dev/null 2>&1 || true
+                                if echo "$ASSET_NAME" | grep -qE '\.zip$'; then
+                                  mv /tmp/openbao_asset /tmp/openbao.zip
+                                  unzip -o /tmp/openbao.zip -d /usr/local/bin >/dev/null 2>&1 || true
+                                elif echo "$ASSET_NAME" | grep -qE '\.(tar\.gz|tgz)$'; then
+                                  mv /tmp/openbao_asset /tmp/openbao.tar.gz
+                                  tar -xzf /tmp/openbao.tar.gz -C /usr/local/bin >/dev/null 2>&1 || true
+                                else
+                                  # Assume raw binary
+                                  mv /tmp/openbao_asset /usr/local/bin/bao || mv /tmp/openbao_asset /usr/local/bin/openbao || true
+                                fi
+                                # Try standard binary names to chmod
+                                for B in bao openbao vault; do
+                                  [ -f "/usr/local/bin/$B" ] && chmod +x "/usr/local/bin/$B" || true
+                                done
+                              fi
+                            else
+                              echo "[sync] No matching linux_amd64 asset found for OpenBao tag ${OPENBAO_TAG}";
                             fi
                           fi
-                          if command -v bao >/dev/null 2>&1; then echo "[sync] bao CLI installed"; else echo "[sync] bao CLI not available (will try vault)"; fi
+                          if command -v bao >/dev/null 2>&1; then echo "[sync] bao CLI installed"; elif command -v openbao >/dev/null 2>&1; then echo "[sync] openbao CLI installed"; else echo "[sync] OpenBao CLI not available (will fallback to vault)"; fi
                           if ! command -v vault >/dev/null 2>&1; then
                             echo "[sync] Installing vault CLI (fallback)";
                             VAULT_VERSION="1.16.2"
