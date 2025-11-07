@@ -532,6 +532,32 @@ spec:
                             chmod +x /usr/local/bin/kubectl;
                           fi
                           command -v kubectl >/dev/null 2>&1 || { echo "[sync] kubectl install failed"; exit 1; }
+                          # ------------------------------------------------------------
+                          # Install OpenBao CLI (bao) first; fallback to Vault CLI if bao not available
+                          # ------------------------------------------------------------
+                          if ! command -v bao >/dev/null 2>&1; then
+                            echo "[sync] Installing bao CLI";
+                            # NOTE: Adjust version or source if OpenBao publishes different artifact paths.
+                            BAO_VERSION="1.16.2" # Placeholder aligned with Vault series; change to actual OpenBao release.
+                            curl -sL https://github.com/openbao/openbao/releases/download/v${BAO_VERSION}/bao_${BAO_VERSION}_linux_amd64.zip -o /tmp/bao.zip || echo "[sync] Could not download bao (check version/url)";
+                            if [ -f /tmp/bao.zip ]; then
+                              apk add --no-cache unzip >/dev/null 2>&1 || true
+                              unzip -o /tmp/bao.zip -d /usr/local/bin >/dev/null 2>&1 || true
+                              chmod +x /usr/local/bin/bao || true
+                            fi
+                          fi
+                          if command -v bao >/dev/null 2>&1; then echo "[sync] bao CLI installed"; else echo "[sync] bao CLI not available (will try vault)"; fi
+                          if ! command -v vault >/dev/null 2>&1; then
+                            echo "[sync] Installing vault CLI (fallback)";
+                            VAULT_VERSION="1.16.2"
+                            curl -sL https://releases.hashicorp.com/vault/${VAULT_VERSION}/vault_${VAULT_VERSION}_linux_amd64.zip -o /tmp/vault.zip || { echo "[sync] Failed downloading vault"; }
+                            if [ -f /tmp/vault.zip ]; then
+                              apk add --no-cache unzip >/dev/null 2>&1 || true
+                              unzip -o /tmp/vault.zip -d /usr/local/bin >/dev/null 2>&1 || true
+                              chmod +x /usr/local/bin/vault || true
+                            fi
+                          fi
+                          if command -v vault >/dev/null 2>&1; then echo "[sync] vault CLI installed"; fi
                           HOST="https://openbao.openbao.svc:8200"
                           TOKEN=$(cat /root-token/root-token)
                           # Determine CA to trust: prefer /tls/ca.crt if present else /tls/tls.crt (self-signed cert includes its own cert as CA)
@@ -539,6 +565,48 @@ spec:
                           CLIENT_CERT=/admin/tls.crt
                           CLIENT_KEY=/admin/tls.key
                           if [ ! -f "$CLIENT_CERT" ] || [ ! -f "$CLIENT_KEY" ]; then echo "[sync] Missing admin client cert/key for mTLS; exiting."; exit 1; fi
+                          # Export environment so vault CLI can use mTLS & token automatically.
+                          export VAULT_ADDR="$HOST"
+                          export VAULT_TOKEN="$TOKEN"
+                          # vault CLI does not natively take separate client cert/key env vars; use VAULT_CACERT and set CURL_CA_BUNDLE.
+                          export VAULT_CACERT="$CA_CERT"
+                          # For mTLS with CLI we wrap via 'vault -ca-cert= -client-cert= -client-key=' flags when needed.
+                          VAULT_TLS_ARGS="-ca-cert=$CA_CERT -client-cert=$CLIENT_CERT -client-key=$CLIENT_KEY"
+                          # Helper command wrappers preferring bao over vault
+                          vault_like() {
+                            if command -v bao >/dev/null 2>&1; then
+                              bao $VAULT_TLS_ARGS "$@"
+                            elif command -v vault >/dev/null 2>&1; then
+                              vault $VAULT_TLS_ARGS "$@"
+                            else
+                              echo "[sync] Neither bao nor vault CLI present; cannot run: $@"; return 1
+                            fi
+                          }
+                          bao_cmd() { vault_like "$@"; }
+                          vault_cmd() { vault_like "$@"; }
+                          # ---------------------------------------------------------------------------
+                          # PKI ROLE NAMING RULES (CN / SAN CONSTRAINTS)
+                          # ---------------------------------------------------------------------------
+                          # By default we used: {"allow_any_name":true,...} which permits any Common Name.
+                          # To enforce naming rules you adjust the role JSON when creating roles:
+                          #  * allow_any_name: false -> forces CN/SAN to match allowed_domains list (for DNS-like names)
+                          #  * allowed_domains: list of base domains permitted (CN must be a hostname under these if enforce_hostnames=true)
+                          #  * allow_subdomains: true to allow sub.example.com if example.com listed
+                          #  * allow_glob_domains: true allows patterns like *.svc.cluster.local
+                          #  * allowed_uri_sans: restrict URIs (e.g. SPIFFE IDs)
+                          #  * allowed_other_sans: constrain arbitrary OIDs (format: "OID:VALUE")
+                          #  * require_cn: true ensures CN present in CSR
+                          #  * enforce_hostnames: true validates CN is also in SANs (and is a valid hostname)
+                          #  * allowed_organizational_units / organization / country / province / locality etc can pin subject attributes.
+                          # NOTE: Your current Certificates use CN values like 'app1-client' which are NOT DNS names.
+                          # If you switch to restrictive domain-based rules, change CN to something like 'app1.openbao.internal'.
+                          # Example STRICT role definition (disabled by default):
+                          # ROLE_CONSTRAINTS='{"allow_any_name":false,"allowed_domains":["openbao.internal"],"allow_subdomains":true,"allow_glob_domains":false,"allow_bare_domains":false,"require_cn":true,"enforce_hostnames":false,"key_type":"rsa","key_bits":2048,"max_ttl":"720h","ttl":"24h","generate_lease":true}'
+                          # For now we keep permissive role to avoid breaking existing CNs. To activate strict rules:
+                          # 1) Uncomment ROLE_CONSTRAINTS above
+                          # 2) Replace usage below: -d "$ROLE_CONSTRAINTS" instead of inline JSON
+                          # 3) Update Certificate specs to use DNS-acceptable CN or rely solely on SANs.
+                          # ---------------------------------------------------------------------------
                           echo "[sync] Waiting for unseal..."
                           until curl --cacert $CA_CERT --cert $CLIENT_CERT --key $CLIENT_KEY -s $HOST/v1/sys/seal-status | grep '"sealed":false' >/dev/null; do sleep 3; done
                           echo "[sync] Ensure cert auth enabled..."
@@ -756,7 +824,7 @@ spec:
                           fi
                           echo "[sync] Ensuring PKI role client-cert..."
                           if ! curl --cacert $CA_CERT --cert $CLIENT_CERT --key $CLIENT_KEY -s -H "X-Vault-Token: $TOKEN" $HOST/v1/pki_int/roles/client-cert | jq -e '.data' >/dev/null 2>&1; then
-                            curl --cacert $CA_CERT --cert $CLIENT_CERT --key $CLIENT_KEY -s -H "X-Vault-Token: $TOKEN" -X POST $HOST/v1/pki_int/roles/client-cert -d '{"allow_any_name":true,"key_type":"rsa","key_bits":2048,"max_ttl":"720h","ttl":"24h","generate_lease":true}' >/dev/null && echo "[sync] Created PKI role client-cert" || echo "[sync] Failed to create PKI role client-cert"
+                            curl --cacert $CA_CERT --cert $CLIENT_CERT --key $CLIENT_KEY -s -H "X-Vault-Token: $TOKEN" -X POST $HOST/v1/pki_int/roles/client-cert -d '{"allow_any_name":true,"key_type":"rsa","key_bits":2048,"max_ttl":"720h","ttl":"24h","generate_lease":true}' >/dev/null && echo "[sync] Created PKI role client-cert (permissive)" || echo "[sync] Failed to create PKI role client-cert"
                           else
                             echo "[sync] PKI role client-cert already present"
                           fi
