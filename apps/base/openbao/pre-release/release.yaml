@@ -760,6 +760,19 @@ spec:
                             # Attempt to patch existing role with CSR flags and subject constraints
                             curl --cacert $CA_CERT --cert $CLIENT_CERT --key $CLIENT_KEY -s -H "X-Vault-Token: $TOKEN" -X POST $HOST/v1/pki_int/roles/client-cert -d '{"allow_any_name":true,"key_type":"rsa","key_bits":2048,"max_ttl":"720h","ttl":"24h","generate_lease":true,"use_csr_values":true,"use_csr_common_name":true,"require_cn":false,"allowed_organizational_units":["9d3f2b4e-5c1a-4d4e-ae6d-6c4d6a7f9b23","PlatformMesh"],"organization":["ApeiroRA"],"country":["DE"]}' >/dev/null && echo "[sync] Ensured PKI role client-cert updated with CSR + subject constraints" || echo "[sync] Failed to update PKI role client-cert"
                           fi
+                          # Verify role contains allowed_organizational_units; retry with minimal payload if missing
+                          ROLE_JSON=$(curl --cacert $CA_CERT --cert $CLIENT_CERT --key $CLIENT_KEY -s -H "X-Vault-Token: $TOKEN" $HOST/v1/pki_int/roles/client-cert || true)
+                          if ! echo "$ROLE_JSON" | jq -e '.data.allowed_organizational_units | index("PlatformMesh")' >/dev/null 2>&1; then
+                            echo "[sync] allowed_organizational_units not present after update; retrying with simplified role definition"
+                            SIMPLIFIED='{"allow_any_name":true,"key_type":"rsa","key_bits":2048,"max_ttl":"720h","ttl":"24h","generate_lease":true,"use_csr_values":true,"use_csr_common_name":true,"require_cn":false,"allowed_organizational_units":["9d3f2b4e-5c1a-4d4e-ae6d-6c4d6a7f9b23","PlatformMesh"]}'
+                            curl --cacert $CA_CERT --cert $CLIENT_CERT --key $CLIENT_KEY -s -H "X-Vault-Token: $TOKEN" -X POST $HOST/v1/pki_int/roles/client-cert -d "$SIMPLIFIED" >/dev/null && echo "[sync] Retried PKI role with simplified payload" || echo "[sync] Retry failed for PKI role"
+                            ROLE_JSON=$(curl --cacert $CA_CERT --cert $CLIENT_CERT --key $CLIENT_KEY -s -H "X-Vault-Token: $TOKEN" $HOST/v1/pki_int/roles/client-cert || true)
+                            if echo "$ROLE_JSON" | jq -e '.data.allowed_organizational_units | index("PlatformMesh")' >/dev/null 2>&1; then
+                              echo "[sync] allowed_organizational_units now present"
+                            else
+                              echo "[sync] WARNING: allowed_organizational_units still missing; OpenBao/Vault build may not support this field"
+                            fi
+                          fi
                           # If ClusterIssuer currently points to root fallback path ensure root role mirrors settings
                           ROOT_CI_PATH=$(kubectl get clusterissuer openbao-pki -o jsonpath='{.spec.vault.path}' 2>/dev/null || true)
                           if [ "$ROOT_CI_PATH" = "pki/sign/client-cert" ]; then
@@ -768,6 +781,18 @@ spec:
                               curl --cacert $CA_CERT --cert $CLIENT_CERT --key $CLIENT_KEY -s -H "X-Vault-Token: $TOKEN" -X POST $HOST/v1/pki/roles/client-cert -d '{"allow_any_name":true,"key_type":"rsa","key_bits":2048,"max_ttl":"720h","ttl":"24h","generate_lease":true,"use_csr_values":true,"use_csr_common_name":true,"require_cn":false,"allowed_organizational_units":["9d3f2b4e-5c1a-4d4e-ae6d-6c4d6a7f9b23","PlatformMesh"],"organization":["ApeiroRA"],"country":["DE"]}' >/dev/null && echo "[sync] Created root PKI role client-cert (with subject constraints)" || echo "[sync] Failed to create root PKI role client-cert"
                             else
                               curl --cacert $CA_CERT --cert $CLIENT_CERT --key $CLIENT_KEY -s -H "X-Vault-Token: $TOKEN" -X POST $HOST/v1/pki/roles/client-cert -d '{"allow_any_name":true,"key_type":"rsa","key_bits":2048,"max_ttl":"720h","ttl":"24h","generate_lease":true,"use_csr_values":true,"use_csr_common_name":true,"require_cn":false,"allowed_organizational_units":["9d3f2b4e-5c1a-4d4e-ae6d-6c4d6a7f9b23","PlatformMesh"],"organization":["ApeiroRA"],"country":["DE"]}' >/dev/null && echo "[sync] Ensured root PKI role client-cert updated with subject constraints" || echo "[sync] Failed to update root PKI role client-cert"
+                            fi
+                            ROOT_ROLE_JSON=$(curl --cacert $CA_CERT --cert $CLIENT_CERT --key $CLIENT_KEY -s -H "X-Vault-Token: $TOKEN" $HOST/v1/pki/roles/client-cert || true)
+                            if ! echo "$ROOT_ROLE_JSON" | jq -e '.data.allowed_organizational_units | index("PlatformMesh")' >/dev/null 2>&1; then
+                              echo "[sync] Root role missing allowed_organizational_units; retrying simplified root role payload"
+                              SIMPLIFIED_ROOT='{"allow_any_name":true,"key_type":"rsa","key_bits":2048,"max_ttl":"720h","ttl":"24h","generate_lease":true,"use_csr_values":true,"use_csr_common_name":true,"require_cn":false,"allowed_organizational_units":["9d3f2b4e-5c1a-4d4e-ae6d-6c4d6a7f9b23","PlatformMesh"]}'
+                              curl --cacert $CA_CERT --cert $CLIENT_CERT --key $CLIENT_KEY -s -H "X-Vault-Token: $TOKEN" -X POST $HOST/v1/pki/roles/client-cert -d "$SIMPLIFIED_ROOT" >/dev/null && echo "[sync] Retried root PKI role simplified" || echo "[sync] Root PKI role simplified retry failed"
+                              ROOT_ROLE_JSON=$(curl --cacert $CA_CERT --cert $CLIENT_CERT --key $CLIENT_KEY -s -H "X-Vault-Token: $TOKEN" $HOST/v1/pki/roles/client-cert || true)
+                              if echo "$ROOT_ROLE_JSON" | jq -e '.data.allowed_organizational_units | index("PlatformMesh")' >/dev/null 2>&1; then
+                                echo "[sync] Root allowed_organizational_units now present"
+                              else
+                                echo "[sync] WARNING: Root allowed_organizational_units still missing; OpenBao/Vault build may not support this field"
+                              fi
                             fi
                           fi
                             echo "[sync] Dynamic caBundle sync (openbao-tls secret tls.crt -> base64)"
