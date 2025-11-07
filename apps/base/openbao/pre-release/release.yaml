@@ -694,13 +694,19 @@ spec:
                           fi
                           echo "[sync] Ensuring kubernetes role cert-manager-pki..."
                           if ! curl --cacert $CA_CERT --cert $CLIENT_CERT --key $CLIENT_KEY -s -H "X-Vault-Token: $TOKEN" $HOST/v1/auth/kubernetes/role/cert-manager-pki | jq -e '.data' >/dev/null 2>&1; then
-                            RESP=$(curl --cacert $CA_CERT --cert $CLIENT_CERT --key $CLIENT_KEY -s -w '\n%{http_code}' -H "X-Vault-Token: $TOKEN" -X POST $HOST/v1/auth/kubernetes/role/cert-manager-pki -d '{"bound_service_account_names":["cert-manager"],"bound_service_account_namespaces":["cert-manager"],"policies":["openbao-pki-client"],"token_ttl":"1h","token_max_ttl":"4h"}')
+                            RESP=$(curl --cacert $CA_CERT --cert $CLIENT_CERT --key $CLIENT_KEY -s -w '\n%{http_code}' -H "X-Vault-Token: $TOKEN" -X POST $HOST/v1/auth/kubernetes/role/cert-manager-pki -d '{"bound_service_account_names":["cert-manager","openbao-cert-auth-sync"],"bound_service_account_namespaces":["cert-manager","openbao"],"policies":["openbao-pki-client"],"token_ttl":"1h","token_max_ttl":"4h"}')
                             BODY=$(printf "%s" "$RESP" | sed '$d')
                             CODE=$(printf "%s" "$RESP" | tail -n1)
                             if [ "$CODE" != "200" ] && [ "$CODE" != "204" ]; then
                               echo "[sync] Failed to create kubernetes role cert-manager-pki (HTTP $CODE): $BODY"; else echo "[sync] Created kubernetes role cert-manager-pki"; fi
                           else
                             echo "[sync] kubernetes role cert-manager-pki already present"
+                            ROLE_JSON=$(curl --cacert $CA_CERT --cert $CLIENT_CERT --key $CLIENT_KEY -s -H "X-Vault-Token: $TOKEN" $HOST/v1/auth/kubernetes/role/cert-manager-pki || true)
+                            if ! echo "$ROLE_JSON" | jq -e '.data.bound_service_account_names[] | select(.=="openbao-cert-auth-sync")' >/dev/null 2>&1; then
+                              echo "[sync] Patching role to include openbao-cert-auth-sync"
+                              PATCH=$(jq -n '{bound_service_account_names:["cert-manager","openbao-cert-auth-sync"],bound_service_account_namespaces:["cert-manager","openbao"],policies:["openbao-pki-client"],token_ttl:"1h",token_max_ttl:"4h"}')
+                              curl --cacert $CA_CERT --cert $CLIENT_CERT --key $CLIENT_KEY -s -H "X-Vault-Token: $TOKEN" -X POST $HOST/v1/auth/kubernetes/role/cert-manager-pki -d "$PATCH" >/dev/null || echo "[sync] Failed to patch kubernetes role cert-manager-pki"
+                            fi
                           fi
                           echo "[sync] Ensuring PKI mounts..."
                           CURRENT_MOUNTS=$(curl --cacert $CA_CERT --cert $CLIENT_CERT --key $CLIENT_KEY -s -H "X-Vault-Token: $TOKEN" $HOST/v1/sys/mounts)
@@ -733,123 +739,35 @@ spec:
                             fi
                           fi
                           echo "[sync] Configuring intermediate issuing & default issuer..."
-                          # Guard: if ClusterIssuer already points to root PKI path, skip intermediate default issuer attempts to reduce noise
+                          # Multi-issuer simplified handling
                           CI_PATH=$(kubectl get clusterissuer openbao-pki -o jsonpath='{.spec.vault.path}' 2>/dev/null || true)
-                          if [ "$CI_PATH" = "pki/issue/client-cert" ]; then
-                            echo "[sync] ClusterIssuer using root PKI path; attempting intermediate recovery"
-                            # Try to import issuer if intermediate has cert but no issuers
-                            INT_CERT=$(curl --cacert $CA_CERT --cert $CLIENT_CERT --key $CLIENT_KEY -s -H "X-Vault-Token: $TOKEN" $HOST/v1/pki_int/cert/ca | jq -r '.data.certificate' || true)
-                            if echo "$INT_CERT" | grep -q 'BEGIN CERTIFICATE'; then
-                              ISSUERS_JSON=$(curl --cacert $CA_CERT --cert $CLIENT_CERT --key $CLIENT_KEY -s -H "X-Vault-Token: $TOKEN" $HOST/v1/pki_int/issuers || true)
-                              ISSUER_ID=$(echo "$ISSUERS_JSON" | jq -r '.data.issuers[0].issuer_id // empty' || true)
-                              if [ -z "$ISSUER_ID" ]; then
-                                echo "[sync] No issuers yet; attempting manual issuer import while on root path"
-                                IMPORT_RESP=$(curl --cacert $CA_CERT --cert $CLIENT_CERT --key $CLIENT_KEY -s -w '\n%{http_code}' -H "X-Vault-Token: $TOKEN" -X POST $HOST/v1/pki_int/issuers/import -d '{"pem_bundle":'"$(printf '%s' "$INT_CERT" | jq -Rs .)"',"set_slices":true,"set_default":true}')
-                                IMPORT_BODY=$(printf '%s' "$IMPORT_RESP" | sed '$d')
-                                IMPORT_CODE=$(printf '%s' "$IMPORT_RESP" | tail -n1)
-                                if [ "$IMPORT_CODE" = "200" ] || [ "$IMPORT_CODE" = "204" ]; then
-                                  echo "[sync] Intermediate issuer import succeeded during recovery"
-                                  ISSUERS_JSON=$(curl --cacert $CA_CERT --cert $CLIENT_CERT --key $CLIENT_KEY -s -H "X-Vault-Token: $TOKEN" $HOST/v1/pki_int/issuers || true)
-                                  ISSUER_ID=$(echo "$ISSUERS_JSON" | jq -r '.data.issuers[0].issuer_id // empty' || true)
-                                else
-                                  echo "[sync] Intermediate issuer import failed (HTTP $IMPORT_CODE): $IMPORT_BODY"
-                                fi
-                              fi
-                              if [ -n "$ISSUER_ID" ]; then
-                                echo "[sync] Switching ClusterIssuer back to intermediate path (issuer_id=$ISSUER_ID)"
-                                PATCH=$(jq -n '{spec:{vault:{path:"pki_int/issue/client-cert"}}}')
-                                kubectl patch clusterissuer openbao-pki --type=merge -p "$PATCH" || echo "[sync] Failed to patch ClusterIssuer back to intermediate"
-                              else
-                                echo "[sync] Intermediate still lacks issuers; remain on root path"
-                              fi
-                            else
-                              echo "[sync] Intermediate CA certificate not present; cannot recover issuers"
-                            fi
-                            echo "[sync] Recovery attempt complete"
-                          else
-                          # Set issuing & CRL URLs for intermediate (optional but avoids missing chain issues)
-                          curl --cacert $CA_CERT --cert $CLIENT_CERT --key $CLIENT_KEY -s -H "X-Vault-Token: $TOKEN" -X POST $HOST/v1/pki_int/config/urls -d '{"issuing_certificates":"'$HOST'/v1/pki_int/ca","crl_distribution_points":"'$HOST'/v1/pki_int/crl"}' >/dev/null || echo "[sync] Failed to set pki_int URLs"
-                          # Ensure there is a default issuer configured (Vault 1.13+ multi-issuer)
-                          DEFAULT_STATUS=$(curl --cacert $CA_CERT --cert $CLIENT_CERT --key $CLIENT_KEY -s -o /dev/null -w '%{http_code}' -H "X-Vault-Token: $TOKEN" $HOST/v1/pki_int/issuers/default || true)
-                          if [ "$DEFAULT_STATUS" != "200" ]; then
-                            echo "[sync] Default issuer missing; attempting configuration"
-                            ISSUERS_JSON=$(curl --cacert $CA_CERT --cert $CLIENT_CERT --key $CLIENT_KEY -s -H "X-Vault-Token: $TOKEN" $HOST/v1/pki_int/issuers || true)
-                            ISSUER_ID=$(echo "$ISSUERS_JSON" | jq -r '.data.issuers[0].issuer_id // empty' || true)
-                            if [ -z "$ISSUER_ID" ]; then
-                              echo "[sync] No issuers present; attempting intermediate re-generation (fallback)"
-                              # Fallback: regenerate CSR, sign, set-signed again (single retry)
-                              CSR=$(curl --cacert $CA_CERT --cert $CLIENT_CERT --key $CLIENT_KEY -s -H "X-Vault-Token: $TOKEN" -X POST $HOST/v1/pki_int/intermediate/generate/internal -d '{"common_name":"openbao-intermediate","ttl":"43800h"}' | jq -r '.data.csr')
-                              if [ -n "$CSR" ]; then
-                                CSR_JSON=$(printf '%s' "$CSR" | jq -Rs .)
-                                SIGNED=$(curl --cacert $CA_CERT --cert $CLIENT_CERT --key $CLIENT_KEY -s -H "X-Vault-Token: $TOKEN" -X POST $HOST/v1/pki/root/sign-intermediate -d '{"csr":'$CSR_JSON',"format":"pem","ttl":"43800h"}' | jq -r '.data.certificate' || true)
-                                if [ -n "$SIGNED" ]; then
-                                  SIGNED_JSON=$(printf '%s' "$SIGNED" | jq -Rs .)
-                                  curl --cacert $CA_CERT --cert $CLIENT_CERT --key $CLIENT_KEY -s -H "X-Vault-Token: $TOKEN" -X POST $HOST/v1/pki_int/intermediate/set-signed -d '{"certificate":'$SIGNED_JSON'}' >/dev/null && echo "[sync] Fallback: set signed intermediate" || echo "[sync] Fallback: failed to set signed intermediate"
-                                  # Re-list issuers after fallback
-                                  ISSUERS_JSON=$(curl --cacert $CA_CERT --cert $CLIENT_CERT --key $CLIENT_KEY -s -H "X-Vault-Token: $TOKEN" $HOST/v1/pki_int/issuers || true)
-                                  ISSUER_ID=$(echo "$ISSUERS_JSON" | jq -r '.data.issuers[0].issuer_id // empty' || true)
-                                  if [ -z "$ISSUER_ID" ]; then
-                                    echo "[sync] Attempting manual issuer import (multi-issuer)"
-                                    INT_CERT=$(curl --cacert $CA_CERT --cert $CLIENT_CERT --key $CLIENT_KEY -s -H "X-Vault-Token: $TOKEN" $HOST/v1/pki_int/cert/ca | jq -r '.data.certificate' || true)
-                                    if echo "$INT_CERT" | grep -q 'BEGIN CERTIFICATE'; then
-                                      IMPORT_RESP=$(curl --cacert $CA_CERT --cert $CLIENT_CERT --key $CLIENT_KEY -s -w '\n%{http_code}' -H "X-Vault-Token: $TOKEN" -X POST $HOST/v1/pki_int/issuers/import -d '{"pem_bundle":'"$(printf '%s' "$INT_CERT" | jq -Rs .)"',"set_slices":true,"set_default":true}')
-                                      IMPORT_BODY=$(printf '%s' "$IMPORT_RESP" | sed '$d')
-                                      IMPORT_CODE=$(printf '%s' "$IMPORT_RESP" | tail -n1)
-                                      if [ "$IMPORT_CODE" = "200" ] || [ "$IMPORT_CODE" = "204" ]; then
-                                        echo "[sync] Manual issuer import succeeded"
-                                        ISSUERS_JSON=$(curl --cacert $CA_CERT --cert $CLIENT_CERT --key $CLIENT_KEY -s -H "X-Vault-Token: $TOKEN" $HOST/v1/pki_int/issuers || true)
-                                        ISSUER_ID=$(echo "$ISSUERS_JSON" | jq -r '.data.issuers[0].issuer_id // empty' || true)
-                                      else
-                                        echo "[sync] Manual issuer import failed (HTTP $IMPORT_CODE): $IMPORT_BODY"
-                                      fi
-                                    else
-                                      echo "[sync] Intermediate certificate PEM not found; issuer import skipped"
-                                    fi
-                                  fi
-                                else
-                                  echo "[sync] Fallback: signing intermediate CSR failed"
-                                fi
-                              else
-                                echo "[sync] Fallback: intermediate CSR generation failed"
-                              fi
-                            fi
-                            if [ -n "$ISSUER_ID" ]; then
-                              RESP=$(curl --cacert $CA_CERT --cert $CLIENT_CERT --key $CLIENT_KEY -s -w '\n%{http_code}' -H "X-Vault-Token: $TOKEN" -X POST $HOST/v1/pki_int/issuers/default -d '{"issuer_ref":"'$ISSUER_ID'"}')
-                              BODY=$(printf '%s' "$RESP" | sed '$d')
-                              CODE=$(printf '%s' "$RESP" | tail -n1)
-                              if [ "$CODE" = "200" ] || [ "$CODE" = "204" ]; then
-                                echo "[sync] Set default issuer to $ISSUER_ID"
-                              else
-                                echo "[sync] Failed to set default issuer (HTTP $CODE): $BODY"
-                              fi
-                            else
-                              echo "[sync] No issuers found under pki_int after fallback; switching ClusterIssuer to root PKI path as temporary workaround"
-                              # Create root PKI role if absent
-                              if ! curl --cacert $CA_CERT --cert $CLIENT_CERT --key $CLIENT_KEY -s -H "X-Vault-Token: $TOKEN" $HOST/v1/pki/roles/client-cert | jq -e '.data' >/dev/null 2>&1; then
-                                curl --cacert $CA_CERT --cert $CLIENT_CERT --key $CLIENT_KEY -s -H "X-Vault-Token: $TOKEN" -X POST $HOST/v1/pki/roles/client-cert -d '{"allow_any_name":true,"key_type":"rsa","key_bits":2048,"max_ttl":"720h","ttl":"24h","generate_lease":true}' >/dev/null && echo "[sync] Created root PKI role client-cert" || echo "[sync] Failed to create root PKI role client-cert"
-                              else
-                                echo "[sync] Root PKI role client-cert already present"
-                              fi
-                              # Patch ClusterIssuer path from pki_int to pki (root)
-                              CI_CURRENT=$(kubectl get clusterissuer openbao-pki -o jsonpath='{.spec.vault.path}' 2>/dev/null || true)
-                              if [ "$CI_CURRENT" != "pki/sign/client-cert" ]; then
-                                echo "[sync] Patching ClusterIssuer to use root PKI sign path"
-                                PATCH=$(jq -n '{spec:{vault:{path:"pki/sign/client-cert"}}}')
-                                kubectl patch clusterissuer openbao-pki --type=merge -p "$PATCH" || echo "[sync] Failed to patch ClusterIssuer path"
-                              else
-                                echo "[sync] ClusterIssuer already points to root PKI sign path"
-                              fi
-                              echo "[sync] WARNING: Using root PKI for issuance; intermediate not fully initialized. Investigate why issuers API is empty."
+                          ISSUERS_CODE=$(curl --cacert $CA_CERT --cert $CLIENT_CERT --key $CLIENT_KEY -s -o /dev/null -w '%{http_code}' -H "X-Vault-Token: $TOKEN" $HOST/v1/pki_int/issuers || true)
+                          if [ "$ISSUERS_CODE" != "200" ]; then
+                            echo "[sync] Multi-issuer unsupported (HTTP $ISSUERS_CODE); ensure ClusterIssuer uses intermediate sign path"
+                            if [ "$CI_PATH" != "pki_int/sign/client-cert" ]; then
+                              PATCH=$(jq -n '{spec:{vault:{path:"pki_int/sign/client-cert"}}}')
+                              kubectl patch clusterissuer openbao-pki --type=merge -p "$PATCH" || echo "[sync] Failed to patch ClusterIssuer back to intermediate sign path"
                             fi
                           else
-                            echo "[sync] Default issuer already configured for pki_int"
-                          fi
+                            echo "[sync] Multi-issuer supported; setting intermediate URLs (no import attempts)"
+                            curl --cacert $CA_CERT --cert $CLIENT_CERT --key $CLIENT_KEY -s -H "X-Vault-Token: $TOKEN" -X POST $HOST/v1/pki_int/config/urls -d '{"issuing_certificates":"'$HOST'/v1/pki_int/ca","crl_distribution_points":"'$HOST'/v1/pki_int/crl"}' >/dev/null || echo "[sync] Failed to set pki_int URLs"
                           fi
                           echo "[sync] Ensuring PKI role client-cert..."
                           if ! curl --cacert $CA_CERT --cert $CLIENT_CERT --key $CLIENT_KEY -s -H "X-Vault-Token: $TOKEN" $HOST/v1/pki_int/roles/client-cert | jq -e '.data' >/dev/null 2>&1; then
-                            curl --cacert $CA_CERT --cert $CLIENT_CERT --key $CLIENT_KEY -s -H "X-Vault-Token: $TOKEN" -X POST $HOST/v1/pki_int/roles/client-cert -d '{"allow_any_name":true,"key_type":"rsa","key_bits":2048,"max_ttl":"720h","ttl":"24h","generate_lease":true}' >/dev/null && echo "[sync] Created PKI role client-cert (permissive)" || echo "[sync] Failed to create PKI role client-cert"
+                            curl --cacert $CA_CERT --cert $CLIENT_CERT --key $CLIENT_KEY -s -H "X-Vault-Token: $TOKEN" -X POST $HOST/v1/pki_int/roles/client-cert -d '{"allow_any_name":true,"key_type":"rsa","key_bits":2048,"max_ttl":"720h","ttl":"24h","generate_lease":true,"use_csr_values":true,"use_csr_common_name":true,"require_cn":false}' >/dev/null && echo "[sync] Created PKI role client-cert (permissive + CSR flags)" || echo "[sync] Failed to create PKI role client-cert"
                           else
-                            echo "[sync] PKI role client-cert already present"
+                            # Attempt to patch existing role with CSR flags to prevent CN requirement failures
+                            curl --cacert $CA_CERT --cert $CLIENT_CERT --key $CLIENT_KEY -s -H "X-Vault-Token: $TOKEN" -X POST $HOST/v1/pki_int/roles/client-cert -d '{"allow_any_name":true,"key_type":"rsa","key_bits":2048,"max_ttl":"720h","ttl":"24h","generate_lease":true,"use_csr_values":true,"use_csr_common_name":true,"require_cn":false}' >/dev/null && echo "[sync] Ensured PKI role client-cert updated with CSR flags" || echo "[sync] Failed to update PKI role client-cert"
+                          fi
+                          # If ClusterIssuer currently points to root fallback path ensure root role mirrors settings
+                          ROOT_CI_PATH=$(kubectl get clusterissuer openbao-pki -o jsonpath='{.spec.vault.path}' 2>/dev/null || true)
+                          if [ "$ROOT_CI_PATH" = "pki/sign/client-cert" ]; then
+                            echo "[sync] Ensuring root PKI role client-cert (fallback path) ..."
+                            if ! curl --cacert $CA_CERT --cert $CLIENT_CERT --key $CLIENT_KEY -s -H "X-Vault-Token: $TOKEN" $HOST/v1/pki/roles/client-cert | jq -e '.data' >/dev/null 2>&1; then
+                              curl --cacert $CA_CERT --cert $CLIENT_CERT --key $CLIENT_KEY -s -H "X-Vault-Token: $TOKEN" -X POST $HOST/v1/pki/roles/client-cert -d '{"allow_any_name":true,"key_type":"rsa","key_bits":2048,"max_ttl":"720h","ttl":"24h","generate_lease":true,"use_csr_values":true,"use_csr_common_name":true,"require_cn":false}' >/dev/null && echo "[sync] Created root PKI role client-cert" || echo "[sync] Failed to create root PKI role client-cert"
+                            else
+                              curl --cacert $CA_CERT --cert $CLIENT_CERT --key $CLIENT_KEY -s -H "X-Vault-Token: $TOKEN" -X POST $HOST/v1/pki/roles/client-cert -d '{"allow_any_name":true,"key_type":"rsa","key_bits":2048,"max_ttl":"720h","ttl":"24h","generate_lease":true,"use_csr_values":true,"use_csr_common_name":true,"require_cn":false}' >/dev/null && echo "[sync] Ensured root PKI role client-cert updated" || echo "[sync] Failed to update root PKI role client-cert"
+                            fi
                           fi
                             echo "[sync] Dynamic caBundle sync (openbao-tls secret tls.crt -> base64)"
                             # Field spec.vault.caBundle expects bytes; we must patch with base64 (raw JSON string containing base64 data)
