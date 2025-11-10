@@ -382,6 +382,9 @@ spec:
             path "pki/sign/client-cert" {
               capabilities = ["create","update"]
             }
+            path "pki_int/root/sign-intermediate" {
+              capabilities = ["create","update"]
+            }
             # Read CA chains & CRL
             path "pki/cert/ca" {
               capabilities = ["read","list"]
@@ -786,20 +789,6 @@ spec:
                             echo "[sync] Multi-issuer supported; setting intermediate URLs (no import attempts)"
                             curl --cacert $CA_CERT --cert $CLIENT_CERT --key $CLIENT_KEY -s -H "X-Vault-Token: $TOKEN" -X POST $HOST/v1/pki_int/config/urls -d '{"issuing_certificates":"'$HOST'/v1/pki_int/ca","crl_distribution_points":"'$HOST'/v1/pki_int/crl"}' >/dev/null || echo "[sync] Failed to set pki_int URLs"
                           fi
-                          echo "[sync] Configuring intermediate issuing & default issuer..."
-                          # Multi-issuer simplified handling
-                          CI_PATH=$(kubectl get clusterissuer openbao-pki -o jsonpath='{.spec.vault.path}' 2>/dev/null || true)
-                          ISSUERS_CODE=$(curl --cacert $CA_CERT --cert $CLIENT_CERT --key $CLIENT_KEY -s -o /dev/null -w '%{http_code}' -H "X-Vault-Token: $TOKEN" $HOST/v1/pki_int/issuers || true)
-                          if [ "$ISSUERS_CODE" != "200" ]; then
-                            echo "[sync] Multi-issuer unsupported (HTTP $ISSUERS_CODE); ensure ClusterIssuer uses intermediate sign path"
-                            if [ "$CI_PATH" != "pki_int/sign/client-cert" ]; then
-                              PATCH=$(jq -n '{spec:{vault:{path:"pki_int/sign/client-cert"}}}')
-                              kubectl patch clusterissuer openbao-pki --type=merge -p "$PATCH" || echo "[sync] Failed to patch ClusterIssuer back to intermediate sign path"
-                            fi
-                          else
-                            echo "[sync] Multi-issuer supported; setting intermediate URLs (no import attempts)"
-                            curl --cacert $CA_CERT --cert $CLIENT_CERT --key $CLIENT_KEY -s -H "X-Vault-Token: $TOKEN" -X POST $HOST/v1/pki_int/config/urls -d '{"issuing_certificates":"'$HOST'/v1/pki_int/ca","crl_distribution_points":"'$HOST'/v1/pki_int/crl"}' >/dev/null || echo "[sync] Failed to set pki_int URLs"
-                          fi
                           echo "[sync] Ensuring PKI role client-cert..."
                           if ! curl --cacert $CA_CERT --cert $CLIENT_CERT --key $CLIENT_KEY -s -H "X-Vault-Token: $TOKEN" $HOST/v1/pki_int/roles/client-cert | jq -e '.data' >/dev/null 2>&1; then
                             curl --cacert $CA_CERT --cert $CLIENT_CERT --key $CLIENT_KEY -s -H "X-Vault-Token: $TOKEN" -X POST $HOST/v1/pki_int/roles/client-cert -d '{"allow_any_name":true,"key_type":"rsa","key_bits":2048,"max_ttl":"720h","ttl":"24h","generate_lease":true,"use_csr_values":true,"use_csr_common_name":true,"require_cn":false,"allowed_organizational_units":["9d3f2b4e-5c1a-4d4e-ae6d-6c4d6a7f9b23","PlatformMesh"],"organization":["ApeiroRA"],"country":["DE"]}' >/dev/null && echo "[sync] Created PKI role client-cert (permissive + CSR + subject constraints)" || echo "[sync] Failed to create PKI role client-cert"
@@ -886,7 +875,7 @@ spec:
           vault:
             server: https://openbao.openbao.svc:8200
             # Use sign endpoint to avoid Vault generating its own key (lib vault 'issue' path produces a cert + key mismatch in our mTLS issuance context)
-            path: pki_int/sign/client-cert
+            path: pki_int/root/sign-intermediate
             auth:
               kubernetes:
                 mountPath: /v1/auth/kubernetes
