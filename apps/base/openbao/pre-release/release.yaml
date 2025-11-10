@@ -416,6 +416,7 @@ spec:
             kind: ServiceAccount
             metadata:
               name: openbao-cert-auth-sync
+          # Legacy Role retained for Helm rollback compatibility (v66 expectations)
           - apiVersion: rbac.authorization.k8s.io/v1
             kind: Role
             metadata:
@@ -770,6 +771,20 @@ spec:
                                   echo "[sync] ERROR: Failed to obtain signed intermediate certificate (multi-issuer + fallback paths)"; exit 1;
                                 fi
                             fi
+                          fi
+                          echo "[sync] Configuring intermediate issuing & default issuer..."
+                          # Multi-issuer simplified handling
+                          CI_PATH=$(kubectl get clusterissuer openbao-pki -o jsonpath='{.spec.vault.path}' 2>/dev/null || true)
+                          ISSUERS_CODE=$(curl --cacert $CA_CERT --cert $CLIENT_CERT --key $CLIENT_KEY -s -o /dev/null -w '%{http_code}' -H "X-Vault-Token: $TOKEN" $HOST/v1/pki_int/issuers || true)
+                          if [ "$ISSUERS_CODE" != "200" ]; then
+                            echo "[sync] Multi-issuer unsupported (HTTP $ISSUERS_CODE); ensure ClusterIssuer uses intermediate sign path"
+                            if [ "$CI_PATH" != "pki_int/sign/client-cert" ]; then
+                              PATCH=$(jq -n '{spec:{vault:{path:"pki_int/sign/client-cert"}}}')
+                              kubectl patch clusterissuer openbao-pki --type=merge -p "$PATCH" || echo "[sync] Failed to patch ClusterIssuer back to intermediate sign path"
+                            fi
+                          else
+                            echo "[sync] Multi-issuer supported; setting intermediate URLs (no import attempts)"
+                            curl --cacert $CA_CERT --cert $CLIENT_CERT --key $CLIENT_KEY -s -H "X-Vault-Token: $TOKEN" -X POST $HOST/v1/pki_int/config/urls -d '{"issuing_certificates":"'$HOST'/v1/pki_int/ca","crl_distribution_points":"'$HOST'/v1/pki_int/crl"}' >/dev/null || echo "[sync] Failed to set pki_int URLs"
                           fi
                           echo "[sync] Configuring intermediate issuing & default issuer..."
                           # Multi-issuer simplified handling
