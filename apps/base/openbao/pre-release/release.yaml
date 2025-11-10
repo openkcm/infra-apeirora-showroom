@@ -507,6 +507,9 @@ spec:
                   containers:
                     - name: sync
                       image: alpine:3.19
+                      env:
+                        - name: FORCE_MULTI_ISSUER
+                          value: "false"
                       volumeMounts:
                         - name: root-token
                           mountPath: /root-token
@@ -724,18 +727,48 @@ spec:
                           fi
                           echo "[sync] Ensuring intermediate signed..."
                           if ! curl --cacert $CA_CERT --cert $CLIENT_CERT --key $CLIENT_KEY -s -H "X-Vault-Token: $TOKEN" $HOST/v1/pki_int/cert/ca | jq -e '.data.certificate' >/dev/null 2>&1; then
+                            echo "[sync] Generating intermediate CSR (ttl=43800h)";
                             CSR=$(curl --cacert $CA_CERT --cert $CLIENT_CERT --key $CLIENT_KEY -s -H "X-Vault-Token: $TOKEN" -X POST $HOST/v1/pki_int/intermediate/generate/internal -d '{"common_name":"openbao-intermediate","ttl":"43800h"}' | jq -r '.data.csr')
-                            if [ -n "$CSR" ]; then
-                              CSR_JSON=$(printf '%s' "$CSR" | jq -Rs .)
-                              SIGNED=$(curl --cacert $CA_CERT --cert $CLIENT_CERT --key $CLIENT_KEY -s -H "X-Vault-Token: $TOKEN" -X POST $HOST/v1/pki/root/sign-intermediate -d '{"csr":'$CSR_JSON',"format":"pem","ttl":"43800h"}' | jq -r '.data.certificate' || true)
-                              if [ -n "$SIGNED" ]; then
-                                SIGNED_JSON=$(printf '%s' "$SIGNED" | jq -Rs .)
-                                curl --cacert $CA_CERT --cert $CLIENT_CERT --key $CLIENT_KEY -s -H "X-Vault-Token: $TOKEN" -X POST $HOST/v1/pki_int/intermediate/set-signed -d '{"certificate":'$SIGNED_JSON'}' >/dev/null && echo "[sync] Set signed intermediate" || echo "[sync] Failed to set signed intermediate"
-                              else
-                                echo "[sync] Failed to sign intermediate CSR"
-                              fi
+                            if [ -z "$CSR" ]; then
+                              echo "[sync] Failed to generate intermediate CSR";
                             else
-                              echo "[sync] Failed to generate intermediate CSR"
+                              CSR_JSON=$(printf '%s' "$CSR" | jq -Rs .)
+                                # Multi-issuer preferred. If FORCE_MULTI_ISSUER=true then error on absence; else fallback to legacy root sign.
+                                ROOT_ISSUERS_CODE=$(curl --cacert $CA_CERT --cert $CLIENT_CERT --key $CLIENT_KEY -s -o /dev/null -w '%{http_code}' -H "X-Vault-Token: $TOKEN" $HOST/v1/pki/issuers || true)
+                                if [ "$ROOT_ISSUERS_CODE" = "200" ]; then
+                                  ROOT_ISSUERS_JSON=$(curl --cacert $CA_CERT --cert $CLIENT_CERT --key $CLIENT_KEY -s -H "X-Vault-Token: $TOKEN" $HOST/v1/pki/issuers || true)
+                                  PRIMARY_ISSUER=$(echo "$ROOT_ISSUERS_JSON" | jq -r '.data.issuer_ids[0] // empty')
+                                  if [ -n "$PRIMARY_ISSUER" ]; then
+                                    echo "[sync] Using root issuer $PRIMARY_ISSUER (multi-issuer) to sign intermediate"
+                                    SIGNED=$(curl --cacert $CA_CERT --cert $CLIENT_CERT --key $CLIENT_KEY -s -H "X-Vault-Token: $TOKEN" -X POST $HOST/v1/pki/issuer/$PRIMARY_ISSUER/sign-intermediate -d '{"csr":'$CSR_JSON',"format":"pem","ttl":"43800h"}' | jq -r '.data.certificate' || true)
+                                    # Attempt to set default issuer (best-effort)
+                                    curl --cacert $CA_CERT --cert $CLIENT_CERT --key $CLIENT_KEY -s -H "X-Vault-Token: $TOKEN" -X POST $HOST/v1/pki/issuer/$PRIMARY_ISSUER/set-default >/dev/null || true
+                                  else
+                                    if [ "${FORCE_MULTI_ISSUER}" = "true" ]; then
+                                      echo "[sync] ERROR: Multi-issuer endpoint returned no issuer_ids and FORCE_MULTI_ISSUER=true"; exit 1;
+                                    else
+                                      echo "[sync] WARNING: Multi-issuer endpoint returned no issuer_ids; falling back to legacy root sign-intermediate"
+                                    fi
+                                  fi
+                                else
+                                  if [ "${FORCE_MULTI_ISSUER}" = "true" ]; then
+                                    echo "[sync] ERROR: Multi-issuer endpoint unavailable (HTTP $ROOT_ISSUERS_CODE) with FORCE_MULTI_ISSUER=true"; exit 1;
+                                  else
+                                    echo "[sync] Multi-issuer unsupported (HTTP $ROOT_ISSUERS_CODE); using legacy root sign-intermediate"
+                                  fi
+                                fi
+                                if [ -z "$SIGNED" ]; then
+                                  # Legacy fallback if not signed yet
+                                  if [ "${FORCE_MULTI_ISSUER}" != "true" ]; then
+                                    SIGNED=$(curl --cacert $CA_CERT --cert $CLIENT_CERT --key $CLIENT_KEY -s -H "X-Vault-Token: $TOKEN" -X POST $HOST/v1/pki/root/sign-intermediate -d '{"csr":'$CSR_JSON',"format":"pem","ttl":"43800h"}' | jq -r '.data.certificate' || true)
+                                  fi
+                                fi
+                                if [ -n "$SIGNED" ]; then
+                                  SIGNED_JSON=$(printf '%s' "$SIGNED" | jq -Rs .)
+                                  curl --cacert $CA_CERT --cert $CLIENT_CERT --key $CLIENT_KEY -s -H "X-Vault-Token: $TOKEN" -X POST $HOST/v1/pki_int/intermediate/set-signed -d '{"certificate":'$SIGNED_JSON'}' >/dev/null && echo "[sync] Set signed intermediate" || echo "[sync] Failed to set signed intermediate"
+                                else
+                                  echo "[sync] ERROR: Failed to obtain signed intermediate certificate (multi-issuer + fallback paths)"; exit 1;
+                                fi
                             fi
                           fi
                           echo "[sync] Configuring intermediate issuing & default issuer..."
