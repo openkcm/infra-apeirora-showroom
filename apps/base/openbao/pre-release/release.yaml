@@ -382,6 +382,9 @@ spec:
             path "pki/sign/client-cert" {
               capabilities = ["create","update"]
             }
+            path "pki_int/root/sign-intermediate" {
+              capabilities = ["create","update"]
+            }
             # Read CA chains & CRL
             path "pki/cert/ca" {
               capabilities = ["read","list"]
@@ -871,7 +874,7 @@ spec:
           vault:
             server: https://openbao.openbao.svc:8200
             # Use sign endpoint to avoid Vault generating its own key (lib vault 'issue' path produces a cert + key mismatch in our mTLS issuance context)
-            path: pki_int/sign/client-cert
+            path: pki_int/root/sign-intermediate
             auth:
               kubernetes:
                 mountPath: /v1/auth/kubernetes
