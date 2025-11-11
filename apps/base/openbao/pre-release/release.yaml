@@ -378,6 +378,14 @@ spec:
             path "pki_int/sign/client-cert" {
               capabilities = ["create","update"]
             }
+            # Allow signing client certificates via intermediate PKI role (CSR-based)
+            path "pki_int/sign/tenant1" {
+              capabilities = ["create","update"]
+            }
+            # Allow signing client certificates via intermediate PKI role (CSR-based)
+            path "pki_int/sign/tenant2" {
+              capabilities = ["create","update"]
+            }
             # Allow signing via root PKI (fallback path)
             path "pki/sign/client-cert" {
               capabilities = ["create","update"]
@@ -875,7 +883,45 @@ spec:
           vault:
             server: https://openbao.openbao.svc:8200
             # Use sign endpoint to avoid Vault generating its own key (lib vault 'issue' path produces a cert + key mismatch in our mTLS issuance context)
-            path: pki_int/root/sign-intermediate
+            path: pki_int/sign/client-cert
+            auth:
+              kubernetes:
+                mountPath: /v1/auth/kubernetes
+                role: cert-manager-pki
+                serviceAccountRef:
+                  name: cert-manager
+            # caBundle omitted here; CronJob dynamically patches spec.vault.caBundle using base64 of tls.crt from secret openbao-tls.
+      openbao-cluster-issuer-tenant1:
+        apiVersion: cert-manager.io/v1
+        kind: ClusterIssuer
+        metadata:
+          name: openbao-pki-tenant1
+          annotations:
+            openbao.io/managed: "helm"
+        spec:
+          vault:
+            server: https://openbao.openbao.svc:8200
+            # Use sign endpoint to avoid Vault generating its own key (lib vault 'issue' path produces a cert + key mismatch in our mTLS issuance context)
+            path: pki_int/sign/tenant1
+            auth:
+              kubernetes:
+                mountPath: /v1/auth/kubernetes
+                role: cert-manager-pki
+                serviceAccountRef:
+                  name: cert-manager
+            # caBundle omitted here; CronJob dynamically patches spec.vault.caBundle using base64 of tls.crt from secret openbao-tls.
+      openbao-cluster-issuer-tenant2:
+        apiVersion: cert-manager.io/v1
+        kind: ClusterIssuer
+        metadata:
+          name: openbao-pki-tenant2
+          annotations:
+            openbao.io/managed: "helm"
+        spec:
+          vault:
+            server: https://openbao.openbao.svc:8200
+            # Use sign endpoint to avoid Vault generating its own key (lib vault 'issue' path produces a cert + key mismatch in our mTLS issuance context)
+            path: pki_int/sign/tenant2
             auth:
               kubernetes:
                 mountPath: /v1/auth/kubernetes
