@@ -14,7 +14,3 @@ spec:
   wait: true
   force: true
   timeout: 5m0s
-  decryption:
-    provider: sops
-    secretRef:
-      name: sops-age
