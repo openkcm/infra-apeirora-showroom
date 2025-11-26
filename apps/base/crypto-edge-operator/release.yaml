@@ -1,0 +1,30 @@
+---
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: crypto-edge-operator
+spec:
+  targetNamespace: crypto-edge-operator
+  storageNamespace: crypto-edge-operator
+  chartRef:
+    kind: OCIRepository
+    name: crypto-edge-operator
+  interval: 10m
+  timeout: 10m
+  install:
+    createNamespace: true
+    remediation:
+      retries: 5
+      remediateLastFailure: true
+  upgrade:
+    remediation:
+      retries: 5
+      remediateLastFailure: true
+  values:
+    fullnameOverride: "crypto-edge-operator"
+    imagePullSecrets: []
+    image:
+      registry: ghcr.io/openkcm
+      repository: images/crypto-edge-operator
+      digest: sha256:2ee16dc6ec4925c4b9419a9c6dcb70494a7a84dd98d5e6f3302e6580a70aa179
+  
