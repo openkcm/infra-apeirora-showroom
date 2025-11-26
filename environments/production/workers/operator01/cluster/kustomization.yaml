@@ -1,0 +1,143 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: operator01
+resources:
+  - ./apps/
+  - ../../../../../apps/utils/namespace/ # for creating 'operator01' namespace and provision to add labels and annotations.
+#
+# Following patches are helpful to avoid repetitive configs in Flux Kustomization resources.
+#
+patches:
+  # patch to add `.spec.targetNamespace` in Flux KS resource
+  - target:
+      kind: Kustomization
+      group: kustomize.toolkit.fluxcd.io
+      version: v1
+    patch: |
+      - op: add
+        path: /spec/targetNamespace
+        value: operator01
+  # Remove the patch for `targetNamespace` in `namespaces` Kustomization, because it deploys NS only
+  - target:
+      kind: Kustomization
+      group: kustomize.toolkit.fluxcd.io
+      name: namespaces
+      version: v1
+    patch: |
+      - op: remove
+        path: /spec/targetNamespace
+  - target:
+      kind: Kustomization
+      group: kustomize.toolkit.fluxcd.io
+      version: v1
+    # patch to create `.spec.patches.[]` (empty `patches` array) in Flux KS resource
+    patch: |
+      - op: add
+        path: /spec/patches
+        value: []
+  # Following patch creates a patch in Flux Kustomization to patch HelmRelease resources
+  - target:
+      kind: Kustomization
+      group: kustomize.toolkit.fluxcd.io
+      version: v1
+    # patch to append the elements in `.spec.patches.[]` in Flux KS resource
+
+    patch: |
+      - op: add
+        path: /spec/patches/-
+        value:
+          target:
+            kind: HelmRelease
+          patch: |-
+            - op: add
+              path: /spec/kubeConfig
+              value:
+                secretRef:
+                  name: kubeconfig
+  # Remove the patch for `kubeConfig` in `namespaces` Kustomization, because it does not contain HR's
+  - target:
+      kind: Kustomization
+      group: kustomize.toolkit.fluxcd.io
+      name: namespaces
+      version: v1
+    # patch to append the elements in `.spec.patches.[]` in Flux KS resource
+    patch: |
+      - op: remove
+        path: /spec/patches
+
+  # Add `kubeConfig` to `envoy-gateway-crds` Kustomization, because it does not contain HR's
+  - target:
+      kind: Kustomization
+      group: kustomize.toolkit.fluxcd.io
+      version: v1
+      name: envoy-gateway-crds
+    patch: |-
+      - op: add
+        path: /spec/kubeConfig
+        value:
+          secretRef:
+            name: kubeconfig
+# Example: For adding `.metadata.labels` and `.metadata.annotations` to 'operator01' namespace in infra cluster.
+#patches:
+#  - target:
+#      kind: Namespace
+#    patch: |
+#      - op: add
+#        path: /metadata/labels/foo
+#        value: bar
+#sops
+  - target:
+      kind: Kustomization
+      group: kustomize.toolkit.fluxcd.io
+      version: v1
+      name: envoy-gateway-secrets
+    patch: |
+      - op: remove
+        path: /spec/targetNamespace
+      - op: remove
+        path: /spec/patches
+      - op: add
+        path: /metadata/namespace
+        value: envoy-gateway-system
+
+  - target:
+      kind: Kustomization
+      group: kustomize.toolkit.fluxcd.io
+      version: v1
+      name: openbao-secrets
+    patch: |
+      - op: remove
+        path: /spec/targetNamespace
+      - op: remove
+        path: /spec/patches
+      - op: add
+        path: /metadata/namespace
+        value: openbao
+
+  - target:
+      kind: Kustomization
+      group: kustomize.toolkit.fluxcd.io
+      version: v1
+      name: storage-secrets
+    patch: |
+      - op: remove
+        path: /spec/targetNamespace
+      - op: remove
+        path: /spec/patches
+      - op: add
+        path: /metadata/namespace
+        value: storage
+
+  - target:
+      kind: Kustomization
+      group: kustomize.toolkit.fluxcd.io
+      version: v1
+      name: apisync-secrets
+    patch: |
+      - op: remove
+        path: /spec/targetNamespace
+      - op: remove
+        path: /spec/patches
+      - op: add
+        path: /metadata/namespace
+        value: apisync
