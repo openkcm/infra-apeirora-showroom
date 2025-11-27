@@ -15,7 +15,7 @@ data:
           claim: sub
           prefix: "infra-cluster-oidc:"
     - issuer:
-        url: https://discovery.ingress.garden.gardener.cc-one.showroom.apeirora.eu/projects/kms/shoots/53ec7160-dfe7-47b0-9d96-75daa9c7a687/issuer
+        url: https://discovery.ingress.garden.gardener.cc-one.showroom.apeirora.eu/projects/kms/shoots/f688fd20-3350-4617-aa3e-24a124a05b3c/issuer
         audiences:
         - kubernetes
         - gardener
