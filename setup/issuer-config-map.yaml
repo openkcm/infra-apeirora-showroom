@@ -14,6 +14,16 @@ data:
         username:
           claim: sub
           prefix: "infra-cluster-oidc:"
+    - issuer:
+        url: https://discovery.ingress.garden.gardener.cc-one.showroom.apeirora.eu/projects/kms/shoots/53ec7160-dfe7-47b0-9d96-75daa9c7a687/issuer
+        audiences:
+        - kubernetes
+        - gardener
+        audienceMatchPolicy: MatchAny
+      claimMappings:
+        username:
+          claim: sub
+          prefix: "operator-cluster-oidc:"
 kind: ConfigMap
 metadata:
   name: showroominfra-issuer-configmap

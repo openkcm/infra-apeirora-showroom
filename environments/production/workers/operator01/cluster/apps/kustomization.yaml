@@ -4,3 +4,4 @@ resources:
   - namespaces.yaml
   - external-secret.yaml
   - crypto-edge-operator.yaml
+  - crypto-edge-operator-secrets.yaml

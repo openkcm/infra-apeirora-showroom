@@ -15,3 +15,5 @@ spec:
   timeout: 5m0s
   dependsOn:
     - name: namespaces
+    - name: crypto-edge-operator-secrets
+
