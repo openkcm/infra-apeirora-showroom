@@ -84,3 +84,17 @@ patches:
 #    patch: |
 #      - op: add
 #        path: /metadata/labels/foo
+# sops
+  - target:
+      kind: Kustomization
+      group: kustomize.toolkit.fluxcd.io
+      version: v1
+      name: crypto-edge-operator-secrets
+    patch: |
+      - op: remove
+        path: /spec/targetNamespace
+      - op: remove
+        path: /spec/patches
+      - op: add
+        path: /metadata/namespace
+        value: crypto-edge-operator
