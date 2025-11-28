@@ -1,0 +1,19 @@
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: crypto-edge-operator
+spec:
+  interval: 10m0s
+  sourceRef:
+    kind: GitRepository
+    name: flux-system
+    namespace: flux-system
+  path: ./apps/production/workers/worker01/crypto-edge-operator/
+  prune: true
+  wait: true
+  force: true
+  timeout: 5m0s
+  dependsOn:
+    - name: namespaces
+    - name: crypto-edge-operator-secrets
+

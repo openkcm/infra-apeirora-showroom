@@ -1,0 +1,7 @@
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: crypto-edge-operator
+spec:
+  targetNamespace: crypto-edge-operator
+  storageNamespace: crypto-edge-operator

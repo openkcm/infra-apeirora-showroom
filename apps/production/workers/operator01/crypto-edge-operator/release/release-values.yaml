@@ -5,3 +5,9 @@ metadata:
 spec:
   targetNamespace: crypto-edge-operator
   storageNamespace: crypto-edge-operator
+  values:
+    installMode:
+      crdsRbacOnly: true
+    serviceAccountRef:
+      name: operator-cluster-oidc:system:serviceaccount:crypto-edge-operator:crypto-edge-operator
+      create: false
