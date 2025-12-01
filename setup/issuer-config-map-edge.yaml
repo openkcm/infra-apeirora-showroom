@@ -1,0 +1,30 @@
+apiVersion: v1
+data:
+  config.yaml: |
+    apiVersion: apiserver.config.k8s.io/v1beta1
+    kind: AuthenticationConfiguration
+    jwt:
+    - issuer:
+        url: https://discovery.ingress.garden.gardener.cc-one.showroom.apeirora.eu/projects/kms/shoots/6ef89ffa-4aa9-4a93-a974-f11a7348d1e6/issuer
+        audiences:
+        - kubernetes
+        - gardener
+        audienceMatchPolicy: MatchAny
+      claimMappings:
+        username:
+          claim: sub
+          prefix: "infra-cluster-oidc:"
+    - issuer:
+        url: https://discovery.ingress.garden.gardener.cc-one.showroom.apeirora.eu/projects/kms/shoots/53ec7160-dfe7-47b0-9d96-75daa9c7a687/issuer
+        audiences:
+        - kubernetes
+        - gardener
+        audienceMatchPolicy: MatchAny
+      claimMappings:
+        username:
+          claim: sub
+          prefix: "operator-cluster-oidc:"
+kind: ConfigMap
+metadata:
+  name: showroominfra-issuer-configmap-edge
+  namespace: garden-kms
