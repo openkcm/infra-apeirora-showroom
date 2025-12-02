@@ -25,5 +25,5 @@ spec:
     imagePullSecrets: []
     image:
       registry: ghcr.io/openkcm
-      repository: images/crypto-edge-operator-debug
-      digest: sha256:49a97a961ef6c70aba2f842c13bd0f71a07d734794f1f9f17fd45e038355b93c
+      repository: images/crypto-edge-operator
+      digest: sha256:226a53656004cabf237cd00a3a50fad76f197a01dca960d5d9bd28de85554523
