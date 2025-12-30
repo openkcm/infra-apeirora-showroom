@@ -36,7 +36,7 @@ spec:
         spec:
           teamId: "acid"
           volume:
-            size: 1Gi
+            size: 10Gi
           numberOfInstances: 1
           users:
             zalando:
