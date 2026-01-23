@@ -26,4 +26,4 @@ spec:
     image:
       registry: ghcr.io/openkcm
       repository: images/crypto-edge-operator
-      digest: sha256:14e8f91a47c88de9d0eaab5a986d39e13d6bb5f93e5ac97b88658b4dfcb6f1ce
+      digest: sha256:a5895da248fc9d415a8e709c110bdb12923ad9ea20e4dd132c0b10ff2367b697
