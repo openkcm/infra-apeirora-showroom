@@ -7,4 +7,4 @@ spec:
   interval: 5m0s
   url: oci://ghcr.io/openkcm/charts/crypto-edge-operator
   ref:
-    tag: 0.4.0
+    tag: 0.4.1
