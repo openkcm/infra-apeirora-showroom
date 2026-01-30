@@ -11,4 +11,4 @@ resources:
   - ../../../../base/namespaces/external-secret.yaml
   - ../../../../base/namespaces/openbao.yaml
   - ../../../../base/namespaces/kms-system.yaml
-  - ../../../../base/namespaces/crypto-edge-operator.yaml
+  - ../../../../base/namespaces/krypton-operator.yaml
