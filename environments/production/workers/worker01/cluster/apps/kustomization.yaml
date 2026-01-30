@@ -21,8 +21,8 @@ resources:
   - openbao-secrets.yaml
   - openbao.yaml
   - kms-system.yaml
-  - crypto-edge-operator-secrets.yaml
-  - crypto-edge-operator.yaml
+  - krypton-operator-secrets.yaml
+  - krypton-operator.yaml
 
 #patches:
 

@@ -1,0 +1,13 @@
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: krypton-operator
+spec:
+  targetNamespace: krypton-operator
+  storageNamespace: krypton-operator
+  values:
+    installMode:
+      crdsRbacOnly: true
+    serviceAccountRef:
+      name: operator-cluster-oidc:system:serviceaccount:krypton-operator:krypton-operator
+      create: false
