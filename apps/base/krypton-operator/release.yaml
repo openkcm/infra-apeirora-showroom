@@ -2,13 +2,13 @@
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
-  name: crypto-edge-operator
+  name: krypton-operator
 spec:
-  targetNamespace: crypto-edge-operator
-  storageNamespace: crypto-edge-operator
+  targetNamespace: krypton-operator
+  storageNamespace: krypton-operator
   chartRef:
     kind: OCIRepository
-    name: crypto-edge-operator
+    name: krypton-operator
   interval: 10m
   timeout: 10m
   install:
@@ -21,9 +21,9 @@ spec:
       retries: 5
       remediateLastFailure: true
   values:
-    fullnameOverride: "crypto-edge-operator"
+    fullnameOverride: "krypton-operator"
     imagePullSecrets: []
     image:
       registry: ghcr.io/openkcm
-      repository: images/crypto-edge-operator
-      digest: sha256:8dca9c84cce5bd4795b66c2add1f75a640d14c7da245a034f86df2814bc0864e
+      repository: images/krypton-operator
+      digest: sha256:249460f5a655a2f676a9224304654b8d9fb73ccf773adc485bfc98a07ceef1b5

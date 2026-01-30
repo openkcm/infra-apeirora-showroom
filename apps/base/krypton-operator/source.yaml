@@ -2,9 +2,9 @@
 apiVersion: source.toolkit.fluxcd.io/v1beta2
 kind: OCIRepository
 metadata:
-  name: crypto-edge-operator
+  name: krypton-operator
 spec:
   interval: 5m0s
-  url: oci://ghcr.io/openkcm/charts/crypto-edge-operator
+  url: oci://ghcr.io/openkcm/charts/krypton-operator
   ref:
-    tag: 0.4.1
+    tag: 0.6.0
