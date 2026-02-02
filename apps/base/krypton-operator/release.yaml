@@ -26,4 +26,4 @@ spec:
     image:
       registry: ghcr.io/openkcm
       repository: images/krypton-operator
-      digest: sha256:249460f5a655a2f676a9224304654b8d9fb73ccf773adc485bfc98a07ceef1b5
+      digest: sha256:f1e111e712c0fa0223347835d681524fb11b9129565091372d19011bd70e0897
