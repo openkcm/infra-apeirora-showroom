@@ -7,4 +7,4 @@ spec:
   interval: 5m0s
   url: oci://ghcr.io/openkcm/charts/krypton-operator
   ref:
-    tag: 0.6.3
+    tag: 0.6.4
