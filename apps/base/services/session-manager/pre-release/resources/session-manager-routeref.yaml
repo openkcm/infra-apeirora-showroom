@@ -1,0 +1,15 @@
+resources:
+  reference-grant-sm:
+    apiVersion: gateway.networking.k8s.io/v1beta1
+    kind: ReferenceGrant
+    metadata:
+      name: session-manager-routeref
+    spec:
+      from:
+        - group: gateway.networking.k8s.io
+          kind: HTTPRoute
+          namespace: envoy-gateway-system
+      to:
+        - group: ""
+          kind: Service
+          name: session-manager
