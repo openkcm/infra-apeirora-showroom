@@ -1,0 +1,14 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - ./release.yaml
+generatorOptions:
+  disableNameSuffixHash: true
+configMapGenerator:
+  - name: cmk-base-pre-release-values
+    files:
+      - ./resources/cmk-routeref.yaml
+      - ./resources/digicertGlobalRootG2.yaml
+      - ./resources/isr-ca.yaml
+      - ./resources/sapcloudrootca.yaml
+      - ./resources/extauthz-signing-keys-secret.yaml
