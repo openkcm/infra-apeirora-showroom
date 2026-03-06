@@ -1,0 +1,50 @@
+---
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: keycloak
+spec:
+  targetNamespace: keycloak
+  storageNamespace: keycloak
+  chartRef:
+    kind: OCIRepository
+    name: keycloak
+  interval: 10m
+  timeout: 10m
+  install:
+    createNamespace: true
+    remediation:
+      retries: 5
+      remediateLastFailure: true
+  upgrade:
+    remediation:
+      retries: 5
+      remediateLastFailure: true
+  values:
+    persistence:
+      enabled: true
+      storageClass: default
+      size: 5Gi
+    resources:
+      requests:
+        memory: "1Gi"
+        cpu: "500m"
+      limits:
+        memory: "2Gi"
+        cpu: "1000m"
+    keycloak:
+      existingSecret: "keycloak-credentials"
+      secretKeys:
+        adminPasswordKey: "admin-password"
+    database:
+      type: "postgres"
+      host: "keycloak-postgresql.keycloak.svc.cluster.local"
+      existingSecret: "keycloak.keycloak-postgresql.credentials.postgresql.acid.zalan.do"
+      secretKeys:
+        passwordKey: "password"
+        usernameKey: "username"
+    # Disable embedded databases
+    postgres:
+      enabled: false
+    mariadb:
+      enabled: false
