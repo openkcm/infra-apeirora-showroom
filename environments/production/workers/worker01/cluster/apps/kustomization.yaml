@@ -23,6 +23,8 @@ resources:
   - kms-system.yaml
   - krypton-operator-secrets.yaml
   - krypton-operator.yaml
+  - keycloak.yaml
+  - keycloak-secrets.yaml
 
 #patches:
 

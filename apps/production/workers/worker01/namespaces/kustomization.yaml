@@ -12,3 +12,4 @@ resources:
   - ../../../../base/namespaces/openbao.yaml
   - ../../../../base/namespaces/kms-system.yaml
   - ../../../../base/namespaces/krypton-operator.yaml
+  - ../../../../base/namespaces/keycloak.yaml
