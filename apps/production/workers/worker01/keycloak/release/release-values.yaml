@@ -5,6 +5,8 @@ metadata:
 spec:
   targetNamespace: keycloak
   storageNamespace: keycloak
+  dependsOn:
+    - name: keycloak--pre-release
   valuesFrom:
     # !! The sequence is important !!
     # Always first **base** and **overlay** (if necessary) later.
