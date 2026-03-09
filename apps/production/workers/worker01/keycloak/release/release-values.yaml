@@ -14,9 +14,6 @@ spec:
       valuesKey: deployment-postgres.yaml
     - kind: ConfigMap
       name: keycloak-base-values
-      valuesKey: service-envoy-proxy-ingress-gateway.yaml
-    - kind: ConfigMap
-      name: keycloak-base-values
       valuesKey: service-keycloak-discovery.yaml
     - kind: ConfigMap
       name: keycloak-base-values
