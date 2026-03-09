@@ -50,6 +50,8 @@ resources:
                   value: "false"
                 - name: KC_HEALTH_ENABLED
                   value: "true"
+                - name: KC_HTTP_MANAGEMENT_HEALTH_ENABLED
+                  value: "false"
                 - name: 'KC_CACHE'
                   value: 'ispn'
                 # Passing the Pod's IP primary address to the JGroups clustering as this is required in IPv6 only setups
@@ -84,20 +86,20 @@ resources:
                   containerPort: 57800
               startupProbe:
                 httpGet:
-                  path: /health/started
-                  port: 9000
+                  path: /auth/health/started
+                  port: http
                 periodSeconds: 1
                 failureThreshold: 600
               readinessProbe:
                 httpGet:
-                  path: /health/ready
-                  port: 9000
+                  path: /auth/health/ready
+                  port: http
                 periodSeconds: 10
                 failureThreshold: 3
               livenessProbe:
                 httpGet:
-                  path: /health/live
-                  port: 9000
+                  path: /auth/health/live
+                  port: http
                 periodSeconds: 10
                 failureThreshold: 3
               resources:
