@@ -13,3 +13,4 @@ configMapGenerator:
       - ./resources/envoy-proxy-config.yaml
       - ./resources/ingress-gateway.yaml
       - ./resources/registry-grpc-route.yaml
+      - ./resources/keycloak-http-route.yaml
