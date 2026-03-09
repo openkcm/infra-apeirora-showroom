@@ -2,9 +2,24 @@ apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
   name: keycloak
-spec:
-  targetNamespace: keycloak
-  storageNamespace: keycloak
+  interval: 1m
+  releaseName: keycloak
+  chart:
+    spec:
+      chart: ./tools/charts/generic
+      sourceRef:
+        kind: GitRepository
+        name: flux-system
+        namespace: flux-system
+  install:
+    createNamespace: false
+    remediation:
+      retries: -1
+      remediateLastFailure: true
+  upgrade:
+    remediation:
+      retries: -1
+      remediateLastFailure: true
   valuesFrom:
     # !! The sequence is important !!
     # Always first **base** and **overlay** (if necessary) later.
