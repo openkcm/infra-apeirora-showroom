@@ -42,6 +42,8 @@ resources:
                   value: "xforwarded"
                 - name: KC_HTTP_ENABLED
                   value: "true"
+                - name: KC_HTTP_RELATIVE_PATH
+                  value: "/auth"
                 # In this explorative setup, no strict hostname is set.
                 # For production environments, set a hostname for a secure setup.
                 - name: KC_HOSTNAME_STRICT
