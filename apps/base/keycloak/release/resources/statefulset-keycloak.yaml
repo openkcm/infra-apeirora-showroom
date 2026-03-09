@@ -85,8 +85,7 @@ resources:
                 - name: jgroups-fd
                   containerPort: 57800
               startupProbe:
-                httpGet:
-                  path: /auth/health/started
+                tcpSocket:
                   port: http
                 periodSeconds: 1
                 failureThreshold: 600
