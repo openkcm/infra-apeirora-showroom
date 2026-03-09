@@ -36,15 +36,5 @@ spec:
       existingSecret: "keycloak-credentials"
       secretKeys:
         adminPasswordKey: "admin-password"
-    database:
-      type: "postgres"
-      host: "keycloak-postgresql.keycloak.svc.cluster.local"
-      existingSecret: "keycloak.keycloak-postgresql.credentials.postgresql.acid.zalan.do"
-      secretKeys:
-        passwordKey: "password"
-        usernameKey: "username"
-    # Disable embedded databases
     postgres:
-      enabled: false
-    mariadb:
-      enabled: false
+      enabled: true
