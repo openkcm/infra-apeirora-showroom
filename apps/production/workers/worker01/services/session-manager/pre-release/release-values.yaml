@@ -5,6 +5,8 @@ metadata:
 spec:
   storageNamespace: services
   targetNamespace: services
+  dependsOn:
+    - name: session-manager-local-secret-sync
   valuesFrom:
     # !! The sequence is important !!
     # Always first **base** and **overlay** (if necessary) later.

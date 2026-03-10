@@ -4,6 +4,7 @@ resources:
     kind: ReferenceGrant
     metadata:
       name: session-manager-routeref
+      namespace: services
     spec:
       from:
         - group: gateway.networking.k8s.io
