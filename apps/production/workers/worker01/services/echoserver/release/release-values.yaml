@@ -28,3 +28,81 @@ spec:
                       valueFrom:
                         fieldRef:
                           fieldPath: metadata.namespace
+      service-oauth2-proxy:
+        apiVersion: v1
+        kind: Service
+        metadata:
+          name: echoserver-oauth2-proxy
+          labels:
+            app: echoserver-oauth2-proxy
+            service: echoserver-oauth2-proxy
+        spec:
+          ports:
+            - name: http
+              port: 4180
+              targetPort: 4180
+          selector:
+            app: echoserver-oauth2-proxy
+      deployment-oauth2-proxy:
+        apiVersion: apps/v1
+        kind: Deployment
+        metadata:
+          name: echoserver-oauth2-proxy
+        spec:
+          replicas: 1
+          selector:
+            matchLabels:
+              app: echoserver-oauth2-proxy
+          template:
+            metadata:
+              labels:
+                app: echoserver-oauth2-proxy
+            spec:
+              containers:
+                - name: oauth2-proxy
+                  image: quay.io/oauth2-proxy/oauth2-proxy:v7.12.0
+                  imagePullPolicy: IfNotPresent
+                  ports:
+                    - containerPort: 4180
+                      name: http
+                  env:
+                    - name: OAUTH2_PROXY_PROXY_PREFIX
+                      value: /oauth2
+                    - name: OAUTH2_PROXY_PROVIDER
+                      value: keycloak-oidc
+                    - name: OAUTH2_PROXY_CODE_CHALLENGE_METHOD
+                      value: S256
+                    - name: OAUTH2_PROXY_HTTP_ADDRESS
+                      value: 0.0.0.0:4180
+                    - name: OAUTH2_PROXY_REVERSE_PROXY
+                      value: "true"
+                    - name: OAUTH2_PROXY_COOKIE_SECURE
+                      value: "true"
+                    - name: OAUTH2_PROXY_EMAIL_DOMAINS
+                      value: "*"
+                    - name: OAUTH2_PROXY_INSECURE_OIDC_ALLOW_UNVERIFIED_EMAIL
+                      value: "true"
+                    - name: OAUTH2_PROXY_SET_XAUTHREQUEST
+                      value: "true"
+                    - name: OAUTH2_PROXY_UPSTREAMS
+                      value: http://echoserver.services.svc.cluster.local:3000
+                    - name: OAUTH2_PROXY_CLIENT_ID
+                      valueFrom:
+                        secretKeyRef:
+                          name: echoserver-oidc-proxy
+                          key: client-id
+                    - name: OAUTH2_PROXY_CLIENT_SECRET
+                      valueFrom:
+                        secretKeyRef:
+                          name: echoserver-oidc-proxy
+                          key: client-secret
+                    - name: OAUTH2_PROXY_COOKIE_SECRET
+                      valueFrom:
+                        secretKeyRef:
+                          name: echoserver-oidc-proxy
+                          key: cookie-secret
+                    - name: OAUTH2_PROXY_OIDC_ISSUER_URL
+                      valueFrom:
+                        secretKeyRef:
+                          name: echoserver-oidc-proxy
+                          key: oidc-issuer-url

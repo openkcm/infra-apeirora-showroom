@@ -24,6 +24,9 @@ resources:
   - krypton-operator-secrets.yaml
   - krypton-operator.yaml
   - session-manager-secrets.yaml
+  - keycloak.yaml
+  - keycloak-secrets.yaml
+  - echoserver-secrets.yaml
 
 #patches:
 

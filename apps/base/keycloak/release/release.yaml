@@ -1,0 +1,42 @@
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: keycloak
+spec:
+  interval: 1m
+  releaseName: keycloak
+  chart:
+    spec:
+      chart: ./tools/charts/generic
+      sourceRef:
+        kind: GitRepository
+        name: flux-system
+        namespace: flux-system
+  install:
+    createNamespace: false
+    remediation:
+      retries: -1
+      remediateLastFailure: true
+  upgrade:
+    remediation:
+      retries: -1
+      remediateLastFailure: true
+  valuesFrom:
+    # !! The sequence is important !!
+    # Always first **base** and **overlay** (if necessary) later.
+    ## base
+    - kind: ConfigMap
+      name: keycloak-base-values
+      valuesKey: deployment-postgres.yaml
+    - kind: ConfigMap
+      name: keycloak-base-values
+      valuesKey: service-keycloak-discovery.yaml
+    - kind: ConfigMap
+      name: keycloak-base-values
+      valuesKey: service-keycloak.yaml
+    - kind: ConfigMap
+      name: keycloak-base-values
+      valuesKey: service-postgres.yaml
+    - kind: ConfigMap
+      name: keycloak-base-values
+      valuesKey: statefulset-keycloak.yaml
