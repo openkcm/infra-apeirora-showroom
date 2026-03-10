@@ -36,4 +36,4 @@ spec:
           to:
             - group: ""
               kind: Service
-              name: echoserver
+              name: echoserver-oauth2-proxy

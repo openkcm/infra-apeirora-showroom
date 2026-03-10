@@ -169,3 +169,17 @@ patches:
       - op: add
         path: /metadata/namespace
         value: keycloak
+
+  - target:
+      kind: Kustomization
+      group: kustomize.toolkit.fluxcd.io
+      version: v1
+      name: echoserver-secrets
+    patch: |
+      - op: remove
+        path: /spec/targetNamespace
+      - op: remove
+        path: /spec/patches
+      - op: add
+        path: /metadata/namespace
+        value: services
