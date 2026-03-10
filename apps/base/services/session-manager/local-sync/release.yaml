@@ -94,4 +94,6 @@ spec:
             creationPolicy: Owner
           dataFrom:
             - extract:
-                key: valkey-secret
+                key: valkey
+            - extract:
+                key: valkey-tls-secret
