@@ -10,7 +10,7 @@ spec:
   storageNamespace: services
   targetNamespace: services
   dependsOn:
-    - name: postgresql
+    - name: postgresql--post-release
     - name: session-manager--pre-release
   values:
     namespace: services

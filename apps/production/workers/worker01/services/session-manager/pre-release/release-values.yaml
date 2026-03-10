@@ -5,7 +5,3 @@ metadata:
 spec:
   storageNamespace: services
   targetNamespace: services
-  valuesFrom:
-    - kind: ConfigMap
-      name: session-manager-base-pre-release-values
-      valuesKey: session-manager-routeref.yaml
