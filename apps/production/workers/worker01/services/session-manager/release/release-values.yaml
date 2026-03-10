@@ -97,12 +97,6 @@ spec:
       logger:
         level: debug
     extraVolumes:
-      # - name: sap-cloud-root-ca
-      #   configMap:
-      #     name: sap-cloud-root-ca
-      #     items:
-      #       - key: ca.crt
-      #         path: ca.crt
       - name: db-credentials
         secret:
           secretName: db-secret
@@ -111,14 +105,6 @@ spec:
               path: username
             - key: master_password
               path: password
-      # - name: cluster-cert
-      #   secret:
-      #     secretName: clustercert-certificate-secret
-      #     items:
-      #       - key: tls.crt
-      #         path: tls_crt
-      #       - key: tls.key
-      #         path: tls_key
       - name: valkey-secret
         secret:
           secretName: valkey-secret
@@ -131,12 +117,6 @@ spec:
               path: ca_crt
             - key: valkey_password
               path: valkey_password
-      # - name: digicert-volume
-      #   configMap:
-      #     name: digicert-global-root-g2
-      #     items:
-      #       - key: digicert-global-root-g2.crt
-      #         path: digicert-global-root-g2.crt
       - name: csrf-secret
         secret:
           secretName: csrf-secret
@@ -144,21 +124,12 @@ spec:
           - key: csrf_secret
             path: csrf_secret
     extraVolumeMounts:
-    # - name: sap-cloud-root-ca
-    #   mountPath: /etc/credentials/sapcloudroot
-    #   readOnly: true
     - name: db-credentials
       mountPath: /etc/session-manager/credentials/database
       readOnly: true
-    # - name: cluster-cert
-    #   mountPath: /etc/credentials/cluster-cert
-    #   readOnly: true
     - name: valkey-secret
       mountPath: /etc/credentials/valkey
       readOnly: true
-    # - name: digicert-volume
-    #   mountPath: /etc/credentials/digicert
-    #   readOnly: true
     - name: csrf-secret
       mountPath: /etc/credentials/csrf-secret
       readOnly: true
