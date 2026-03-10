@@ -5,3 +5,10 @@ metadata:
 spec:
   storageNamespace: services
   targetNamespace: services
+  valuesFrom:
+    # !! The sequence is important !!
+    # Always first **base** and **overlay** (if necessary) later.
+    ## base
+    - kind: ConfigMap
+      name: session-manager-base-pre-release-values
+      valuesKey: session-manager-routeref.yaml

@@ -72,6 +72,8 @@ spec:
                       value: keycloak-oidc
                     - name: OAUTH2_PROXY_CODE_CHALLENGE_METHOD
                       value: S256
+                    - name: OAUTH2_PROXY_CODE_CHALLENGE_METHOD
+                      value: S256
                     - name: OAUTH2_PROXY_HTTP_ADDRESS
                       value: 0.0.0.0:4180
                     - name: OAUTH2_PROXY_REVERSE_PROXY
