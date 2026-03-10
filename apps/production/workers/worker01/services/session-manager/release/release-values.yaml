@@ -99,11 +99,11 @@ spec:
     extraVolumes:
       - name: db-credentials
         secret:
-          secretName: db-secret
+          secretName: kms-user.kms-postgresql.credentials.postgresql.acid.zalan.do
           items:
-            - key: master_username
+            - key: username
               path: username
-            - key: master_password
+            - key: password
               path: password
       - name: valkey-secret
         secret:
