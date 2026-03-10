@@ -5,4 +5,20 @@ metadata:
 spec:
   storageNamespace: services
   targetNamespace: services
+  values:
+    resources:
+      reference-grant-echoserver-oidc-proxy:
+        apiVersion: gateway.networking.k8s.io/v1beta1
+        kind: ReferenceGrant
+        metadata:
+          name: echoserver-oauth2-proxy-routeref
+        spec:
+          from:
+            - group: gateway.networking.k8s.io
+              kind: HTTPRoute
+              namespace: envoy-gateway-system
+          to:
+            - group: ""
+              kind: Service
+              name: echoserver-oauth2-proxy
 

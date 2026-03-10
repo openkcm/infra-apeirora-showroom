@@ -7,3 +7,18 @@ resources:
     spec:
       hostnames:
         - "ing.worker01.kms.shoot.gardener.cc-one.showroom.apeirora.eu"
+      rules:
+        - backendRefs:
+            - group: ""
+              kind: Service
+              name: echoserver-oauth2-proxy
+              namespace: services
+              port: 4180
+              weight: 1
+          matches:
+            - path:
+                type: PathPrefix
+                value: /echo
+            - path:
+                type: PathPrefix
+                value: /oauth2
