@@ -55,17 +55,17 @@ spec:
             cert:
               source: file
               file:
-                path: /etc/credentials/valkey/tls_crt
+                path: /etc/credentials/valkey/tls.crt
                 format: binary
             certKey:
               source: file
               file:
-                path: /etc/credentials/valkey/tls_key
+                path: /etc/credentials/valkey/tls.key
                 format: binary
             serverCA:
               source: file
               file:
-                path: /etc/credentials/valkey/ca_crt
+                path: /etc/credentials/valkey/ca.crt
                 format: binary
       sessionManager:
         sessionDuration: 12h
@@ -109,12 +109,12 @@ spec:
         secret:
           secretName: valkey-secret
           items:
-            - key: tls_crt
-              path: tls_crt
-            - key: tls_key
-              path: tls_key
-            - key: ca_crt
-              path: ca_crt
+            - key: tls.crt
+              path: tls.crt
+            - key: tls.key
+              path: tls.key
+            - key: ca.crt
+              path: ca.crt
             - key: valkey_password
               path: valkey_password
       - name: csrf-secret
