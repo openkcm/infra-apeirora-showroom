@@ -46,7 +46,7 @@ spec:
         password:
           source: file
           file:
-            path: /etc/credentials/valkey/valkey_password
+            path: /etc/credentials/valkey/valkey-password
             format: binary
         prefix: session-manager
         secretRef:
@@ -115,8 +115,8 @@ spec:
               path: tls.key
             - key: ca.crt
               path: ca.crt
-            - key: valkey_password
-              path: valkey_password
+            - key: valkey-password
+              path: valkey-password
       - name: csrf-secret
         secret:
           secretName: csrf-secret
