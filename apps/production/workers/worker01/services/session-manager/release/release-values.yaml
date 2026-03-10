@@ -1,0 +1,139 @@
+---
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: session-manager
+spec:
+  chartRef:
+    kind: OCIRepository
+    name: session-manager
+  storageNamespace: services
+  targetNamespace: services
+  dependsOn:
+    - name: postgresql
+    - name: session-manager--pre-release
+  values:
+    namespace: services
+    resources:
+      requests:
+        cpu: "150m"
+        memory: "60Mi"
+      limits:
+        cpu: "200m"
+        memory: "378Mi"
+    config:
+      database:
+        host: kms-postgresql.services.svc.cluster.local
+        port: 5432
+        name: session_manager
+        user:
+          source: file
+          file:
+            path: /etc/registry/credentials/database/username
+            format: binary
+        password:
+          source: file
+          file:
+            path: /etc/registry/credentials/database/password
+            format: binary
+      valkey:
+        host:
+          source: embedded
+          value: valkey-primary.storage.svc.cluster.local:6379
+        user:
+          source: embedded
+          value: default
+        password:
+          source: file
+          file:
+            path: /etc/credentials/valkey/valkey_password
+            format: binary
+        prefix: session-manager
+        secretRef:
+          type: mtls
+          mTLS:
+            cert:
+              source: file
+              file:
+                path: /etc/credentials/valkey/tls_crt
+                format: binary
+            certKey:
+              source: file
+              file:
+                path: /etc/credentials/valkey/tls_key
+                format: binary
+            serverCA:
+              source: file
+              file:
+                path: /etc/credentials/valkey/ca_crt
+                format: binary
+      sessionManager:
+        sessionDuration: 12h
+        callbackURL: https://ing.worker01.kms.shoot.gardener.cc-one.showroom.apeirora.eu/sm/callback
+        # TODO: Update to the correct logout URL once a landing page is available
+        postLogoutRedirectURL: https://github.com/openkcm
+        additionalQueryParametersAuthorize: ["app_tid"]
+        additionalQueryParametersToken: ["app_tid"]
+        additionalQueryParametersIntrospect: ["app_tid"]
+        additionalQueryParametersLogout: ["app_tid"]
+        additionalAuthContextKeys: ["app_tid"]
+        sessionCookieTemplate:
+          name: "__Host-Http-SESSION"
+          path: "/"
+          secure: true
+          sameSite: None
+          httpOnly: true
+        csrfCookieTemplate:
+          name: "CSRF"
+          path: "/"
+          secure: true
+          sameSite: Strict
+          domain: "worker01.kms.shoot.gardener.cc-one.showroom.apeirora.eu"
+        csrfSecret:
+          file:
+            format: binary
+            path: /etc/credentials/csrf-secret/csrf_secret
+          source: file
+      logger:
+        level: debug
+    extraVolumes:
+      - name: db-credentials
+        secret:
+          secretName: db-secret
+          items:
+            - key: master_username
+              path: username
+            - key: master_password
+              path: password
+      - name: valkey-secret
+        secret:
+          secretName: valkey-secret
+          items:
+            - key: tls_crt
+              path: tls_crt
+            - key: tls_key
+              path: tls_key
+            - key: ca_crt
+              path: ca_crt
+            - key: valkey_password
+              path: valkey_password
+      - name: csrf-secret
+        secret:
+          secretName: csrf-secret
+          items:
+          - key: csrf_secret
+            path: csrf_secret
+    extraVolumeMounts:
+    - name: db-credentials
+      mountPath: /etc/session-manager/credentials/database
+      readOnly: true
+    - name: valkey-secret
+      mountPath: /etc/credentials/valkey
+      readOnly: true
+    - name: csrf-secret
+      mountPath: /etc/credentials/csrf-secret
+      readOnly: true
+    image:
+      registry: ghcr.io/openkcm
+      repository: images/session-manager
+      digest: sha256:ee173e5824e3cded322782fbcf1a40cd5d6308a179f57d73fc35d7c745d8b5da

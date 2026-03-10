@@ -160,6 +160,7 @@ patches:
       kind: Kustomization
       group: kustomize.toolkit.fluxcd.io
       version: v1
+      name: session-manager-secrets
       name: keycloak-secrets
     patch: |
       - op: remove
