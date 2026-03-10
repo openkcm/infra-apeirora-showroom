@@ -67,7 +67,7 @@ spec:
                       name: http
                   env:
                     - name: OAUTH2_PROXY_PROXY_PREFIX
-                      value: /echo/oauth2
+                      value: /oauth2
                     - name: OAUTH2_PROXY_PROVIDER
                       value: keycloak-oidc
                     - name: OAUTH2_PROXY_HTTP_ADDRESS
