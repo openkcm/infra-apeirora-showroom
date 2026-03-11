@@ -87,7 +87,7 @@ spec:
           file:
             path: /etc/credentials/database/username
             format: binary
-        password:
+        secret:
           source: file
           file:
             path: /etc/credentials/database/password
