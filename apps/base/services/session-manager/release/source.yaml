@@ -1,0 +1,10 @@
+---
+apiVersion: source.toolkit.fluxcd.io/v1beta2
+kind: OCIRepository
+metadata:
+  name: session-manager
+spec:
+  interval: 5m0s
+  url: oci://ghcr.io/openkcm/charts/session-manager
+  ref:
+    tag: 0.9.1

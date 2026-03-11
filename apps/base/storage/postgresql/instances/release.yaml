@@ -56,7 +56,7 @@ spec:
         spec:
           teamId: "acid"
           volume:
-            size: 1Gi
+            size: 10Gi
           numberOfInstances: 1
           users:
             zalando:
@@ -68,5 +68,25 @@ spec:
           databases:
             kms: kms_user
             registry: kms_user
+            session_manager: kms_user
+          postgresql:
+            version: "16"
+      keycloak-postgresql:
+        apiVersion: "acid.zalan.do/v1"
+        kind: postgresql
+        metadata:
+          name: keycloak-postgresql
+          namespace: keycloak
+        spec:
+          teamId: "acid"
+          volume:
+            size: 10Gi
+          numberOfInstances: 1
+          users:
+            keycloak:
+            - superuser
+            - createdb
+          databases:
+            keycloak: keycloak
           postgresql:
             version: "16"
