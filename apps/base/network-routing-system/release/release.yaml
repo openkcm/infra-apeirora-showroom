@@ -30,6 +30,9 @@ spec:
       valuesKey: echoserver-http-route.yaml
     - kind: ConfigMap
       name: network-routing-system-base-values
+      valuesKey: keycloak-http-route.yaml
+    - kind: ConfigMap
+      name: network-routing-system-base-values
       valuesKey: envoy-proxy-config.yaml
     - kind: ConfigMap
       name: network-routing-system-base-values

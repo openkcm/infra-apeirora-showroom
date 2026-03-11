@@ -1,0 +1,9 @@
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: session-manager-local-secret-sync
+spec:
+  storageNamespace: services
+  targetNamespace: services
+  dependsOn:
+    - name: valkey

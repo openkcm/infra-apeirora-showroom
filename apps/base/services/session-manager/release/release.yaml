@@ -1,0 +1,48 @@
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: session-manager
+spec:
+  interval: 10m
+  releaseName: session-manager
+  chartRef:
+    kind: OCIRepository
+    name: session-manager
+  storageNamespace: services
+  targetNamespace: services
+  values:
+    pod:
+      disruptionBudget:
+        enabled: true
+        minAvailable: 1
+    autoscaling:
+      enabled: true
+      minReplicas: 2
+      maxReplicas: 4
+      targetCPUUtilizationPercentage: 80
+      targetMemoryUtilizationPercentage: 80
+    topologySpreadConstraints:
+      - maxSkew: 1
+        topologyKey: topology.kubernetes.io/zone
+        whenUnsatisfiable: ScheduleAnyway
+        labelSelector:
+          matchLabels:
+            app.kubernetes.io/name: session-manager
+      - maxSkew: 1
+        topologyKey: kubernetes.io/hostname
+        whenUnsatisfiable: ScheduleAnyway
+        labelSelector:
+          matchLabels:
+            app.kubernetes.io/name: session-manager
+    image:
+      registry: ghcr.io/openkcm
+      repository: images/session-manager
+      pullPolicy: IfNotPresent
+      digest: sha256:ee173e5824e3cded322782fbcf1a40cd5d6308a179f57d73fc35d7c745d8b5da
+    imagePullSecrets: []
+    config:
+      telemetry:
+        metrics:
+          enabled: false
+        traces:
+          enabled: false

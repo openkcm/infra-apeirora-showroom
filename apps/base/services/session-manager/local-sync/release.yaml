@@ -1,0 +1,99 @@
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: session-manager-local-secret-sync
+spec:
+  interval: 10m
+  releaseName: session-manager-local-secret-sync
+  chart:
+    spec:
+      chart: ./tools/charts/generic
+      sourceRef:
+        kind: GitRepository
+        name: flux-system
+        namespace: flux-system
+  install:
+    createNamespace: false
+    remediation:
+      retries: -1
+      remediateLastFailure: true
+  upgrade:
+    remediation:
+      retries: -1
+      remediateLastFailure: true
+  targetNamespace: services
+  storageNamespace: services
+  values:
+    resources:
+      serviceAccount:
+        apiVersion: v1
+        kind: ServiceAccount
+        metadata:
+          name: session-manager-local-secret-sync
+          namespace: storage
+      role:
+        apiVersion: rbac.authorization.k8s.io/v1
+        kind: Role
+        metadata:
+          name: secrets-reader-session-manager-sync
+          namespace: storage
+        rules:
+          - apiGroups: [""]
+            resources:
+              - secrets
+            verbs:
+              - get
+              - list
+              - watch
+      rolebinding:
+        apiVersion: rbac.authorization.k8s.io/v1
+        kind: RoleBinding
+        metadata:
+          name: secrets-reader-session-manager-sync
+          namespace: storage
+        subjects:
+          - kind: ServiceAccount
+            name: session-manager-local-secret-sync
+            namespace: storage
+        roleRef:
+          kind: Role
+          name: secrets-reader-session-manager-sync
+          apiGroup: rbac.authorization.k8s.io
+      secretStore:
+        apiVersion: external-secrets.io/v1
+        kind: ClusterSecretStore
+        metadata:
+          name: session-manager-local-secret-sync
+        spec:
+          provider:
+            kubernetes:
+              server:
+                url: "https://kubernetes.default"
+                caProvider:
+                  type: "ConfigMap"
+                  name: "kube-root-ca.crt"
+                  key: "ca.crt"
+                  namespace: storage
+              remoteNamespace: storage
+              auth:
+                serviceAccount:
+                  name: session-manager-local-secret-sync
+                  namespace: storage
+      esvalkey:
+        apiVersion: external-secrets.io/v1
+        kind: ExternalSecret
+        metadata:
+          name: local-secret-sync-valkey-secret
+          namespace: services
+        spec:
+          secretStoreRef:
+            kind: ClusterSecretStore
+            name: session-manager-local-secret-sync
+          target:
+            name: valkey-secret
+            creationPolicy: Owner
+          dataFrom:
+            - extract:
+                key: valkey
+            - extract:
+                key: valkey-tls-secret
