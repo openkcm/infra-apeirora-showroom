@@ -110,10 +110,10 @@ spec:
                 path: /etc/credentials/digicert/digicert-global-root-g2.crt
               source: file
           type: mtls
-        amqp:
-          url: "amqps://mr-connection-zj8b441ttq3.messaging.solace.cloud:5671"
-          target: "topic://cmk/mesh/tenants"
-          source: "cmk/aws-staging-eu/tenants"
+        # amqp:
+        #   url: "amqps://test:5671"
+        #   target: "topic://cmk/mesh/tenants"
+        #   source: "cmk/test/tenants"
       services:
         sessionManager:
           enabled: true
@@ -271,8 +271,8 @@ spec:
       #   targets:
       #     - region: cf-eu10
       #       amqp:
-      #         url: "amqps://mr-connection-zj8b441ttq3.messaging.solace.cloud:5671"
-      #         source: "cmk/aws-staging-eu/keys"
+      #         url: "amqps://test.messaging.solace.cloud:5671"
+      #         source: "cmk/test/keys"
       #         target: "topic://ks/cf-eu10"
       clientData:
         signingKeysPath: /etc/signing-keys
