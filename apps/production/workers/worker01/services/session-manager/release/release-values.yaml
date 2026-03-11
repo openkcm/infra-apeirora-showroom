@@ -23,7 +23,8 @@ spec:
         memory: "378Mi"
     config:
       database:
-        host: kms-postgresql.services.svc.cluster.local
+        host:
+          value: kms-postgresql.services.svc.cluster.local
         port: 5432
         name: session_manager
         user:
