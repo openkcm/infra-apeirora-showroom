@@ -68,6 +68,7 @@ spec:
           databases:
             kms: kms_user
             registry: kms_user
+            session_manager: kms_user
           postgresql:
             version: "16"
       keycloak-postgresql:
