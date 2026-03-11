@@ -1,0 +1,327 @@
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: cmk
+spec:
+  storageNamespace: services
+  targetNamespace: services
+  dependsOn:
+    - name: cmk--pre-release
+  values:
+    eventReconciler:
+      image:
+        command: "/bin/event-reconciler"
+        args: []
+      deploy: true
+      service:
+        enabled: true
+    apiServer:
+      resources:
+        requests:
+          cpu: "200m"
+          memory: "200Mi"
+        limits:
+          cpu: "400m"
+          memory: "756Mi"
+    taskCLI:
+      deploy: true
+      image:
+        command: "/bin/task-cli"
+        args: ["--sleep"]
+      service:
+        enabled: true
+    tenantManager:
+      image:
+        command: "./bin/tenant-manager"
+        args: []
+      deploy: true
+      service:
+        enabled: true
+      ports:
+        - port: 8081 # must match .Values.cmk.port
+          protocol: TCP
+          targetPort: http
+          name: http
+      resources:
+        requests:
+          cpu: "150m"
+          memory: "64Mi"
+        limits:
+          cpu: "300m"
+          memory: "256Mi"
+    taskScheduler:
+      resources:
+        requests:
+          cpu: "150m"
+          memory: "64Mi"
+        limits:
+          cpu: "200m"
+          memory: "378Mi"
+    tenantManagerCLI:
+      image:
+        command: "/bin/tenant-manager-cli"
+        args: ["--sleep"]
+      deploy: true
+      service:
+        enabled: true
+    dbMigrator:
+      image:
+        command: "/bin/db-migrator"
+        args:
+          - --target=all
+          - --type=schema
+      deploy: true
+      service:
+        enabled: false
+    namespace: services
+    config:
+      logger:
+        level: debug
+      database:
+        host: kms-postgresql.services.svc.cluster.local
+        port: 5432
+        name: cmk
+        user:
+          source: file
+          file:
+            path: /etc/credentials/database/username
+            format: binary
+        password:
+          source: file
+          file:
+            path: /etc/credentials/database/password
+            format: binary
+      tenantManager:
+        secretRef:
+          mTLS:
+            cert:
+              file:
+                format: binary
+                path: /etc/credentials/cluster-cert/tls_crt
+              source: file
+            certKey:
+              file:
+                format: binary
+                path: /etc/credentials/cluster-cert/tls_key
+              source: file
+            serverCA:
+              file:
+                format: binary
+                path: /etc/credentials/digicert/digicert-global-root-g2.crt
+              source: file
+          type: mtls
+        # amqp:
+        #   url: "amqps://test:5671"
+        #   target: "topic://cmk/mesh/tenants"
+        #   source: "cmk/test/tenants"
+      services:
+        sessionManager:
+          enabled: true
+          address: session-manager.services.svc.cluster.local:9091
+          secretRef:
+            type: insecure # Let linkerd take care of mtls
+        registry:
+          enabled: true
+          address: ing.cert.worker01.kms.shoot.gardener.cc-one.showroom.apeirora.eu"
+          secretRef:
+            type: mtls
+            mTLS:
+              serverCA:
+                source: file
+                file:
+                  path: /etc/credentials/isr/ca.crt
+                  format: binary
+              cert:
+                source: file
+                file:
+                  path: /etc/credentials/cluster-cert/tls_crt
+                  format: binary
+              certKey:
+                source: file
+                file:
+                  path: /etc/credentials/cluster-cert/tls_key
+                  format: binary
+      scheduler:
+        taskQueue:
+          host:
+            source: embedded
+            value: valkey-primary.storage.svc.cluster.local
+          port: 6379
+          acl:
+            username:
+              source: embedded
+              value: default
+            password:
+              source: file
+              file:
+                path: /etc/credentials/valkey/valkey_password
+                format: binary
+            enabled: true
+          secretRef:
+            type: mtls
+            mTLS:
+              cert:
+                source: file
+                file:
+                  path: /etc/credentials/valkey/tls_crt
+                  format: binary
+              certKey:
+                source: file
+                file:
+                  path: /etc/credentials/valkey/tls_key
+                  format: binary
+              serverCA:
+                source: file
+                file:
+                  path: /etc/credentials/valkey/ca_crt
+                  format: binary
+        tasks:
+          - cronspec: "@every 1h"
+            taskType: sys:refresh
+            retries: 3
+          - cronspec: "@every 24h"
+            taskType: cert:rotate
+            retries: 3
+          - cronspec: "@every 15m"
+            taskType: key:sync
+            retries: 3
+          - cronspec: "@every 1h"
+            taskType: keystore:fill
+            retries: 3
+          - cronspec: "0 2 * * *"
+            taskType: workflow:cleanup
+            retries: 3
+          - cronspec: "0 1 * * *"
+            taskType: workflow:expire
+            retries: 3
+      plugins:
+        - name: noop
+          path: ""
+          type: KeystoreInstanceKeyOperation
+          logLevel: debug
+          tags: ['hyok']
+        - name: noop
+          path: ""
+          type: KeystoreInstanceKeyOperation
+          logLevel: debug
+          tags: ['hyok']
+        - name: noop
+          path: ""
+          type: SystemInformationService
+          logLevel: debug
+          tags: ["uli"]
+        - name: noop
+          path: ""
+          type: CertificateIssuerService
+          logLevel: debug
+          tags: [ "cert_issuer" ]
+        - name: noop
+          path: ""
+          type: NotificationService
+          logLevel: debug
+          tags: [ "notification" ]
+        - name: noop
+          path: ""
+          type: IdentityManagementService
+          logLevel: debug
+          tags: ["identity_management"]
+      provisioning:
+        initKeystoreConfig:
+          enabled: false
+      certificates:
+        rootCertURL: https://openbao.openbao.svc.cluster.local:8200/v1/pki/ca/pem
+        validityDays: 30
+        rotationThresholdDays: 7
+      cryptoLayer:
+        certX509Trusts:
+          source: embedded
+          value: |
+            {
+              "cf-eu10": {
+                "Subject": "CN=appclient1",
+                "RootCA": "https://openbao.openbao.svc.cluster.local:8200/v1/pki/ca/pem"
+              }
+            }
+      activePlugins:
+        - hyok
+        - default_keystore
+        - uli
+        - cert_issuer
+        - identity_management
+        - notification
+      # eventProcessor:
+      #   secretRef:
+      #     type: mtls
+      #     mTLS:
+      #       serverCA:
+      #         source: file
+      #         file:
+      #           path: /etc/credentials/openbao/openbao-global-root-g2.crt
+      #           format: binary
+      #       cert:
+      #         source: file
+      #         file:
+      #           path: /etc/credentials/cluster-cert/tls_crt
+      #           format: binary
+      #       certKey:
+      #         source: file
+      #         file:
+      #           path: /etc/credentials/cluster-cert/tls_key
+      #           format: binary
+      #   targets:
+      #     - region: cf-eu10
+      #       amqp:
+      #         url: "amqps://test.messaging.solace.cloud:5671"
+      #         source: "cmk/test/keys"
+      #         target: "topic://ks/cf-eu10"
+      clientData:
+        signingKeysPath: /etc/signing-keys
+        authContextFields:
+          - issuer
+          - client_id
+          - app_tid
+      landscape:
+        name: Staging
+        uiBaseUrl: https://ui.aws-eu-01.cmks.kms.cloud.sap/#
+    extraVolumes:
+      - name: db-credentials
+        secret:
+          secretName: kms-user.kms-postgresql.credentials.postgresql.acid.zalan.do
+          items:
+            - key: username
+              path: username
+            - key: password
+              path: password
+      - name: valkey-secret
+        secret:
+          secretName: valkey-secret
+          items:
+            - key: tls.crt
+              path: tls.crt
+            - key: tls.key
+              path: tls.key
+            - key: ca.crt
+              path: ca.crt
+            - key: valkey-password
+              path: valkey-password
+      # - name: extauthz-signing-keys-secret
+      #   secret:
+      #     secretName: extauthz-signing-keys-secret
+    extraVolumeMounts:
+    - name: db-credentials
+      mountPath: /etc/credentials/database
+      readOnly: true
+    - name: valkey-secret
+      mountPath: /etc/credentials/valkey
+      readOnly: true
+    # - name: extauthz-signing-keys-secret
+    #   mountPath: /etc/signing-keys
+    #   readOnly: true
+    # extraEnvs:
+    #   - name: SIS_PLUGINS_CLD_ENDPOINT
+    #     valueFrom:
+    #       secretKeyRef:
+    #         name: cldis-secret
+    #         key: cldis_endpoint
+    image:
+      tag: v0.4.1-1

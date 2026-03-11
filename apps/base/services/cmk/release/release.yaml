@@ -1,0 +1,62 @@
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: cmk
+spec:
+  interval: 10m
+  releaseName: cmk
+  chartRef:
+    kind: OCIRepository
+    name: cmk
+  targetNamespace: services
+  values:
+    autoscaling:
+      enabled: true
+      minReplicas: 2
+      maxReplicas: 4
+      targetCPUUtilizationPercentage: 80
+      targetMemoryUtilizationPercentage: 80
+    apiServer:
+      image:
+        command: "./bin/api-server"
+        args: []
+      deploy: true
+      topologySpreadConstraints:
+        - maxSkew: 1
+          topologyKey: topology.kubernetes.io/zone
+          whenUnsatisfiable: ScheduleAnyway
+          labelSelector:
+            matchLabels:
+              app.kubernetes.io/name: cmk
+        - maxSkew: 1
+          topologyKey: kubernetes.io/hostname
+          whenUnsatisfiable: ScheduleAnyway
+          labelSelector:
+            matchLabels:
+              app.kubernetes.io/name: cmk
+    tenantManager:
+      image:
+        command: "./bin/tenant-manager"
+        args: []
+      deploy: false
+    taskScheduler:
+      image:
+        command: "./bin/task-scheduler"
+        args: [ ]
+      deploy: true
+    taskWorker:
+      image:
+        command: "./bin/task-worker"
+        args: [ ]
+      deploy: true
+    image:
+      registry: ghcr.io/openkcm
+      repository: cmk/images/cmk-full-plugins
+      pullPolicy: IfNotPresent
+    imagePullSecrets: []
+    config:
+      telemetry:
+        metrics:
+          enabled: false
+        traces:
+          enabled: false
