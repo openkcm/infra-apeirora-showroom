@@ -18,7 +18,7 @@ spec:
       targetMemoryUtilizationPercentage: 80
     apiServer:
       image:
-        command: "./bin/api-server"
+        command: "./api-server"
         args: []
       deploy: true
       topologySpreadConstraints:
@@ -36,17 +36,17 @@ spec:
               app.kubernetes.io/name: cmk
     tenantManager:
       image:
-        command: "./bin/tenant-manager"
+        command: "./tenant-manager"
         args: []
       deploy: false
     taskScheduler:
       image:
-        command: "./bin/task-scheduler"
+        command: "./task-scheduler"
         args: [ ]
       deploy: true
     taskWorker:
       image:
-        command: "./bin/task-worker"
+        command: "./task-worker"
         args: [ ]
       deploy: true
     image:
