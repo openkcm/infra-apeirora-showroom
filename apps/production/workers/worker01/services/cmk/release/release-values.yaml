@@ -122,7 +122,7 @@ spec:
             type: insecure # Let linkerd take care of mtls
         registry:
           enabled: true
-          address: ing.cert.mesh.cmks.kms.cloud.sap:443
+          address: ing.cert.worker01.kms.shoot.gardener.cc-one.showroom.apeirora.eu"
           secretRef:
             type: mtls
             mTLS:
@@ -195,116 +195,41 @@ spec:
             taskType: workflow:expire
             retries: 3
       plugins:
-        - name: FORTANIX
-          path: ./bin/fortanix
+        - name: noop
+          path: ""
           type: KeystoreInstanceKeyOperation
           logLevel: debug
           tags: ['hyok']
-        - name: AWS
-          path: ./bin/aws
+        - name: noop
+          path: ""
           type: KeystoreInstanceKeyOperation
           logLevel: debug
           tags: ['hyok']
-        - name: SYSINFO
-          path: ./bin/uli
+        - name: noop
+          path: ""
           type: SystemInformationService
           logLevel: debug
           tags: ["uli"]
-          yamlConfiguration: |
-            uliEndpoint: https://ums.ums-stage.shoot.canary.k8s-hana.ondemand.com/graphql
-            certificate:
-              source: file
-              file:
-                path: /etc/credentials/cluster-cert/tls_crt
-                format: binary
-            key:
-              source: file
-              file:
-                path: /etc/credentials/cluster-cert/tls_key
-                format: binary
-        - name: CERT_ISSUER
-          path: ./bin/cert-issuer
+        - name: noop
+          path: ""
           type: CertificateIssuerService
           logLevel: debug
           tags: [ "cert_issuer" ]
-          yamlConfiguration: |
-            certificateservice:
-              source: file
-              file:
-                path: /etc/credentials/cert-issuer-plugins/certificateservice-config
-                format: binary
-            uaa:
-              source: file
-              file:
-                path: /etc/credentials/cert-issuer-plugins/uaa-config
-                format: binary
-        - name: NOTIFICATION
-          path: ./bin/notification
+        - name: noop
+          path: ""
           type: NotificationService
           logLevel: debug
           tags: [ "notification" ]
-          yamlConfiguration: |
-            endpoints:
-              source: file
-              file:
-                path: /etc/credentials/notification-plugin/endpoints-config
-                format: binary
-            uaa:
-              source: file
-              file:
-                path: /etc/credentials/notification-plugin/uaa-config
-                format: binary
-        - name: IDENTITY_MANAGEMENT
-          path: ./bin/scim
+        - name: noop
+          path: ""
           type: IdentityManagementService
           logLevel: debug
           tags: ["identity_management"]
-          yamlConfiguration: |
-            host:
-              source: embedded
-              value: ""
-            auth:
-              type: mtls
-              mtls:
-                cert:
-                  source: file
-                  file:
-                    path: /etc/credentials/cluster-cert/tls_crt
-                    format: binary
-                certKey:
-                  source: file
-                  file:
-                    path: /etc/credentials/cluster-cert/tls_key
-                    format: binary
-            params:
-              groupAttribute:
-                source: embedded
-                value: "urn:sap:cloud:scim:schemas:extension:custom:2.0:Group:name"
-              userAttribute:
-                source: embedded
-                value: ""
-              groupMembersAttribute:
-                source: embedded
-                value: "members"
-              listMethod:
-                source: embedded
-                value: "POST"
-              allowSearchUsersByGroup:
-                source: embedded
-                value: "False"
-            authContext:
-              source: embedded
-              value: |
-                hostField: issuer
-                basePath: idds/apps/v1/scim
-                headerFields:
-                  x-app_tid: app_tid
-                  x-client_id: client_id
       provisioning:
         initKeystoreConfig:
           enabled: false
       certificates:
-        rootCertURL: https://aia.pki.co.sap.com/aia/SAP%20Cloud%20Root%20CA.crt
+        rootCertURL: https://openbao.openbao.svc.cluster.local:8200/v1/pki/ca/pem
         validityDays: 30
         rotationThresholdDays: 7
       cryptoLayer:
@@ -312,17 +237,9 @@ spec:
           source: embedded
           value: |
             {
-              "cf-eu12": {
-                "Subject": "CN=sapkms-ks,OU=SAP Cloud Platform Clients/Canary/49741c6c-60b0-4fe7-b78f-db72855befce,O=SAP SE,L=eu12,C=DE",
-                "RootCA": "https://aia.pki.co.sap.com/aia/SAP%20Cloud%20Root%20CA.crt"
-              },
-              "cf-us10-staging": {
-                "Subject": "CN=sapkms-ks,L=us10-staging,OU=6533837a-140e-4fd4-8354-3b006ea099a6,OU=Staging,OU=SAP Cloud Platform Clients,O=SAP SE,C=DE",
-                "RootCA": "https://aia.pki.co.sap.com/aia/SAP%20Cloud%20Root%20CA.crt"
-              },
-              "cf-us30-staging": {
-                "Subject": "CN=sapkms-ks,L=us30-staging,OU=dc28a3bd-bf05-4268-a4cc-1ea287008c3e,OU=Staging,OU=SAP Cloud Platform Clients,O=SAP SE,C=DE",
-                "RootCA": "https://aia.pki.co.sap.com/aia/SAP%20Cloud%20Root%20CA.crt"
+              "cf-eu10": {
+                "Subject": "CN=appclient1",
+                "RootCA": "https://openbao.openbao.svc.cluster.local:8200/v1/pki/ca/pem"
               }
             }
       activePlugins:
@@ -332,41 +249,31 @@ spec:
         - cert_issuer
         - identity_management
         - notification
-      eventProcessor:
-        secretRef:
-          type: mtls
-          mTLS:
-            serverCA:
-              source: file
-              file:
-                path: /etc/credentials/digicert/digicert-global-root-g2.crt
-                format: binary
-            cert:
-              source: file
-              file:
-                path: /etc/credentials/cluster-cert/tls_crt
-                format: binary
-            certKey:
-              source: file
-              file:
-                path: /etc/credentials/cluster-cert/tls_key
-                format: binary
-        targets:
-          - region: cf-eu12
-            amqp:
-              url: "amqps://mr-connection-zj8b441ttq3.messaging.solace.cloud:5671"
-              source: "cmk/aws-staging-eu/keys"
-              target: "topic://ks/cf-eu12"
-          - region: cf-us10-staging
-            amqp:
-              url: "amqps://mr-connection-zj8b441ttq3.messaging.solace.cloud:5671"
-              source: "cmk/aws-staging-eu/keys"
-              target: "topic://ks/cf-us10-staging"
-          - region: cf-us30-staging
-            amqp:
-              url: "amqps://mr-connection-zj8b441ttq3.messaging.solace.cloud:5671"
-              source: "cmk/aws-staging-eu/keys"
-              target: "topic://ks/cf-us30-staging"
+      # eventProcessor:
+      #   secretRef:
+      #     type: mtls
+      #     mTLS:
+      #       serverCA:
+      #         source: file
+      #         file:
+      #           path: /etc/credentials/openbao/openbao-global-root-g2.crt
+      #           format: binary
+      #       cert:
+      #         source: file
+      #         file:
+      #           path: /etc/credentials/cluster-cert/tls_crt
+      #           format: binary
+      #       certKey:
+      #         source: file
+      #         file:
+      #           path: /etc/credentials/cluster-cert/tls_key
+      #           format: binary
+      #   targets:
+      #     - region: cf-eu10
+      #       amqp:
+      #         url: "amqps://mr-connection-zj8b441ttq3.messaging.solace.cloud:5671"
+      #         source: "cmk/aws-staging-eu/keys"
+      #         target: "topic://ks/cf-eu10"
       clientData:
         signingKeysPath: /etc/signing-keys
         authContextFields:
@@ -377,24 +284,6 @@ spec:
         name: Staging
         uiBaseUrl: https://ui.aws-eu-01.cmks.kms.cloud.sap/#
     extraVolumes:
-      - name: isr-ca
-        configMap:
-          name: isr-ca
-          items:
-            - key: ca.crt
-              path: ca.crt
-      - name: sap-cloud-root-ca
-        configMap:
-          name: sap-cloud-root-ca
-          items:
-            - key: ca.crt
-              path: ca.crt
-      - name: digicert-volume
-        configMap:
-          name: digicert-global-root-g2
-          items:
-            - key: digicert-global-root-g2.crt
-              path: digicert-global-root-g2.crt
       - name: db-credentials
         secret:
           secretName: kms-user.kms-postgresql.credentials.postgresql.acid.zalan.do
@@ -403,86 +292,36 @@ spec:
               path: username
             - key: password
               path: password
-      - name: cld-plugins
-        secret:
-          secretName: cldis-secret
-          items:
-            - key: uaa
-              path: uaa-config
-      - name: cert-issuer-plugins
-        secret:
-          secretName: pki-secret
-          items:
-            - key: certificateservice
-              path: certificateservice-config
-            - key: uaa
-              path: uaa-config
-      - name: cluster-cert
-        secret:
-          secretName: clustercert-certificate-secret
-          items:
-            - key: tls.crt
-              path: tls_crt
-            - key: tls.key
-              path: tls_key
       - name: valkey-secret
         secret:
           secretName: valkey-secret
           items:
-            - key: tls_crt
-              path: tls_crt
-            - key: tls_key
-              path: tls_key
-            - key: ca_crt
-              path: ca_crt
-            - key: valkey_password
-              path: valkey_password
-      - name: extauthz-signing-keys-secret
-        secret:
-          secretName: extauthz-signing-keys-secret
-      - name: ans-secret
-        secret:
-          secretName: ans-secret-eu10
-          items:
-            - key: uaa
-              path: uaa-config
-            - key: endpoints
-              path: endpoints-config
+            - key: tls.crt
+              path: tls.crt
+            - key: tls.key
+              path: tls.key
+            - key: ca.crt
+              path: ca.crt
+            - key: valkey-password
+              path: valkey-password
+      # - name: extauthz-signing-keys-secret
+      #   secret:
+      #     secretName: extauthz-signing-keys-secret
     extraVolumeMounts:
-    - name: isr-ca
-      mountPath: /etc/credentials/isr
-    - name: sap-cloud-root-ca
-      mountPath: /etc/credentials/sapcloudroot
-      readOnly: true
-    - name: digicert-volume
-      mountPath: /etc/credentials/digicert
-      readOnly: true
     - name: db-credentials
       mountPath: /etc/credentials/database
-      readOnly: true
-    - name: cld-plugins
-      mountPath: /etc/credentials/sis-plugins/cld
-      readOnly: true
-    - name: cert-issuer-plugins
-      mountPath: /etc/credentials/cert-issuer-plugins
-      readOnly: true
-    - name: cluster-cert
-      mountPath: /etc/credentials/cluster-cert
       readOnly: true
     - name: valkey-secret
       mountPath: /etc/credentials/valkey
       readOnly: true
-    - name: extauthz-signing-keys-secret
-      mountPath: /etc/signing-keys
-      readOnly: true
-    - name: ans-secret
-      mountPath: /etc/credentials/notification-plugin
-      readOnly: true
-    extraEnvs:
-      - name: SIS_PLUGINS_CLD_ENDPOINT
-        valueFrom:
-          secretKeyRef:
-            name: cldis-secret
-            key: cldis_endpoint
+    # - name: extauthz-signing-keys-secret
+    #   mountPath: /etc/signing-keys
+    #   readOnly: true
+    # extraEnvs:
+    #   - name: SIS_PLUGINS_CLD_ENDPOINT
+    #     valueFrom:
+    #       secretKeyRef:
+    #         name: cldis-secret
+    #         key: cldis_endpoint
     image:
-      tag: v0.3.0-20260227113341-3437e2f0502f0901288f2ff1352bf9d807dfed6a
+      tag: v0.4.1-1
