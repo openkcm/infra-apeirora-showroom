@@ -30,12 +30,12 @@ spec:
         user:
           source: file
           file:
-            path: /etc/registry/credentials/database/username
+            path: /etc/session-manager/credentials/database/username
             format: binary
         password:
           source: file
           file:
-            path: /etc/registry/credentials/database/password
+            path: /etc/session-manager/credentials/database/password
             format: binary
       valkey:
         host:
