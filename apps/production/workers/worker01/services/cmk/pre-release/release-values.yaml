@@ -9,4 +9,3 @@ spec:
     - kind: ConfigMap
       name: cmk-base-pre-release-values
       valuesKey: cmk-routeref.yaml
-
