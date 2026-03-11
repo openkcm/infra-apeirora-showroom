@@ -51,7 +51,7 @@ spec:
       deploy: true
     image:
       registry: ghcr.io/openkcm
-      repository: cmk/images
+      repository: cmk/images/cmk-full-plugins
       pullPolicy: IfNotPresent
     imagePullSecrets: []
     config:
