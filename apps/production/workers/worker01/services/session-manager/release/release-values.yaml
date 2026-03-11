@@ -90,6 +90,14 @@ spec:
           secure: true
           sameSite: Strict
           domain: "worker01.kms.shoot.gardener.cc-one.showroom.apeirora.eu"
+        clientAuth:
+          clientID: test
+          type: client_secret
+          clientSecret:
+            source: file
+            file:
+              path: /etc/credentials/client-auth/client-secret
+              format: binary
         csrfSecret:
           file:
             format: binary
@@ -124,6 +132,12 @@ spec:
           items:
           - key: csrf_secret
             path: csrf_secret
+      - name: client-auth-secret
+        secret:
+          secretName: echoserver-oidc-proxy
+          items:
+            - key: client-secret
+              path: client-secret
     extraVolumeMounts:
     - name: db-credentials
       mountPath: /etc/session-manager/credentials/database
@@ -133,6 +147,9 @@ spec:
       readOnly: true
     - name: csrf-secret
       mountPath: /etc/credentials/csrf-secret
+      readOnly: true
+    - name: client-auth-secret
+      mountPath: /etc/credentials/client-auth
       readOnly: true
     image:
       registry: ghcr.io/openkcm
