@@ -25,15 +25,3 @@ spec:
     - kind: ConfigMap
       name: cmk-base-pre-release-values
       valuesKey: cmk-routeref.yaml
-    - kind: ConfigMap
-      name: cmk-base-pre-release-values
-      valuesKey: digicertGlobalRootG2.yaml
-    - kind: ConfigMap
-      name: cmk-base-pre-release-values
-      valuesKey: isr-ca.yaml
-    - kind: ConfigMap
-      name: cmk-base-pre-release-values
-      valuesKey: sapcloudrootca.yaml
-    - kind: ConfigMap
-      name: cmk-base-pre-release-values
-      valuesKey: extauthz-signing-keys-secret.yaml
