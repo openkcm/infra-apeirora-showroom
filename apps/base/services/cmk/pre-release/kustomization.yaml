@@ -8,7 +8,3 @@ configMapGenerator:
   - name: cmk-base-pre-release-values
     files:
       - ./resources/cmk-routeref.yaml
-      - ./resources/digicertGlobalRootG2.yaml
-      - ./resources/isr-ca.yaml
-      - ./resources/sapcloudrootca.yaml
-      - ./resources/extauthz-signing-keys-secret.yaml
