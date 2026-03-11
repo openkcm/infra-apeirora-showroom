@@ -78,7 +78,8 @@ spec:
       logger:
         level: debug
       database:
-        host: kms-postgresql.services.svc.cluster.local
+        host:
+          value: kms-postgresql.services.svc.cluster.local
         port: 5432
         name: cmk
         user:
