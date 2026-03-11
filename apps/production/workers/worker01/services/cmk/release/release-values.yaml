@@ -10,7 +10,7 @@ spec:
   values:
     eventReconciler:
       image:
-        command: "/bin/event-reconciler"
+        command: "./event-reconciler"
         args: []
       deploy: true
       service:
@@ -26,13 +26,13 @@ spec:
     taskCLI:
       deploy: true
       image:
-        command: "/bin/task-cli"
+        command: "/task-cli"
         args: ["--sleep"]
       service:
         enabled: true
     tenantManager:
       image:
-        command: "./bin/tenant-manager"
+        command: "./tenant-manager"
         args: []
       deploy: true
       service:
@@ -59,14 +59,14 @@ spec:
           memory: "378Mi"
     tenantManagerCLI:
       image:
-        command: "/bin/tenant-manager-cli"
+        command: "./tenant-manager-cli"
         args: ["--sleep"]
       deploy: true
       service:
         enabled: true
     dbMigrator:
       image:
-        command: "/bin/db-migrator"
+        command: "./db-migrator"
         args:
           - --target=all
           - --type=schema
