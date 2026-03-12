@@ -164,17 +164,17 @@ spec:
               cert:
                 source: file
                 file:
-                  path: /etc/credentials/valkey/tls_crt
+                  path: /etc/credentials/valkey/tls.crt
                   format: binary
               certKey:
                 source: file
                 file:
-                  path: /etc/credentials/valkey/tls_key
+                  path: /etc/credentials/valkey/tls.key
                   format: binary
               serverCA:
                 source: file
                 file:
-                  path: /etc/credentials/valkey/ca_crt
+                  path: /etc/credentials/valkey/ca.crt
                   format: binary
         tasks:
           - cronspec: "@every 1h"
