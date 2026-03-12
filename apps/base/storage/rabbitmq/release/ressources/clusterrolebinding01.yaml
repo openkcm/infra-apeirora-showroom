@@ -15,4 +15,4 @@ resources:
     subjects:
     - kind: ServiceAccount
       name: rabbitmq-cluster-operator
-      namespace: rabbitmq-system
+      namespace: storage
