@@ -165,6 +165,28 @@ spec:
         spec:
           ca:
             secretName: openbao-client-ca-secret
+      cluster-cert-client-certificate:
+        apiVersion: cert-manager.io/v1
+        kind: Certificate
+        metadata:
+          name: cluster-cert
+        spec:
+          secretName: cluster-cert
+          secretTemplate:
+            annotations:
+              openbao.cert.auth/policy: app1-policy
+          commonName: cluster-cert
+          usages:
+            - digital signature
+            - key encipherment
+            - client auth
+          privateKey:
+            rotationPolicy: Always
+            algorithm: RSA
+            size: 2048
+          issuerRef:
+            name: openbao-client-issuer
+            kind: Issuer
       app1-client-certificate:
         apiVersion: cert-manager.io/v1
         kind: Certificate

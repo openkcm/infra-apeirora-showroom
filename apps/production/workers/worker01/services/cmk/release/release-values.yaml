@@ -7,6 +7,7 @@ spec:
   targetNamespace: services
   dependsOn:
     - name: cmk--pre-release
+    - name: openbao-local-secret-sync
   values:
     eventReconciler:
       image:
@@ -93,24 +94,24 @@ spec:
             path: /etc/credentials/database/password
             format: binary
       tenantManager:
-        # secretRef:
-        #   mTLS:
-        #     cert:
-        #       file:
-        #         format: binary
-        #         path: /etc/credentials/cluster-cert/tls_crt
-        #       source: file
-        #     certKey:
-        #       file:
-        #         format: binary
-        #         path: /etc/credentials/cluster-cert/tls_key
-        #       source: file
-        #     serverCA:
-        #       file:
-        #         format: binary
-        #         path: /etc/credentials/digicert/digicert-global-root-g2.crt
-        #       source: file
-        #   type: mtls
+        secretRef:
+          mTLS:
+            cert:
+              file:
+                format: binary
+                path: /etc/credentials/cluster-cert/tls_crt
+              source: file
+            certKey:
+              file:
+                format: binary
+                path: /etc/credentials/cluster-cert/tls_key
+              source: file
+            serverCA:
+              file:
+                format: binary
+                path:  /etc/credentials/cluster-cert/ca_crt
+              source: file
+          type: mtls
         amqp:
           url: "amqp://kms-rabbitmqcluster:5672"
           target: "topic://cmk/mesh/tenants"
@@ -305,6 +306,16 @@ spec:
               path: ca.crt
             - key: valkey-password
               path: valkey-password
+      - name: cluster-cert
+        secret:
+          secretName: cluster-cert
+          items:
+            - key: tls.crt
+              path: tls_crt
+            - key: tls.key
+              path: tls_key
+            - key: ca.crt
+              path: ca_crt
       # - name: extauthz-signing-keys-secret
       #   secret:
       #     secretName: extauthz-signing-keys-secret
@@ -314,6 +325,9 @@ spec:
       readOnly: true
     - name: valkey-secret
       mountPath: /etc/credentials/valkey
+      readOnly: true
+    - name: cluster-cert
+      mountPath: /etc/credentials/cluster-cert
       readOnly: true
     # - name: extauthz-signing-keys-secret
     #   mountPath: /etc/signing-keys
