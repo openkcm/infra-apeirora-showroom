@@ -4,4 +4,4 @@ metadata:
   name: cmk
 spec:
   ref:
-    tag: 0.1.65
+    tag: 0.1.66
