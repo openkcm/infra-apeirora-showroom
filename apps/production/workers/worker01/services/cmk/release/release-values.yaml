@@ -93,28 +93,28 @@ spec:
             path: /etc/credentials/database/password
             format: binary
       tenantManager:
-        secretRef:
-          mTLS:
-            cert:
-              file:
-                format: binary
-                path: /etc/credentials/cluster-cert/tls_crt
-              source: file
-            certKey:
-              file:
-                format: binary
-                path: /etc/credentials/cluster-cert/tls_key
-              source: file
-            serverCA:
-              file:
-                format: binary
-                path: /etc/credentials/digicert/digicert-global-root-g2.crt
-              source: file
-          type: mtls
-        # amqp:
-        #   url: "amqps://test:5671"
-        #   target: "topic://cmk/mesh/tenants"
-        #   source: "cmk/test/tenants"
+        # secretRef:
+        #   mTLS:
+        #     cert:
+        #       file:
+        #         format: binary
+        #         path: /etc/credentials/cluster-cert/tls_crt
+        #       source: file
+        #     certKey:
+        #       file:
+        #         format: binary
+        #         path: /etc/credentials/cluster-cert/tls_key
+        #       source: file
+        #     serverCA:
+        #       file:
+        #         format: binary
+        #         path: /etc/credentials/digicert/digicert-global-root-g2.crt
+        #       source: file
+        #   type: mtls
+        amqp:
+          url: "amqp://kms-rabbitmqcluster:5672"
+          target: "topic://cmk/mesh/tenants"
+          source: "cmk/test/tenants"
       services:
         sessionManager:
           enabled: true
@@ -250,31 +250,31 @@ spec:
         - cert_issuer
         - identity_management
         - notification
-      # eventProcessor:
-      #   secretRef:
-      #     type: mtls
-      #     mTLS:
-      #       serverCA:
-      #         source: file
-      #         file:
-      #           path: /etc/credentials/openbao/openbao-global-root-g2.crt
-      #           format: binary
-      #       cert:
-      #         source: file
-      #         file:
-      #           path: /etc/credentials/cluster-cert/tls_crt
-      #           format: binary
-      #       certKey:
-      #         source: file
-      #         file:
-      #           path: /etc/credentials/cluster-cert/tls_key
-      #           format: binary
-      #   targets:
-      #     - region: cf-eu10
-      #       amqp:
-      #         url: "amqps://test.messaging.solace.cloud:5671"
-      #         source: "cmk/test/keys"
-      #         target: "topic://ks/cf-eu10"
+      eventProcessor:
+        secretRef:
+          type: mtls
+          mTLS:
+            serverCA:
+              source: file
+              file:
+                path: /etc/credentials/openbao/openbao-global-root-g2.crt
+                format: binary
+            cert:
+              source: file
+              file:
+                path: /etc/credentials/cluster-cert/tls_crt
+                format: binary
+            certKey:
+              source: file
+              file:
+                path: /etc/credentials/cluster-cert/tls_key
+                format: binary
+        targets:
+          - region: cf-eu10
+            amqp:
+              url: "amqp://kms-rabbitmqcluster:5672"
+              source: "cmk/test/keys"
+              target: "topic://ks/cf-eu10"
       clientData:
         signingKeysPath: /etc/signing-keys
         authContextFields:
