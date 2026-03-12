@@ -7,4 +7,4 @@ spec:
   interval: 5m0s
   url: oci://ghcr.io/openkcm/charts/cmk
   ref:
-    tag: 0.1.64
+    tag: 0.1.66
