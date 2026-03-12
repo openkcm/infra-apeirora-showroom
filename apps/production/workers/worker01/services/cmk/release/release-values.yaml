@@ -131,7 +131,7 @@ spec:
               serverCA:
                 source: file
                 file:
-                  path: /etc/credentials/isr/ca.crt
+                  path: /etc/credentials/cluster-cert/ca_crt
                   format: binary
               cert:
                 source: file
