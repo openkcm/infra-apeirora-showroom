@@ -258,7 +258,7 @@ spec:
             serverCA:
               source: file
               file:
-                path: /etc/credentials/openbao/openbao-global-root-g2.crt
+                path: /etc/credentials/cluster-cert/ca_crt
                 format: binary
             cert:
               source: file
