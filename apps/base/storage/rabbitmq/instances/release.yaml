@@ -33,3 +33,8 @@ spec:
         metadata:
           name: kms-rabbitmqcluster
           namespace: services
+        spec:
+          rabbitmq:
+            additionalConfig: |
+              auth_mechanisms.1 = PLAIN
+              auth_mechanisms.2 = AMQPLAIN
