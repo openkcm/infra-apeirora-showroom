@@ -116,7 +116,7 @@ spec:
         amqp:
           url: "amqps://kms-rabbitmqcluster.services.svc.cluster.local:5671"
           target: "/exchanges/cmk/mesh.tenants"
-          source: "/queues/cmk/test/tenants"
+          source: "/cmk/test/tenants"
       services:
         sessionManager:
           enabled: true
@@ -275,7 +275,7 @@ spec:
           - region: cf-eu10
             amqp:
               url: "amqps://kms-rabbitmqcluster.services.svc.cluster.local:5671"
-              source: "/queues/cmk/test/keys"
+              source: "/cmk/test/keys"
               target: "/exchanges/ks/cf-eu10"
       clientData:
         signingKeysPath: /etc/signing-keys
