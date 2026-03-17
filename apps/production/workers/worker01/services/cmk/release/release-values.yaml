@@ -9,7 +9,6 @@ spec:
     - name: cmk--pre-release
     - name: openbao-local-secret-sync
     - name: rabbitmq--pre-release
-    - name: rabbitmq--post-release
   values:
     eventReconciler:
       image:
