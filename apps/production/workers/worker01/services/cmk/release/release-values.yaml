@@ -101,7 +101,7 @@ spec:
             serverCA:
               source: file
               file:
-                path: /etc/credentials/rabbitmq-ca/ca.crt
+                path: /etc/credentials/rabbitmq/ca.crt
                 format: binary
             cert:
               source: file
@@ -259,7 +259,7 @@ spec:
             serverCA:
               source: file
               file:
-                path: /etc/credentials/rabbitmq-ca/ca.crt
+                path: /etc/credentials/rabbitmq/ca.crt
                 format: binary
             cert:
               source: file
