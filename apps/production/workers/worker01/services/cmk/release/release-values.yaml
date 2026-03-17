@@ -197,37 +197,37 @@ spec:
           - cronspec: "0 1 * * *"
             taskType: workflow:expire
             retries: 3
-      plugins:
-        - name: noop
-          path: ""
-          type: KeystoreInstanceKeyOperation
-          logLevel: debug
-          tags: ['hyok']
-        - name: noop
-          path: ""
-          type: KeystoreInstanceKeyOperation
-          logLevel: debug
-          tags: ['hyok']
-        - name: noop
-          path: ""
-          type: SystemInformationService
-          logLevel: debug
-          tags: ["uli"]
-        - name: noop
-          path: ""
-          type: CertificateIssuerService
-          logLevel: debug
-          tags: [ "cert_issuer" ]
-        - name: noop
-          path: ""
-          type: NotificationService
-          logLevel: debug
-          tags: [ "notification" ]
-        - name: noop
-          path: ""
-          type: IdentityManagementService
-          logLevel: debug
-          tags: ["identity_management"]
+      # plugins:
+      #   - name: noop
+      #     path: ""
+      #     type: KeystoreInstanceKeyOperation
+      #     logLevel: debug
+      #     tags: ['hyok']
+      #   - name: noop
+      #     path: ""
+      #     type: KeystoreInstanceKeyOperation
+      #     logLevel: debug
+      #     tags: ['hyok']
+      #   - name: noop
+      #     path: ""
+      #     type: SystemInformationService
+      #     logLevel: debug
+      #     tags: ["uli"]
+      #   - name: noop
+      #     path: ""
+      #     type: CertificateIssuerService
+      #     logLevel: debug
+      #     tags: [ "cert_issuer" ]
+      #   - name: noop
+      #     path: ""
+      #     type: NotificationService
+      #     logLevel: debug
+      #     tags: [ "notification" ]
+      #   - name: noop
+      #     path: ""
+      #     type: IdentityManagementService
+      #     logLevel: debug
+      #     tags: ["identity_management"]
       provisioning:
         initKeystoreConfig:
           enabled: false
@@ -245,13 +245,7 @@ spec:
                 "RootCA": "https://openbao.openbao.svc.cluster.local:8200/v1/pki/ca/pem"
               }
             }
-      activePlugins:
-        - hyok
-        - default_keystore
-        - uli
-        - cert_issuer
-        - identity_management
-        - notification
+      activePlugins: []
       eventProcessor:
         secretRef:
           type: mtls
