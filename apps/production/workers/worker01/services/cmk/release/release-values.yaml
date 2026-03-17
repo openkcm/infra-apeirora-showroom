@@ -114,7 +114,7 @@ spec:
               source: file
           type: mtls
         amqp:
-          url: "amqp://kms-rabbitmqcluster:5672"
+          url: "amqps://kms-rabbitmqcluster:5671"
           target: "topic://cmk/mesh/tenants"
           source: "cmk/test/tenants"
       services:
@@ -274,7 +274,7 @@ spec:
         targets:
           - region: cf-eu10
             amqp:
-              url: "amqp://kms-rabbitmqcluster:5672"
+              url: "amqps://kms-rabbitmqcluster:5671"
               source: "cmk/test/keys"
               target: "topic://ks/cf-eu10"
       clientData:
