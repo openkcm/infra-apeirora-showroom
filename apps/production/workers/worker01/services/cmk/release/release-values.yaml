@@ -325,9 +325,9 @@ spec:
           items:
             - key: ca.crt
               path: ca.crt
-      # - name: extauthz-signing-keys-secret
-      #   secret:
-      #     secretName: extauthz-signing-keys-secret
+      - name: extauthz-signing-keys-secret
+        secret:
+          secretName: csrf_secret
     extraVolumeMounts:
     - name: db-credentials
       mountPath: /etc/credentials/database
@@ -344,9 +344,9 @@ spec:
     - name: rabbitmq-ca-secret
       mountPath: /etc/credentials/rabbitmq-ca
       readOnly: true
-    # - name: extauthz-signing-keys-secret
-    #   mountPath: /etc/signing-keys
-    #   readOnly: true
+    - name: extauthz-signing-keys-secret
+      mountPath: /etc/signing-keys
+      readOnly: true
     #  - name: SIS_PLUGINS_CLD_ENDPOINT
     #    valueFrom:
     #      secretKeyRef:
