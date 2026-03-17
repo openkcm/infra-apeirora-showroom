@@ -96,23 +96,23 @@ spec:
             format: binary
       tenantManager:
         secretRef:
-          mTLS:
-            cert:
-              file:
-                format: binary
-                path: /etc/credentials/cluster-cert/tls_crt
-              source: file
-            certKey:
-              file:
-                format: binary
-                path: /etc/credentials/cluster-cert/tls_key
-              source: file
-            serverCA:
-              file:
-                format: binary
-                path:  /etc/credentials/cluster-cert/ca_crt
-              source: file
           type: mtls
+          mTLS:
+            serverCA:
+              source: file
+              file:
+                path: /etc/credentials/rabbitmq-ca/ca.crt
+                format: binary
+            cert:
+              source: file
+              file:
+                path: /etc/credentials/rabbitmq/tls.crt
+                format: binary
+            certKey:
+              source: file
+              file:
+                path: /etc/credentials/rabbitmq/tls.key
+                format: binary
         amqp:
           url: "amqps://kms-rabbitmqcluster.services.svc.cluster.local:5671"
           target: "topic://cmk/mesh/tenants"
@@ -259,7 +259,7 @@ spec:
             serverCA:
               source: file
               file:
-                path: /etc/credentials/rabbitmq-ca/tls.crt
+                path: /etc/credentials/rabbitmq-ca/ca.crt
                 format: binary
             cert:
               source: file
