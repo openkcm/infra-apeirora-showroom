@@ -25,6 +25,7 @@ spec:
       remediateLastFailure: true
   dependsOn:
     - name: rabbitmq
+    - name: rabbitmq--pre-release
   values:
     resources:
       kms-rabbitmqcluster:
@@ -34,7 +35,10 @@ spec:
           name: kms-rabbitmqcluster
           namespace: services
         spec:
+          replicas: 1
+          tls:
+            secretName: rabbitmq-tls-secret
+            caSecretName: rabbitmq-ca-secret
           rabbitmq:
             additionalConfig: |
-              auth_mechanisms.1 = PLAIN
-              auth_mechanisms.2 = AMQPLAIN
+              ssl_options.fail_if_no_peer_cert = true
