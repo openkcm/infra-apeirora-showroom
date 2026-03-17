@@ -1,0 +1,79 @@
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: rabbitmq--pre-release
+spec:
+  interval: 10m
+  releaseName: rabbitmq--pre-release
+  storageNamespace: services
+  targetNamespace: services
+  chart:
+    spec:
+      chart: ./tools/charts/generic
+      sourceRef:
+        kind: GitRepository
+        name: flux-system
+        namespace: flux-system
+  install:
+    createNamespace: false
+    remediation:
+      retries: -1
+      remediateLastFailure: true
+  upgrade:
+    remediation:
+      retries: -1
+      remediateLastFailure: true
+  values:
+    resources:
+      rabbitmq-ca-certificate:
+        apiVersion: cert-manager.io/v1
+        kind: Certificate
+        metadata:
+          name: rabbitmq-ca-certificate
+        spec:
+          secretName: rabbitmq-ca-secret
+          isCA: true
+          duration: 2160h
+          renewBefore: 360h
+          issuerRef:
+            name: linkerd-trust-anchor
+            kind: ClusterIssuer
+          commonName: rabbitmq-ca.services.svc.cluster.local
+          privateKey:
+            algorithm: RSA
+            size: 2048
+          usages:
+            - cert sign
+            - crl sign
+            - server auth
+            - client auth
+      rabbitmq-ca-issuer:
+        apiVersion: cert-manager.io/v1
+        kind: Issuer
+        metadata:
+          name: rabbitmq-ca-issuer
+        spec:
+          ca:
+            secretName: rabbitmq-ca-secret
+      rabbitmq-tls-certificate:
+        apiVersion: cert-manager.io/v1
+        kind: Certificate
+        metadata:
+          name: rabbitmq-tls-certificate
+        spec:
+          secretName: rabbitmq-tls-secret
+          duration: 2160h
+          renewBefore: 360h
+          issuerRef:
+            name: rabbitmq-ca-issuer
+            kind: Issuer
+          commonName: kms-rabbitmqcluster.services.svc.cluster.local
+          dnsNames:
+            - kms-rabbitmqcluster.services.svc.cluster.local
+            - '*.kms-rabbitmqcluster-nodes.services.svc.cluster.local'
+          privateKey:
+            algorithm: RSA
+            size: 2048
+          usages:
+            - server auth
+            - client auth
