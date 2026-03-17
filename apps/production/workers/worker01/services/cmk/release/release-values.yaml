@@ -8,6 +8,7 @@ spec:
   dependsOn:
     - name: cmk--pre-release
     - name: openbao-local-secret-sync
+    - name: rabbitmq--pre-release
   values:
     eventReconciler:
       image:
@@ -258,17 +259,17 @@ spec:
             serverCA:
               source: file
               file:
-                path: /etc/credentials/cluster-cert/ca_crt
+                path: /etc/credentials/rabbitmq-ca/tls.crt
                 format: binary
             cert:
               source: file
               file:
-                path: /etc/credentials/cluster-cert/tls_crt
+                path: /etc/credentials/rabbitmq/tls.crt
                 format: binary
             certKey:
               source: file
               file:
-                path: /etc/credentials/cluster-cert/tls_key
+                path: /etc/credentials/rabbitmq/tls.key
                 format: binary
         targets:
           - region: cf-eu10
@@ -316,6 +317,20 @@ spec:
               path: tls_key
             - key: ca.crt
               path: ca_crt
+      - name: rabbitmq-tls-secret
+        secret:
+          secretName: rabbitmq-tls-secret
+          items:
+            - key: tls.crt
+              path: tls.crt
+            - key: tls.key
+              path: tls.key
+      - name: rabbitmq-ca-secret
+        secret:
+          secretName: rabbitmq-ca-secret
+          items:
+            - key: tls.crt
+              path: tls.crt
       # - name: extauthz-signing-keys-secret
       #   secret:
       #     secretName: extauthz-signing-keys-secret
@@ -329,12 +344,15 @@ spec:
     - name: cluster-cert
       mountPath: /etc/credentials/cluster-cert
       readOnly: true
+    - name: rabbitmq-tls-secret
+      mountPath: /etc/credentials/rabbitmq
+      readOnly: true
+    - name: rabbitmq-ca-secret
+      mountPath: /etc/credentials/rabbitmq-ca
+      readOnly: true
     # - name: extauthz-signing-keys-secret
     #   mountPath: /etc/signing-keys
     #   readOnly: true
-    extraEnvs:
-      - name: PGSSLMODE
-        value: require
     #  - name: SIS_PLUGINS_CLD_ENDPOINT
     #    valueFrom:
     #      secretKeyRef:
