@@ -325,6 +325,8 @@ spec:
               path: tls.crt
             - key: tls.key
               path: tls.key
+            - key: ca.crt
+              path: ca.crt
       - name: rabbitmq-ca-secret
         secret:
           secretName: rabbitmq-ca-secret
