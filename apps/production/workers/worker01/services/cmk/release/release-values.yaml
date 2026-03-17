@@ -317,16 +317,14 @@ spec:
               path: tls_key
             - key: ca.crt
               path: ca_crt
-      - name: rabbitmq-tls-secret
+      - name: rabbitmq-cmk-secret
         secret:
-          secretName: rabbitmq-tls-secret
+          secretName: rabbitmq-cmk-secret
           items:
             - key: tls.crt
               path: tls.crt
             - key: tls.key
               path: tls.key
-            - key: ca.crt
-              path: ca.crt
       - name: rabbitmq-ca-secret
         secret:
           secretName: rabbitmq-ca-secret
@@ -346,7 +344,7 @@ spec:
     - name: cluster-cert
       mountPath: /etc/credentials/cluster-cert
       readOnly: true
-    - name: rabbitmq-tls-secret
+    - name: rabbitmq-cmk-secret
       mountPath: /etc/credentials/rabbitmq
       readOnly: true
     - name: rabbitmq-ca-secret

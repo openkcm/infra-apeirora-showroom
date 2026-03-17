@@ -28,6 +28,18 @@ spec:
     - name: rabbitmq--pre-release
   values:
     resources:
+      rabbitmq-definitions:
+        apiVersion: v1
+        kind: ConfigMap
+        metadata:
+          name: rabbitmq-definitions
+        data:
+          definitions.json: |
+            {
+              "users": [{"name": "cmk", "password_hash": "", "hashing_algorithm": "rabbit_password_hashing_sha256", "tags": ""}],
+              "vhosts": [{"name": "/"}],
+              "permissions": [{"user": "cmk", "vhost": "/", "configure": ".*", "write": ".*", "read": ".*"}]
+            }
       kms-rabbitmqcluster:
         apiVersion: rabbitmq.com/v1beta1
         kind: RabbitmqCluster
@@ -47,3 +59,19 @@ spec:
               ssl_options.fail_if_no_peer_cert = true
               ssl_options.verify = verify_peer
               ssl_cert_login_from = common_name
+              load_definitions = /etc/rabbitmq/definitions.json
+            override:
+              statefulSet:
+                spec:
+                  template:
+                    spec:
+                      volumes:
+                        - name: rabbitmq-definitions
+                          configMap:
+                            name: rabbitmq-definitions
+                      containers:
+                        - name: rabbitmq
+                          volumeMounts:
+                            - name: rabbitmq-definitions
+                              mountPath: /etc/rabbitmq/definitions.json
+                              subPath: definitions.json
