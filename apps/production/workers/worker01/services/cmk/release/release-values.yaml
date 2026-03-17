@@ -332,7 +332,7 @@ spec:
           secretName: rabbitmq-ca-secret
           items:
             - key: tls.crt
-              path: tls.crt
+              path: ca.crt
       # - name: extauthz-signing-keys-secret
       #   secret:
       #     secretName: extauthz-signing-keys-secret
