@@ -40,7 +40,10 @@ spec:
             secretName: rabbitmq-tls-secret
             caSecretName: rabbitmq-ca-secret
           rabbitmq:
+            additionalPlugins:
+              - rabbitmq_auth_mechanism_ssl
             additionalConfig: |
               auth_mechanisms.1 = EXTERNAL
               ssl_options.fail_if_no_peer_cert = true
               ssl_options.verify = verify_peer
+              ssl_cert_login_from = common_name
