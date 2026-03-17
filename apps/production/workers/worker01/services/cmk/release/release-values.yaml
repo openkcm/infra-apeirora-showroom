@@ -131,7 +131,7 @@ spec:
               serverCA:
                 source: file
                 file:
-                  path: /etc/credentials/isr/ca.crt
+                  path: /etc/credentials/cluster-cert/ca_crt
                   format: binary
               cert:
                 source: file
@@ -332,11 +332,13 @@ spec:
     # - name: extauthz-signing-keys-secret
     #   mountPath: /etc/signing-keys
     #   readOnly: true
-    # extraEnvs:
-    #   - name: SIS_PLUGINS_CLD_ENDPOINT
-    #     valueFrom:
-    #       secretKeyRef:
-    #         name: cldis-secret
-    #         key: cldis_endpoint
+    extraEnvs:
+      - name: PGSSLMODE
+        value: require
+    #  - name: SIS_PLUGINS_CLD_ENDPOINT
+    #    valueFrom:
+    #      secretKeyRef:
+    #        name: cldis-secret
+    #        key: cldis_endpoint
     image:
       tag: v0.4.1-1
