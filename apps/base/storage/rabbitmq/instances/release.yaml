@@ -93,14 +93,14 @@ spec:
                 ],
                 "queues": [
                   {
-                    "name": "cmk/test/keys",
+                    "name": "cmk.test.keys",
                     "vhost": "/",
                     "durable": true,
                     "auto_delete": false,
                     "arguments": {}
                   },
                   {
-                    "name": "cmk/test/tenants",
+                    "name": "cmk.test.tenants",
                     "vhost": "/",
                     "durable": true,
                     "auto_delete": false,
@@ -111,7 +111,7 @@ spec:
                   {
                     "source": "ks",
                     "vhost": "/",
-                    "destination": "cmk/test/keys",
+                    "destination": "cmk.test.keys",
                     "destination_type": "queue",
                     "routing_key": "cf-eu10",
                     "arguments": {}
@@ -119,7 +119,7 @@ spec:
                   {
                     "source": "cmk",
                     "vhost": "/",
-                    "destination": "cmk/test/tenants",
+                    "destination": "cmk.test.tenants",
                     "destination_type": "queue",
                     "routing_key": "mesh.tenants",
                     "arguments": {}
