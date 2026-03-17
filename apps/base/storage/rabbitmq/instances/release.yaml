@@ -71,6 +71,58 @@ spec:
                     "auto_delete": false,
                     "internal": false,
                     "arguments": {}
+                  },
+                  {
+                    "name": "topic://ks",
+                    "vhost": "/",
+                    "type": "topic",
+                    "durable": true,
+                    "auto_delete": false,
+                    "internal": false,
+                    "arguments": {}
+                  },
+                  {
+                    "name": "topic://cmk",
+                    "vhost": "/",
+                    "type": "topic",
+                    "durable": true,
+                    "auto_delete": false,
+                    "internal": false,
+                    "arguments": {}
+                  }
+                ],
+                "queues": [
+                  {
+                    "name": "cmk/test/keys",
+                    "vhost": "/",
+                    "durable": true,
+                    "auto_delete": false,
+                    "arguments": {}
+                  },
+                  {
+                    "name": "cmk/test/tenants",
+                    "vhost": "/",
+                    "durable": true,
+                    "auto_delete": false,
+                    "arguments": {}
+                  }
+                ],
+                "bindings": [
+                  {
+                    "source": "ks",
+                    "vhost": "/",
+                    "destination": "cmk/test/keys",
+                    "destination_type": "queue",
+                    "routing_key": "cf-eu10",
+                    "arguments": {}
+                  },
+                  {
+                    "source": "cmk",
+                    "vhost": "/",
+                    "destination": "cmk/test/tenants",
+                    "destination_type": "queue",
+                    "routing_key": "mesh.tenants",
+                    "arguments": {}
                   }
                 ],
                 "permissions": [
