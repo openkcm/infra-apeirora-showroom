@@ -41,6 +41,11 @@ spec:
                     "name": "cmk",
                     "password": "not-used-with-external",
                     "tags": ""
+                  },
+                  {
+                    "name": "kms-rabbitmqcluster.services.svc.cluster.local",
+                    "password": "not-used-with-external",
+                    "tags": ""
                   }
                 ],
                 "vhosts": [
@@ -51,6 +56,13 @@ spec:
                 "permissions": [
                   {
                     "user": "cmk",
+                    "vhost": "/",
+                    "configure": ".*",
+                    "write": ".*",
+                    "read": ".*"
+                  },
+                  {
+                    "user": "kms-rabbitmqcluster.services.svc.cluster.local",
                     "vhost": "/",
                     "configure": ".*",
                     "write": ".*",
