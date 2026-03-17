@@ -53,6 +53,26 @@ spec:
                     "name": "/"
                   }
                 ],
+                "exchanges": [
+                  {
+                    "name": "ks",
+                    "vhost": "/",
+                    "type": "topic",
+                    "durable": true,
+                    "auto_delete": false,
+                    "internal": false,
+                    "arguments": {}
+                  },
+                  {
+                    "name": "cmk",
+                    "vhost": "/",
+                    "type": "topic",
+                    "durable": true,
+                    "auto_delete": false,
+                    "internal": false,
+                    "arguments": {}
+                  }
+                ],
                 "permissions": [
                   {
                     "user": "cmk",
