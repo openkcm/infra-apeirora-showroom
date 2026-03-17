@@ -41,4 +41,6 @@ spec:
             caSecretName: rabbitmq-ca-secret
           rabbitmq:
             additionalConfig: |
+              auth_mechanisms.1 = PLAIN
+              auth_mechanisms.2 = AMQPLAIN
               ssl_options.fail_if_no_peer_cert = true
