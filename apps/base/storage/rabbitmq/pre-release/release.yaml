@@ -77,3 +77,21 @@ spec:
           usages:
             - server auth
             - client auth
+      rabbitmq-cmk-certificate:
+        apiVersion: cert-manager.io/v1
+        kind: Certificate
+        metadata:
+          name: rabbitmq-cmk-certificate
+        spec:
+          secretName: rabbitmq-cmk-secret
+          duration: 2160h
+          renewBefore: 360h
+          issuerRef:
+            name: rabbitmq-ca-issuer
+            kind: Issuer
+          commonName: cmk
+          privateKey:
+            algorithm: RSA
+            size: 2048
+          usages:
+            - client auth
