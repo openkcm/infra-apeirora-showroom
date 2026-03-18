@@ -14,3 +14,4 @@ configMapGenerator:
       - ./resources/ingress-gateway.yaml
       - ./resources/registry-grpc-route.yaml
       - ./resources/keycloak-http-route.yaml
+      - ./resources/cmk-http-route.yaml
