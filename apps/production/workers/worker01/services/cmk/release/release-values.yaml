@@ -201,9 +201,9 @@ spec:
         - name: noop
           type: SystemInformationService
           tags: ["system_information"]
-        - name: noop
-          type: IdentityManagementService
-          tags: ["identity_management"]
+        # - name: noop
+        #   type: IdentityManagementService
+        #   tags: ["identity_management"]
       #     type: KeystoreInstanceKeyOperation
       #     logLevel: debug
       #     tags: ['hyok']
@@ -245,7 +245,7 @@ spec:
               }
             }
       activePlugins:
-        - identity_management
+        #- identity_management
         - system_information
       eventProcessor:
         secretRef:
