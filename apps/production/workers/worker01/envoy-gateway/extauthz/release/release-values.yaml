@@ -9,6 +9,6 @@ spec:
     - name: extauthz--pre-release
   values:
     image:
-      digest: sha256:ca348afcac11b8c06127622534e6c86f7a5b6c0f7d31f6c9cfb732e2de3eb92c
+      digest: sha256:7639d68afe58f0b4270132430f33a574ebdceea36e56ed761e442429ad0fb0f1
     hpa:
       minReplicas: 3

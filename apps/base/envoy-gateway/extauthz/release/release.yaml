@@ -21,7 +21,7 @@ spec:
     fullnameOverride: extauthz
     image:
       registry: ghcr.io/openkcm
-      repository: images/extauthz
+      repository: extauthz/images/extauthz
       digest: sha256:ca348afcac11b8c06127622534e6c86f7a5b6c0f7d31f6c9cfb732e2de3eb92c
     hpa:
       enabled: true
@@ -106,6 +106,9 @@ spec:
           sources:
             - secret:
                 name: extauthz-signing-keys-secret
+      - name: keycloak-volume
+        secret:
+          secretName: oidc-proxy
     extraVolumeMounts:
       - name: extauthz-trusted-subjects-vol
         mountPath: /etc/extauthz-mtls
@@ -115,6 +118,9 @@ spec:
         readOnly: true
       - mountPath: /etc/extauthz-signing
         name: extauthz-signing-keys-volume
+        readOnly: true
+      - mountPath: /etc/credentials/keycloak
+        name: keycloak-volume
         readOnly: true
     livenessProbe:
       httpGet:
@@ -169,17 +175,28 @@ spec:
       # JWT Token handling
       jwt:
         issuerClaimKeys:
-          - ias_iss
           - iss
+        providers:
+          - issuer: https://ing.worker01.kms.shoot.gardener.cc-one.showroom.apeirora.eu/auth/realms/master
+            audiences:
+              - my-client-id
+        httpClient:
+          basicAuth:
+            username:
+              source: file
+              file:
+                path: /etc/credentials/keycloak/client-id
+                format: binary
+            password:
+              source: file
+              file:
+                path: /etc/credentials/keycloak/client-secret
+                format: binary
         k8sProviders:
           enabled: true
           apiGroup: gateway.extensions.envoyproxy.io
           apiVersion: v1alpha1
           name: jwtproviders
           namespace: envoy-gateway-system
-
       clientData:
         signingKeyIDFilePath: /etc/extauthz-signing/keyId
-
-
-

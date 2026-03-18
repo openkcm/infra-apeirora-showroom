@@ -6,4 +6,4 @@ spec:
   interval: 5m0s
   url: oci://ghcr.io/openkcm/charts/extauthz
   ref:
-    tag: 0.7.0
+    tag: 0.13.4

@@ -330,7 +330,7 @@ spec:
               path: ca.crt
       - name: extauthz-signing-keys-secret
         secret:
-          secretName: csrf-secret
+          secretName: extauthz-signing-keys-secret
     extraVolumeMounts:
     - name: db-credentials
       mountPath: /etc/credentials/database
