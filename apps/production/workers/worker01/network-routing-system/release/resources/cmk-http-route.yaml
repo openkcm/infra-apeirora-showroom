@@ -1,0 +1,24 @@
+resources:
+  cmk-http-route:
+    apiVersion: gateway.networking.k8s.io/v1
+    kind: HTTPRoute
+    metadata:
+      name: cmk-http-route
+    spec:
+      parentRefs:
+        - name: ingress-gateway
+          namespace: envoy-gateway-system
+      hostnames:
+        - "ing.worker01.kms.shoot.gardener.cc-one.showroom.apeirora.eu"
+      rules:
+        - backendRefs:
+            - group: ""
+              kind: Service
+              name: cmk
+              namespace: services
+              port: 8081
+              weight: 1
+          matches:
+            - path:
+                type: PathPrefix
+                value: /cmk/v1
