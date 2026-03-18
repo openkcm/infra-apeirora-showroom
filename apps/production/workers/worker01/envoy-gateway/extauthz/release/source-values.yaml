@@ -4,4 +4,4 @@ metadata:
   name: extauthz
 spec:
   ref:
-    tag: 0.7.0
+    tag: 0.13.4
