@@ -356,4 +356,4 @@ spec:
     #        name: cldis-secret
     #        key: cldis_endpoint
     image:
-      tag: v0.6.0
+      tag: v0.4.1-1
