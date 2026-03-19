@@ -11,4 +11,4 @@ spec:
     image:
       digest: sha256:7639d68afe58f0b4270132430f33a574ebdceea36e56ed761e442429ad0fb0f1
     hpa:
-      minReplicas: 3
+      minReplicas: 1
