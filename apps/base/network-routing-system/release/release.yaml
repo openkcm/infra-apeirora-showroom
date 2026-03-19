@@ -46,3 +46,6 @@ spec:
     - kind: ConfigMap
       name: network-routing-system-base-values
       valuesKey: registry-grpc-route.yaml
+    - kind: ConfigMap
+      name: network-routing-system-base-values
+      valuesKey: envoy-proxy-test-jwt-provider.yaml

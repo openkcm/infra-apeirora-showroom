@@ -15,3 +15,4 @@ configMapGenerator:
       - ./resources/registry-grpc-route.yaml
       - ./resources/keycloak-http-route.yaml
       - ./resources/cmk-http-route.yaml
+      - ./resources/cmk-security-policy.yaml
