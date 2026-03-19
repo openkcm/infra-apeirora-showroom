@@ -179,7 +179,8 @@ spec:
         providers:
           - issuer: https://ing.worker01.kms.shoot.gardener.cc-one.showroom.apeirora.eu/auth/realms/master
             audiences:
-              - my-client-id
+              - test
+              - account
         httpClient:
           basicAuth:
             username:
