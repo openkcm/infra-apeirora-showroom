@@ -181,6 +181,7 @@ spec:
             audiences:
               - test
               - account
+            disableTokenIntrospection: true
         httpClient:
           basicAuth:
             username:
