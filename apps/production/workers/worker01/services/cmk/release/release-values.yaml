@@ -77,9 +77,9 @@ spec:
         enabled: false
     namespace: services
     config:
-      logger:
-        level: debug
       database:
+        parameters:
+          sslMode: "require"
         host:
           value: kms-postgresql.services.svc.cluster.local
         port: 5432
