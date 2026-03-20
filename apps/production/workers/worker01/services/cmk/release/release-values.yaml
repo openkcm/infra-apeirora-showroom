@@ -219,29 +219,20 @@ spec:
           secretRef:
             type: insecure
           config: {}
-      #     type: KeystoreInstanceKeyOperation
-      #     logLevel: debug
-      #     tags: ['hyok']
-      #   - name: noop
-      #     path: ""
-      #     type: SystemInformationService
-      #     logLevel: debug
-      #     tags: ["uli"]
-      #   - name: noop
-      #     path: ""
-      #     type: CertificateIssuerService
-      #     logLevel: debug
-      #     tags: [ "cert_issuer" ]
-      #   - name: noop
-      #     path: ""
-      #     type: NotificationService
-      #     logLevel: debug
-      #     tags: [ "notification" ]
-      #   - name: noop
-      #     path: ""
-      #     type: IdentityManagementService
-      #     logLevel: debug
-      #     tags: ["identity_management"]
+        - name: noop
+          type: CertificateIssuerService
+          logLevel: debug
+          secretRef:
+            type: insecure
+          config: {}
+        - name: noop
+          type: KeystoreInstanceKeyOperation
+          logLevel: debug
+          tags: ['hyok']
+        - name: noop
+          type: NotificationService
+          logLevel: debug
+          tags: [ "notification" ]
       provisioning:
         initKeystoreConfig:
           enabled: false
