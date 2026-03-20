@@ -279,8 +279,8 @@ spec:
           - client_id
           - app_tid
       landscape:
-        name: Staging
-        uiBaseUrl: https://ui.aws-eu-01.cmks.kms.cloud.sap/#
+        name: Production
+        uiBaseUrl: https://ui.worker01.kms.shoot.gardener.cc-one.showroom.apeirora.eu/#
     extraVolumes:
       - name: db-credentials
         secret:
