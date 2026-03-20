@@ -9,6 +9,18 @@ spec:
     - name: cmk--pre-release
     - name: openbao-local-secret-sync
     - name: rabbitmq--pre-release
+  postRenderers:
+    - kustomize:
+        patches:
+          - target:
+              kind: Job
+            patch: |
+              - op: add
+                path: /spec/template/metadata/annotations
+                value: {}
+              - op: add
+                path: /spec/template/metadata/annotations/linkerd.io~1inject
+                value: disabled
   values:
     eventReconciler:
       image:
