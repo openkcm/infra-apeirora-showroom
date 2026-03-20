@@ -32,6 +32,21 @@ spec:
     config:
       application:
         environment: development
+      orbital:
+        targets:
+          - region: cf-eu10
+            connection:
+              type: amqp
+              amqp:
+                url: "amqps://kms-rabbitmqcluster.services.svc.cluster.local:5671"
+                target: "/exchanges/cmk/cf-eu10.tenants"
+                source: "/amq/queue/cmk.test.tenants"
+              auth:
+                type: mtls
+                mtls:
+                  certFile: /etc/credentials/rabbitmq/tls.crt
+                  keyFile: /etc/credentials/rabbitmq/tls.key
+                  caFile: /etc/credentials/rabbitmq/ca.crt
       logger:
         level: debug
       database:
@@ -64,7 +79,29 @@ spec:
               path: username
             - key: password
               path: password
+      - name: rabbitmq-cmk-secret
+        secret:
+          secretName: rabbitmq-cmk-secret
+          items:
+            - key: tls.crt
+              path: tls.crt
+            - key: tls.key
+              path: tls.key
+            - key: ca.crt
+              path: ca.crt
+      - name: rabbitmq-ca-secret
+        secret:
+          secretName: rabbitmq-ca-secret
+          items:
+            - key: ca.crt
+              path: ca.crt
     extraVolumeMounts:
     - name: db-credentials
       mountPath: /etc/registry/credentials/database
+      readOnly: true
+    - name: rabbitmq-cmk-secret
+      mountPath: /etc/credentials/rabbitmq
+      readOnly: true
+    - name: rabbitmq-ca-secret
+      mountPath: /etc/credentials/rabbitmq-ca
       readOnly: true
