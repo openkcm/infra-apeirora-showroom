@@ -219,12 +219,14 @@ spec:
           secretRef:
             type: insecure
           config: {}
+          tags: ["identity_management"]
         - name: noop
           type: CertificateIssuerService
           logLevel: debug
           secretRef:
             type: insecure
           config: {}
+          tags: ["cert_issuer"]
         - name: noop
           type: KeystoreInstanceKeyOperation
           logLevel: debug
@@ -253,6 +255,9 @@ spec:
       activePlugins:
         - system_information
         - identity_management
+        - cert_issuer
+        - notification
+        - hyok
       eventProcessor:
         secretRef:
           type: mtls
