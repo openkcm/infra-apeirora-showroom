@@ -216,6 +216,22 @@ spec:
         - name: noop
           type: IdentityManagementService
           tags: ["identity_management"]
+          yamlConfiguration: |
+            host:
+              source: embedded
+              value: ""
+            auth:
+              type: mtls
+              mtls:
+                cert:
+                  source: file
+                  file:
+                    path: /etc/credentials/cluster-cert/tls_crt
+                    format: binary
+                certKey:
+                  source: file
+                  file:
+                    path: /etc/credentials/cluster-cert/tls_key
       #     type: KeystoreInstanceKeyOperation
       #     logLevel: debug
       #     tags: ['hyok']
