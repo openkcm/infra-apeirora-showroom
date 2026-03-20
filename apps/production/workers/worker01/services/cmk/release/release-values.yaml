@@ -215,7 +215,10 @@ spec:
           tags: ["system_information"]
         - name: noop
           type: IdentityManagementService
-          tags: ["identity_management"]
+          logLevel: debug
+          secretRef:
+            type: insecure
+          config: {}
       #     type: KeystoreInstanceKeyOperation
       #     logLevel: debug
       #     tags: ['hyok']
