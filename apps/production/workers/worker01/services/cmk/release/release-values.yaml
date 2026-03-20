@@ -216,17 +216,18 @@ spec:
         - name: noop
           type: IdentityManagementService
           logLevel: debug
-          secretRef:
-            type: insecure
-          config: {}
           tags: ["identity_management"]
+          yamlConfiguration: |
+            staticJsonContent:
+              source: embedded
+              value: |
+                {"groups": []}
         - name: noop
           type: CertificateIssuerService
           logLevel: debug
-          secretRef:
-            type: insecure
-          config: {}
           tags: ["cert_issuer"]
+          yamlConfiguration: |
+            {}
         - name: noop
           type: KeystoreInstanceKeyOperation
           logLevel: debug
