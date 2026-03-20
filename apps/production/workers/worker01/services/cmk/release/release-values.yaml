@@ -197,13 +197,13 @@ spec:
           - cronspec: "0 1 * * *"
             taskType: workflow:expire
             retries: 3
-      # plugins:
-      #   - name: noop
-      #     type: SystemInformationService
-      #     tags: ["system_information"]
-        # - name: noop
-        #   type: IdentityManagementService
-        #   tags: ["identity_management"]
+      plugins:
+        - name: noop
+          type: SystemInformationService
+          tags: ["system_information"]
+        - name: noop
+          type: IdentityManagementService
+          tags: ["identity_management"]
       #     type: KeystoreInstanceKeyOperation
       #     logLevel: debug
       #     tags: ['hyok']
@@ -244,9 +244,9 @@ spec:
                 "RootCA": "https://openbao.openbao.svc.cluster.local:8200/v1/pki/ca/pem"
               }
             }
-      activePlugins: []
-        #- identity_management
-        #- system_information
+      activePlugins:
+        - system_information
+        - identity_management
       eventProcessor:
         secretRef:
           type: mtls
