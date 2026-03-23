@@ -2,7 +2,7 @@
 apiVersion: source.toolkit.fluxcd.io/v1
 kind: OCIRepository
 metadata:
-  name: cmk
+  name: cmk-ui
 spec:
   interval: 5m0s
   url: oci://ghcr.io/openkcm/charts/cmk-ui
