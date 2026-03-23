@@ -7,6 +7,6 @@ resources:
     data:
       config.json: |
         {
-          "apiBaseUrl": "https://worker01.kms.shoot.gardener.cc-one.showroom.apeirora.eu"
+          "apiBaseUrl": "https://ing.worker01.kms.shoot.gardener.cc-one.showroom.apeirora.eu"
         }
 
