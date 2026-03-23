@@ -1,0 +1,28 @@
+resources:
+  config-yaml-ui-backend-config:
+    apiVersion: v1
+    kind: ConfigMap
+    metadata:
+      name: backend-config-yaml
+    data:
+      config.yaml: |
+        system:
+          identifier:
+            displayName: "GTID"
+            internal: true
+          region:
+            displayName: "Region"
+            internal: true
+          type:
+            displayName: "Type"
+            internal: true
+          externalName:
+            displayName: "Name"
+            default: "n/a"
+            optional: true
+          roleName:
+            displayName: "Role"
+            optional: true
+          roleID:
+            displayName: "RoleID"
+            optional: true

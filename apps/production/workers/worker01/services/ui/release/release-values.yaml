@@ -1,0 +1,49 @@
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: ui
+spec:
+  storageNamespace: services
+  targetNamespace: services
+  dependsOn:
+    - name: ui--pre-release
+  values:
+    extraContainers:
+      - name: envoy
+        image: "envoyproxy/envoy:v1.36.4"
+        imagePullPolicy: IfNotPresent
+        lifecycle:
+          preStop:
+            exec:
+              command: [ "sleep", "60" ]
+        volumeMounts:
+          - name: envoy-config
+            mountPath: /envoy/config
+            readOnly: true
+          - name: server-certificates
+            mountPath: "/etc/server/certificates"
+            readOnly: true
+        args:
+          - "envoy"
+          - "--config-path"
+          - "/envoy/config/envoy.yaml"
+          - "--log-level"
+          - "info"
+        env:
+          - name: ENVOY_UID
+            value: "1111"
+        ports:
+          - containerPort: 8443
+        resources:
+          limits:
+            memory: 100Mi
+          requests:
+            cpu: 300m
+            memory: 100Mi
+    namespace: services
+    ui:
+      image:
+        tag: v0.5.0
+        annotations:
+          dns.gardener.cloud/dnsnames: ui.worker01.kms.shoot.gardener.cc-one.showroom.apeirora.eu
+          cert.gardener.cloud/dnsnames: ui.worker01.kms.shoot.gardener.cc-one.showroom.apeirora.eu
