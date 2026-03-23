@@ -82,3 +82,10 @@ age-keygen -o new.age.agekey
 kubectl -n flux-system create secret generic sops-age-new --from-file=age.agekey=new.age.agekey
 # Add new public key to .sops.yaml, re-encrypt, commit, remove old key.
 ```
+
+
+## Code of Conduct
+
+To facilitate a nice environment for all, check out our [Code of Conduct](https://github.com/openkcm/.github/blob/main/CODE_OF_CONDUCT.md).
+
+<p align="center"><img alt="Bundesministerium für Wirtschaft und Energie (BMWE)-EU funding logo" src="https://apeirora.eu/assets/img/BMWK-EU.png" width="400"/></p>
