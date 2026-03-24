@@ -73,11 +73,11 @@ spec:
         callbackURL: https://ing.worker01.kms.shoot.gardener.cc-one.showroom.apeirora.eu/sm/callback
         # TODO: Update to the correct logout URL once a landing page is available
         postLogoutRedirectURL: https://github.com/openkcm
-        additionalQueryParametersAuthorize: ["app_tid"]
-        additionalQueryParametersToken: ["app_tid"]
-        additionalQueryParametersIntrospect: ["app_tid"]
-        additionalQueryParametersLogout: ["app_tid"]
-        additionalAuthContextKeys: ["app_tid"]
+        #additionalQueryParametersAuthorize: ["app_tid"]
+        #additionalQueryParametersToken: ["app_tid"]
+        #additionalQueryParametersIntrospect: ["app_tid"]
+        #additionalQueryParametersLogout: ["app_tid"]
+       # additionalAuthContextKeys: ["app_tid"]
         sessionCookieTemplate:
           name: "__Host-Http-SESSION"
           path: "/"
