@@ -289,7 +289,7 @@ spec:
         authContextFields:
           - issuer
           - client_id
-          - app_tid
+          #- app_tid
       landscape:
         name: Production
         uiBaseUrl: https://ui.worker01.kms.shoot.gardener.cc-one.showroom.apeirora.eu/#
