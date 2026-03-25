@@ -52,6 +52,8 @@ resources:
                   value: "true"
                 - name: KC_HTTP_MANAGEMENT_HEALTH_ENABLED
                   value: "false"
+                - name: KC_LOG_LEVEL
+                  value: "trace"
                 - name: 'KC_CACHE'
                   value: 'ispn'
                 # Passing the Pod's IP primary address to the JGroups clustering as this is required in IPv6 only setups
