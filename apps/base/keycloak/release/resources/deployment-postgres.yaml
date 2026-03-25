@@ -32,11 +32,14 @@ resources:
                   value: "keycloak"
                 - name: POSTGRES_LOG_STATEMENT
                   value: "all"
+                - name: PGDATA
+                  value: "/var/lib/postgresql/data/pgdata"
               ports:
                 - name: postgres
                   containerPort: 5432
               volumeMounts:
                 # Using volume mount for PostgreSQL's data folder as it is otherwise not writable
+                # Mount to parent directory; PGDATA env var points to subdirectory to avoid lost+found conflicts
                 - name: postgres-data
                   mountPath: /var/lib/postgresql/data
           volumes:
