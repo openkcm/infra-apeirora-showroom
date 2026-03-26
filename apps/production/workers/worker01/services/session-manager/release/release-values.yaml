@@ -91,13 +91,9 @@ spec:
           sameSite: Strict
           domain: "worker01.kms.shoot.gardener.cc-one.showroom.apeirora.eu"
         clientAuth:
-          clientID: test
-          type: client_secret
-          clientSecret:
-            source: file
-            file:
-              path: /etc/credentials/client-auth/client-secret
-              format: binary
+          clientAuth:
+            clientID: "tenant2"
+            type: insecure
         csrfSecret:
           file:
             format: binary
