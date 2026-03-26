@@ -182,18 +182,18 @@ spec:
               - tenant2
               - account
             disableTokenIntrospection: true
-        httpClient:
-          basicAuth:
-            username:
-              source: file
-              file:
-                path: /etc/credentials/keycloak/client-id
-                format: binary
-            password:
-              source: file
-              file:
-                path: /etc/credentials/keycloak/client-secret
-                format: binary
+        httpClient: {}
+          # basicAuth:
+          #   username:
+          #     source: file
+          #     file:
+          #       path: /etc/credentials/keycloak/client-id
+          #       format: binary
+          #   password:
+          #     source: file
+          #     file:
+          #       path: /etc/credentials/keycloak/client-secret
+          #       format: binary
 
         k8sProviders:
           enabled: true
