@@ -179,26 +179,33 @@ spec:
         providers:
           - issuer: https://ing.worker01.kms.shoot.gardener.cc-one.showroom.apeirora.eu/auth/realms/master
             audiences:
-              - test
+              - tenant2
               - account
             disableTokenIntrospection: true
-        httpClient:
-          basicAuth:
-            username:
-              source: file
-              file:
-                path: /etc/credentials/keycloak/client-id
-                format: binary
-            password:
-              source: file
-              file:
-                path: /etc/credentials/keycloak/client-secret
-                format: binary
+        httpClient: {}
+          # basicAuth:
+          #   username:
+          #     source: file
+          #     file:
+          #       path: /etc/credentials/keycloak/client-id
+          #       format: binary
+          #   password:
+          #     source: file
+          #     file:
+          #       path: /etc/credentials/keycloak/client-secret
+          #       format: binary
+
         k8sProviders:
           enabled: true
           apiGroup: gateway.extensions.envoyproxy.io
           apiVersion: v1alpha1
           name: jwtproviders
           namespace: envoy-gateway-system
+      sessionPathPrefixes: ["/cmk/v1/"]
+      sessionManager:
+        enabled: true
+        address: session-manager.services.svc.cluster.local:9091
+        secretRef:
+          type: insecure
       clientData:
         signingKeyIDFilePath: /etc/extauthz-signing/keyId
