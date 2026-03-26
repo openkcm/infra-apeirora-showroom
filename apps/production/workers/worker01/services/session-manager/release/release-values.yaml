@@ -91,9 +91,8 @@ spec:
           sameSite: Strict
           domain: "worker01.kms.shoot.gardener.cc-one.showroom.apeirora.eu"
         clientAuth:
-          clientAuth:
-            clientID: "tenant2"
-            type: insecure
+          clientID: "tenant2"
+          type: insecure
         csrfSecret:
           file:
             format: binary
