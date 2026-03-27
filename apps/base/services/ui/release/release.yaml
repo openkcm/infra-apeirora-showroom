@@ -78,6 +78,10 @@ spec:
             matchLabels:
               app.kubernetes.io/name: ui-app
     global:
+      resources:
+        requests:
+          cpu: 300m
+          memory: 512Mi
       volumes:
         - name: envoy-config
           configMap:
