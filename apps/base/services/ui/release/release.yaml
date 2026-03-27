@@ -10,6 +10,7 @@ spec:
   targetNamespace: services
   values:
     fullnameOverride: ui
+    imagePullSecrets: []
     extraContainers:
       - name: envoy
         image: "envoyproxy/envoy:v1.36.4"
