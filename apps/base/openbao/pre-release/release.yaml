@@ -29,7 +29,7 @@ spec:
         metadata:
           name: openbao-postgres-storage
         spec:
-          refreshInterval: 5m
+          refreshInterval: 1440m
           secretStoreRef:
             name: kubernetes-local-all
             kind: ClusterSecretStore
