@@ -12,7 +12,7 @@ spec:
       sourceRef:
         kind: HelmRepository
         name: linkerd
-      version: 2025.4.2
+      version: 26.3.3
   install:
     createNamespace: false
     remediation:
