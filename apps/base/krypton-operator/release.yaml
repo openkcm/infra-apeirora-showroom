@@ -27,3 +27,10 @@ spec:
       registry: ghcr.io/openkcm
       repository: images/krypton-operator
       digest: sha256:a78ef334f477124dae2d5312a0bb3ada53d525cbecbad57d089529a9d94ded33
+    resources:
+      limits:
+        cpu: 500m
+        memory: 1Gi
+      requests:
+        cpu: 1000m
+        memory: 2Gi
