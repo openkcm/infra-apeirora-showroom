@@ -148,5 +148,5 @@ spec:
       readOnly: true
     image:
       registry: ghcr.io/openkcm
-      repository: session-manager/images
+      repository: session-manager/images/session-manager
       digest: sha256:20c879eac5eadc0fabc83e163905e3f9e517e0d4ac0620471bd3ebe5f12c6f4b
