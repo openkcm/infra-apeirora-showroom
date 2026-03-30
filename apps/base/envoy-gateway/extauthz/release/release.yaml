@@ -29,6 +29,10 @@ spec:
       maxReplicas: 6
       targetCPUUtilizationPercentage: 85
       targetMemoryUtilizationPercentage: 90
+    resources:
+      requests:
+        cpu: 300m
+        memory: 512Mi
     pod:
       annotations:
         linkerd.io/inject: enabled

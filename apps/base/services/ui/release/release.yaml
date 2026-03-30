@@ -10,6 +10,7 @@ spec:
   targetNamespace: services
   values:
     fullnameOverride: ui
+    imagePullSecrets: []
     extraContainers:
       - name: envoy
         image: "envoyproxy/envoy:v1.36.4"
@@ -77,6 +78,10 @@ spec:
             matchLabels:
               app.kubernetes.io/name: ui-app
     global:
+      resources:
+        requests:
+          cpu: 300m
+          memory: 512Mi
       volumes:
         - name: envoy-config
           configMap:
