@@ -138,25 +138,28 @@ spec:
             type: insecure # Let linkerd take care of mtls
         registry:
           enabled: true
-          address: ing.cert.worker01.kms.shoot.gardener.cc-one.showroom.apeirora.eu
+          address: registry.services.svc.cluster.local:9092
           secretRef:
-            type: mtls
-            mTLS:
-              serverCA:
-                source: file
-                file:
-                  path: /etc/credentials/cluster-cert/ca_crt
-                  format: binary
-              cert:
-                source: file
-                file:
-                  path: /etc/credentials/cluster-cert/tls_crt
-                  format: binary
-              certKey:
-                source: file
-                file:
-                  path: /etc/credentials/cluster-cert/tls_key
-                  format: binary
+            type: insecure # Let linkerd take care of mtls
+          # address: ing.cert.worker01.kms.shoot.gardener.cc-one.showroom.apeirora.eu
+          # secretRef:
+          #   type: mtls
+          #   mTLS:
+          #     serverCA:
+          #       source: file
+          #       file:
+          #         path: /etc/credentials/cluster-cert/ca_crt
+          #         format: binary
+          #     cert:
+          #       source: file
+          #       file:
+          #         path: /etc/credentials/cluster-cert/tls_crt
+          #         format: binary
+          #     certKey:
+          #       source: file
+          #       file:
+          #         path: /etc/credentials/cluster-cert/tls_key
+          #         format: binary
       scheduler:
         taskQueue:
           host:
