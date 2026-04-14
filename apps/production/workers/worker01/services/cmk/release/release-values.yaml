@@ -90,8 +90,9 @@ spec:
     namespace: services
     config:
       database:
-        # parameters:
-        #   sslMode: "require"
+        parameters:
+          ssl:
+            mode: "require"
         host:
           value: kms-postgresql.services.svc.cluster.local
         port: 5432
