@@ -248,12 +248,19 @@ spec:
         certX509Trusts:
           source: embedded
           value: |
-            {
-              "cf-eu10": {
-                "Subject": "CN=appclient1",
-                "RootCA": "https://openbao.openbao.svc.cluster.local:8200/v1/pki/ca/pem"
-              }
-            }
+            - name: cf-eu10
+              rootCA: "https://openbao.openbao.svc.cluster.local:8200/v1/pki/ca/pem"
+              subject:
+                locality:
+                  - eu10
+                country:
+                  - DE
+                organization:
+                  - Organization
+                organizationUnit:
+                  - Organization Unit 1
+                  - Organization Unit 2
+                commonNamePrefix: kms-crypto_
       activePlugins:
         - system_information
         - identity_management
