@@ -138,7 +138,7 @@ spec:
             type: insecure # Let linkerd take care of mtls
         registry:
           enabled: true
-          address: ing.cert.worker01.kms.shoot.gardener.cc-one.showroom.apeirora.eu"
+          address: ing.cert.worker01.kms.shoot.gardener.cc-one.showroom.apeirora.eu
           secretRef:
             type: mtls
             mTLS:
