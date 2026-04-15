@@ -861,14 +861,22 @@ spec:
                               fi
                             fi
                           fi
-                            echo "[sync] Dynamic caBundle sync (openbao-tls secret tls.crt -> base64)"
-                            # Field spec.vault.caBundle expects bytes; we must patch with base64 (raw JSON string containing base64 data)
-                            CERT_PEM=$(kubectl -n openbao get secret openbao-tls -o jsonpath='{.data.tls\.crt}' 2>/dev/null | base64 -d || true)
+                            echo "[sync] Dynamic caBundle sync (prefer openbao-tls ca.crt, then server CA, then tls.crt fallback)"
+                            # Field spec.vault.caBundle expects bytes; patch it with the issuing CA, not the serving leaf cert.
+                            CA_RAW=$(kubectl -n openbao get secret openbao-tls -o jsonpath='{.data.ca\.crt}' 2>/dev/null || true)
+                            if [ -z "$CA_RAW" ]; then
+                              CA_RAW=$(kubectl -n openbao get secret openbao-server-ca-secret -o jsonpath='{.data.tls\.crt}' 2>/dev/null || true)
+                            fi
+                            if [ -z "$CA_RAW" ]; then
+                              echo "[sync] WARNING: No CA material found in openbao-tls.data.ca.crt or openbao-server-ca-secret.data.tls.crt; falling back to openbao-tls.data.tls.crt"
+                              CA_RAW=$(kubectl -n openbao get secret openbao-tls -o jsonpath='{.data.tls\.crt}' 2>/dev/null || true)
+                            fi
+                            CERT_PEM=$(printf '%s' "$CA_RAW" | base64 -d 2>/dev/null || true)
                             if echo "$CERT_PEM" | grep -q "BEGIN CERTIFICATE"; then
                               CA_B64=$(printf '%s' "$CERT_PEM" | base64 -w0)
                             else
-                              # Secret may already store base64 of DER; use raw if no PEM markers
-                              CA_B64=$(kubectl -n openbao get secret openbao-tls -o jsonpath='{.data.tls\.crt}' 2>/dev/null || true)
+                              # If decoding fails, assume the source already returned byte content encoded for the Secret field.
+                              CA_B64="$CA_RAW"
                             fi
                             if [ -n "$CA_B64" ]; then
                               PATCH=$(jq -n --arg cb "$CA_B64" '{spec:{vault:{caBundle:$cb}}}')
@@ -914,7 +922,7 @@ spec:
                 role: cert-manager-pki
                 serviceAccountRef:
                   name: cert-manager
-            # caBundle omitted here; CronJob dynamically patches spec.vault.caBundle using base64 of tls.crt from secret openbao-tls.
+            # caBundle omitted here; CronJob dynamically patches spec.vault.caBundle using the issuing CA from openbao-tls/openbao-server-ca-secret.
       openbao-cluster-issuer-tenant1:
         apiVersion: cert-manager.io/v1
         kind: ClusterIssuer
@@ -933,7 +941,7 @@ spec:
                 role: cert-manager-pki
                 serviceAccountRef:
                   name: cert-manager
-            # caBundle omitted here; CronJob dynamically patches spec.vault.caBundle using base64 of tls.crt from secret openbao-tls.
+            # caBundle omitted here; CronJob dynamically patches spec.vault.caBundle using the issuing CA from openbao-tls/openbao-server-ca-secret.
       openbao-cluster-issuer-tenant2:
         apiVersion: cert-manager.io/v1
         kind: ClusterIssuer
@@ -952,4 +960,4 @@ spec:
                 role: cert-manager-pki
                 serviceAccountRef:
                   name: cert-manager
-            # caBundle omitted here; CronJob dynamically patches spec.vault.caBundle using base64 of tls.crt from secret openbao-tls.
+            # caBundle omitted here; CronJob dynamically patches spec.vault.caBundle using the issuing CA from openbao-tls/openbao-server-ca-secret.
