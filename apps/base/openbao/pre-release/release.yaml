@@ -1006,6 +1006,7 @@ spec:
                   name: cert-manager
             # caBundle omitted here; CronJob dynamically patches spec.vault.caBundle using the issuing CA from openbao-tls/openbao-server-ca-secret.
       tenant1-client-certificate:
+        apiVersion: cert-manager.io/v1
         kind: Certificate
         metadata:
           name: tenant1-client
@@ -1028,6 +1029,7 @@ spec:
           - key encipherment
           - client auth
       tenant2-client-certificate:
+        apiVersion: cert-manager.io/v1
         kind: Certificate
         metadata:
           name: tenant2-client
