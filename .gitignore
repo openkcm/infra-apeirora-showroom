@@ -5,3 +5,5 @@
 # AGE private key (do not commit)
 age.agekey
 *.agekey
+hack/openbaotestauth/*.crt
+hack/openbaotestauth/*.key
