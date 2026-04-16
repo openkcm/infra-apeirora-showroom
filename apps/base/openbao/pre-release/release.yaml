@@ -284,7 +284,13 @@ spec:
         stringData:
           app1-policy.hcl: |
             path "kv/data/app1/*" {
-              capabilities = ["read", "list"]
+              capabilities = ["read"]
+            }
+            path "kv/data/app1/" {
+              capabilities = ["read"]
+            }
+            path "kv/metadata/app1" {
+              capabilities = ["list"]
             }
       openbao-policy-admin:
         apiVersion: v1
