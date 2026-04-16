@@ -842,14 +842,21 @@ spec:
                               curl --cacert $CA_CERT --cert $CLIENT_CERT --key $CLIENT_KEY -s -H "X-Vault-Token: $TOKEN" -X POST $HOST/v1/pki_int/roles/$PKI_ROLE -d "$ROLE_PAYLOAD_CURRENT" >/dev/null && echo "[sync] Ensured PKI role $PKI_ROLE updated with CSR + subject constraints" || echo "[sync] Failed to update PKI role $PKI_ROLE"
                             fi
                             ROLE_JSON=$(curl --cacert $CA_CERT --cert $CLIENT_CERT --key $CLIENT_KEY -s -H "X-Vault-Token: $TOKEN" $HOST/v1/pki_int/roles/$PKI_ROLE || true)
-                            if ! echo "$ROLE_JSON" | jq -e '.data.allowed_organizational_units | index("PlatformMesh")' >/dev/null 2>&1; then
-                              echo "[sync] allowed_organizational_units not present for $PKI_ROLE after update; retrying with simplified role definition"
-                              curl --cacert $CA_CERT --cert $CLIENT_CERT --key $CLIENT_KEY -s -H "X-Vault-Token: $TOKEN" -X POST $HOST/v1/pki_int/roles/$PKI_ROLE -d "$ROLE_PAYLOAD_SIMPLIFIED" >/dev/null && echo "[sync] Retried PKI role $PKI_ROLE with simplified payload" || echo "[sync] Retry failed for PKI role $PKI_ROLE"
-                              ROLE_JSON=$(curl --cacert $CA_CERT --cert $CLIENT_CERT --key $CLIENT_KEY -s -H "X-Vault-Token: $TOKEN" $HOST/v1/pki_int/roles/$PKI_ROLE || true)
-                              if echo "$ROLE_JSON" | jq -e '.data.allowed_organizational_units | index("PlatformMesh")' >/dev/null 2>&1; then
-                                echo "[sync] allowed_organizational_units now present for $PKI_ROLE"
-                              else
-                                echo "[sync] WARNING: allowed_organizational_units still missing for $PKI_ROLE; OpenBao/Vault build may not support this field"
+                            if [ "$PKI_ROLE" = "client-cert" ]; then
+                              if ! echo "$ROLE_JSON" | jq -e '.data.allowed_organizational_units | index("PlatformMesh")' >/dev/null 2>&1; then
+                                echo "[sync] allowed_organizational_units not present for $PKI_ROLE after update; retrying with simplified role definition"
+                                curl --cacert $CA_CERT --cert $CLIENT_CERT --key $CLIENT_KEY -s -H "X-Vault-Token: $TOKEN" -X POST $HOST/v1/pki_int/roles/$PKI_ROLE -d "$ROLE_PAYLOAD_SIMPLIFIED" >/dev/null && echo "[sync] Retried PKI role $PKI_ROLE with simplified payload" || echo "[sync] Retry failed for PKI role $PKI_ROLE"
+                                ROLE_JSON=$(curl --cacert $CA_CERT --cert $CLIENT_CERT --key $CLIENT_KEY -s -H "X-Vault-Token: $TOKEN" $HOST/v1/pki_int/roles/$PKI_ROLE || true)
+                                if echo "$ROLE_JSON" | jq -e '.data.allowed_organizational_units | index("PlatformMesh")' >/dev/null 2>&1; then
+                                  echo "[sync] allowed_organizational_units now present for $PKI_ROLE"
+                                else
+                                  echo "[sync] WARNING: allowed_organizational_units still missing for $PKI_ROLE; OpenBao/Vault build may not support this field"
+                                fi
+                              fi
+                            else
+                              if ! echo "$ROLE_JSON" | jq -e '.data.locality != null and .data.province != null and .data.street_address != null and .data.postal_code != null' >/dev/null 2>&1; then
+                                echo "[sync] Subject fields missing for $PKI_ROLE; retrying full tenant payload"
+                                curl --cacert $CA_CERT --cert $CLIENT_CERT --key $CLIENT_KEY -s -H "X-Vault-Token: $TOKEN" -X POST $HOST/v1/pki_int/roles/$PKI_ROLE -d "$ROLE_PAYLOAD_CURRENT" >/dev/null && echo "[sync] Retried PKI role $PKI_ROLE with full tenant payload" || echo "[sync] Retry failed for PKI role $PKI_ROLE"
                               fi
                             fi
                           done
