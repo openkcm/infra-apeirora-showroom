@@ -292,6 +292,23 @@ spec:
             path "kv/metadata/app1" {
               capabilities = ["list"]
             }
+      openbao-policy-app2:
+        apiVersion: v1
+        kind: Secret
+        metadata:
+          name: openbao-policy-app2
+        type: Opaque
+        stringData:
+          app2-policy.hcl: |
+            path "kv/data/app2/*" {
+              capabilities = ["read"]
+            }
+            path "kv/data/app2/" {
+              capabilities = ["read"]
+            }
+            path "kv/metadata/app2" {
+              capabilities = ["list"]
+            }
       openbao-policy-admin:
         apiVersion: v1
         kind: Secret
@@ -988,3 +1005,47 @@ spec:
                 serviceAccountRef:
                   name: cert-manager
             # caBundle omitted here; CronJob dynamically patches spec.vault.caBundle using the issuing CA from openbao-tls/openbao-server-ca-secret.
+      tenant1-client-certificate:
+        kind: Certificate
+        metadata:
+          name: tenant1-client
+          namespace: openbao
+        spec:
+          commonName: tenant1-client
+          issuerRef:
+            kind: ClusterIssuer
+            name: openbao-pki-tenant1
+          privateKey:
+            algorithm: RSA
+            rotationPolicy: Always
+            size: 2048
+          secretName: tenant1-client-cert
+          secretTemplate:
+            annotations:
+              openbao.cert.auth/policy: app1-policy
+          usages:
+          - digital signature
+          - key encipherment
+          - client auth
+      tenant2-client-certificate:
+        kind: Certificate
+        metadata:
+          name: tenant2-client
+          namespace: openbao
+        spec:
+          commonName: tenant2-client
+          issuerRef:
+            kind: ClusterIssuer
+            name: openbao-pki-tenant2
+          privateKey:
+            algorithm: RSA
+            rotationPolicy: Always
+            size: 2048
+          secretName: tenant2-client-cert
+          secretTemplate:
+            annotations:
+              openbao.cert.auth/policy: app2-policy
+          usages:
+          - digital signature
+          - key encipherment
+          - client auth
