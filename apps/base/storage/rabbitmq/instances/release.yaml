@@ -128,6 +128,14 @@ spec:
                     "destination_type": "queue",
                     "routing_key": "mesh.tenants",
                     "arguments": {}
+                  },
+                  {
+                    "source": "cmk",
+                    "vhost": "/",
+                    "destination": "cmk.test.tenants",
+                    "destination_type": "queue",
+                    "routing_key": "cf-eu10.tenants",
+                    "arguments": {}
                   }
                 ],
                 "permissions": [
