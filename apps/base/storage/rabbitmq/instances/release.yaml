@@ -43,6 +43,11 @@ spec:
                     "tags": ""
                   },
                   {
+                    "name": "manager",
+                    "password": "change-me-now",
+                    "tags": "administrator"
+                  },
+                  {
                     "name": "kms-rabbitmqcluster.services.svc.cluster.local",
                     "password": "not-used-with-external",
                     "tags": ""
@@ -128,6 +133,13 @@ spec:
                 "permissions": [
                   {
                     "user": "cmk",
+                    "vhost": "/",
+                    "configure": ".*",
+                    "write": ".*",
+                    "read": ".*"
+                  },
+                  {
+                    "user": "manager",
                     "vhost": "/",
                     "configure": ".*",
                     "write": ".*",
