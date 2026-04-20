@@ -168,6 +168,7 @@ spec:
           rabbitmq:
             additionalPlugins:
               - rabbitmq_auth_mechanism_ssl
+              - rabbitmq_amqp1_0
             additionalConfig: |
               auth_mechanisms.1 = EXTERNAL
               ssl_options.fail_if_no_peer_cert = true
