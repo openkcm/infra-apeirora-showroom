@@ -40,7 +40,7 @@ spec:
               amqp:
                 url: "amqps://kms-rabbitmqcluster.services.svc.cluster.local:5671"
                 target: "/exchanges/cmk/cf-eu10.tenants"
-                source: "/amq/queue/cmk.test.tenants"
+                source: "/queues/cmk.test.tenants"
               auth:
                 type: mtls
                 mtls:
