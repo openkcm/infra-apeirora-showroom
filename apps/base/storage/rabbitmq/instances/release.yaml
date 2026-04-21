@@ -105,7 +105,14 @@ spec:
                     "arguments": {}
                   },
                   {
-                    "name": "cmk.test.tenants",
+                      "name": "cmk.test.tenants.requests",
+                      "vhost": "/",
+                      "durable": true,
+                      "auto_delete": false,
+                      "arguments": {}
+                    },
+                    {
+                      "name": "cmk.test.tenants.replies",
                     "vhost": "/",
                     "durable": true,
                     "auto_delete": false,
@@ -124,7 +131,7 @@ spec:
                   {
                     "source": "cmk",
                     "vhost": "/",
-                    "destination": "cmk.test.tenants",
+                    "destination": "cmk.test.tenants.replies",
                     "destination_type": "queue",
                     "routing_key": "mesh.tenants",
                     "arguments": {}
@@ -132,7 +139,7 @@ spec:
                   {
                     "source": "cmk",
                     "vhost": "/",
-                    "destination": "cmk.test.tenants",
+                    "destination": "cmk.test.tenants.requests",
                     "destination_type": "queue",
                     "routing_key": "cf-eu10.tenants",
                     "arguments": {}
