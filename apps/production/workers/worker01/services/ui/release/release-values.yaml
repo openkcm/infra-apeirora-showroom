@@ -10,7 +10,7 @@ spec:
   values:
     extraContainers:
       - name: envoy
-        image: "envoyproxy/envoy:v1.36.4"
+        image: "envoyproxy/envoy:v1.37.2"
         imagePullPolicy: IfNotPresent
         lifecycle:
           preStop:
