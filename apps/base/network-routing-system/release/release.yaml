@@ -48,6 +48,9 @@ spec:
       valuesKey: registry-grpc-route.yaml
     - kind: ConfigMap
       name: network-routing-system-base-values
+      valuesKey: registry-security-policy.yaml
+    - kind: ConfigMap
+      name: network-routing-system-base-values
       valuesKey: registry-reference-grant.yaml
     - kind: ConfigMap
       name: network-routing-system-base-values
