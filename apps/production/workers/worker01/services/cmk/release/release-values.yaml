@@ -17,10 +17,8 @@ spec:
             patch: |
               - op: add
                 path: /spec/template/metadata/annotations
-                value: {}
-              - op: add
-                path: /spec/template/metadata/annotations/linkerd.io~1inject
-                value: disabled
+                value:
+                  linkerd.io/inject: disabled
   values:
     eventReconciler:
       image:
