@@ -89,13 +89,6 @@ spec:
         #         - HTTPListener
         #         - Translation
         #         - VirtualHost
-        #   service:
-        #     #            unix:
-        #     #              path: /run/envoy/gateway/sockets/extension.sock
-        #     fqdn:
-        #       hostname: gateway-extension.envoy-gateway-system.svc.cluster.local
-        #       port: 9092
-
         provider:
           type: Kubernetes
           kubernetes:
