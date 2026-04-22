@@ -9,16 +9,17 @@ spec:
     - name: cmk--pre-release
     - name: openbao-local-secret-sync
     - name: rabbitmq--pre-release
+  timeout: 15m
   postRenderers:
     - kustomize:
         patches:
           - target:
-              kind: Job
+              kind: Deployment
             patch: |
               - op: add
                 path: /spec/template/metadata/annotations
                 value:
-                  linkerd.io/inject: disabled
+                  linkerd.io/inject: enabled
   values:
     eventReconciler:
       image:
@@ -376,5 +377,7 @@ spec:
     #      secretKeyRef:
     #        name: cldis-secret
     #        key: cldis_endpoint
+    podAnnotations:
+      linkerd.io/inject: disabled
     image:
       tag: v0.7.0
