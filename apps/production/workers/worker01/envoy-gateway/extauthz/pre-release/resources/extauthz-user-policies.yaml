@@ -17,3 +17,13 @@ resources:
           context.path like "/cmk/*" &&
           context.issuer like "*"
         };
+        // Users based on JWT accessing the registry Backend
+        permit (
+          principal is Subject,
+          action in [Action::"GET", Action::"POST", Action::"PUT", Action::"PATCH", Action::"DELETE"],
+          resource
+        ) when {
+          context.type == "jwt" &&
+          context.path like "/kms.api.cmk.registry.*.v1.Service/*" &&
+          context.issuer like "*"
+        };
