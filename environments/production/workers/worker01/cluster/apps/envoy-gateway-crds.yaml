@@ -10,5 +10,5 @@ spec:
     kind: GitRepository
     name: flux-system
     namespace: flux-system
-  path: ./crds/envoy-gateway/v1_5_0
+  path: ./crds/envoy-gateway/v1_7_2
   prune: true
