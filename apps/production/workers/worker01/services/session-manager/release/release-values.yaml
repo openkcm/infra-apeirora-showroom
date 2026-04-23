@@ -14,6 +14,13 @@ spec:
                 path: /spec/template/metadata/annotations
                 value:
                   linkerd.io/inject: enabled
+          - target:
+              kind: Job
+            patch: |
+              - op: add
+                path: /spec/template/metadata/annotations
+                value:
+                  linkerd.io/inject: disabled
   chartRef:
     kind: OCIRepository
     name: session-manager
