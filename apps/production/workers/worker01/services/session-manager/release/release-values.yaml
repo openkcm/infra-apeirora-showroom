@@ -4,6 +4,16 @@ kind: HelmRelease
 metadata:
   name: session-manager
 spec:
+  postRenderers:
+    - kustomize:
+        patches:
+          - target:
+              kind: Deployment
+            patch: |
+              - op: add
+                path: /spec/template/metadata/annotations
+                value:
+                  linkerd.io/inject: enabled
   chartRef:
     kind: OCIRepository
     name: session-manager
@@ -151,6 +161,8 @@ spec:
     - name: client-auth-secret
       mountPath: /etc/credentials/client-auth
       readOnly: true
+    podAnnotations:
+      linkerd.io/inject: disabled
     image:
       registry: ghcr.io/openkcm
       repository: session-manager/images/session-manager
