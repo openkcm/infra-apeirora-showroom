@@ -155,7 +155,7 @@ spec:
       featureGates:
         enrich-header-with-client-type: true
         enrich-header-with-client-region: true
-        disable-client-certificate-computation: true
+        disable-client-certificate-computation: false
         disable-jwt-token-computation: false
 
       # Based on github.com/openkcm/extauthz/pkg/config
