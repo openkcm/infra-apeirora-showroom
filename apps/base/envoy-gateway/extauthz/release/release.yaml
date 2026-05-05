@@ -182,6 +182,7 @@ spec:
           - iss
         providers:
           - issuer: https://ing.worker01.kms.shoot.gardener.cc-one.showroom.apeirora.eu/auth/realms/master
+            disableTokenIntrospection: true
             audiences:
               - test
               - account
