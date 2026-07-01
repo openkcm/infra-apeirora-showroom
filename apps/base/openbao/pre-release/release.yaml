@@ -533,6 +533,7 @@ spec:
           schedule: "*/10 * * * *"
           successfulJobsHistoryLimit: 1
           failedJobsHistoryLimit: 3
+          concurrencyPolicy: Forbid
           jobTemplate:
             spec:
               template:
