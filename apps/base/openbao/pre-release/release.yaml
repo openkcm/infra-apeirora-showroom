@@ -65,6 +65,8 @@ spec:
           isCA: true
           secretName: openbao-server-ca-secret
           commonName: openbao-server-ca
+          duration: 26280h  # 3 years
+          renewBefore: 720h  # 30 days
           privateKey:
             algorithm: RSA
             size: 2048
@@ -87,6 +89,8 @@ spec:
         spec:
           secretName: openbao-tls
           commonName: openbao.openbao.svc
+          duration: 2160h  # 90 days
+          renewBefore: 720h  # 30 days
           dnsNames:
             - openbao.openbao.svc
             - openbao.openbao.svc.cluster.local
@@ -937,6 +941,22 @@ spec:
                             else
                               echo "[sync] Could not construct base64 caBundle from secret openbao-tls"
                             fi
+                          echo "[sync] Syncing ca.crt in openbao-tls secret from openbao-server-ca-secret..."
+                          NEW_CA=$(kubectl -n openbao get secret openbao-server-ca-secret -o jsonpath='{.data.tls\.crt}' 2>/dev/null || true)
+                          if [ -n "$NEW_CA" ]; then
+                            CURRENT_CA=$(kubectl -n openbao get secret openbao-tls -o jsonpath='{.data.ca\.crt}' 2>/dev/null || true)
+                            if [ "$CURRENT_CA" != "$NEW_CA" ]; then
+                              echo "[sync] ca.crt outdated — patching openbao-tls"
+                              kubectl -n openbao patch secret openbao-tls --type='json' \
+                                -p="[{\"op\":\"replace\",\"path\":\"/data/ca.crt\",\"value\":\"$NEW_CA\"}]" \
+                                && echo "[sync] openbao-tls ca.crt updated" \
+                                || echo "[sync] Failed to patch openbao-tls ca.crt"
+                            else
+                              echo "[sync] openbao-tls ca.crt already up to date"
+                            fi
+                          else
+                            echo "[sync] WARNING: openbao-server-ca-secret not found; skipping ca.crt sync"
+                          fi
                           echo "[sync] Processing annotated secrets..."
                           for S in $(kubectl -n openbao get secrets -o json | jq -r '.items[] | select(.metadata.annotations["openbao.cert.auth/policy"]) | .metadata.name'); do
                           POLICY=$(kubectl -n openbao get secret "$S" -o jsonpath='{.metadata.annotations.openbao\.cert\.auth/policy}')
