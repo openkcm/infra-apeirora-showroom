@@ -173,4 +173,4 @@ spec:
     image:
       registry: ghcr.io/openkcm
       repository: session-manager/images/session-manager
-      digest: sha256:38f27d7cf7818bc11068c52457491146d8b39ea39d54b73071c542eaeff47e19
+      digest: sha256:ebf9495bac0ebb1ab93edb8e278e56956c370d3472c56ed19ac819aeca19df38
