@@ -87,6 +87,7 @@ spec:
                 format: binary
       sessionManager:
         sessionDuration: 12h
+        idleSessionTimeout: 15m
         callbackURL: https://ing.worker01.kms.shoot.gardener.cc-one.showroom.apeirora.eu/sm/callback
         # TODO: Update to the correct logout URL once a landing page is available
         postLogoutRedirectURL: https://github.com/openkcm
@@ -95,6 +96,26 @@ spec:
         #additionalQueryParametersIntrospect: ["app_tid"]
         #additionalQueryParametersLogout: ["app_tid"]
        # additionalAuthContextKeys: ["app_tid"]
+        trust:
+          module: trust.module.ias
+          dbModule: database.module.pgxpool
+        credentials:
+          module: credentials.module.oauth2
+        migrate:
+          module: trust.migration.module.oidc
+          dbModule: database.module.pgxpool
+        apps:
+          grpc:
+            module: app.module.grpcserver
+            services:
+              - module: service.module.grpc.session
+                trust: trust.module.ias
+                sessionStore: sessionstore.module.valkey
+                credentials: credentials.module.oauth2
+              - module: service.module.grpc.trustmapping
+                trust: trust.module.oidc
+              - module: service.module.grpc.oidcmapping
+                trust: trust.module.oidc
         sessionCookieTemplate:
           name: "__Host-Http-SESSION"
           path: "/"
