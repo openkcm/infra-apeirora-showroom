@@ -26,7 +26,8 @@ spec:
     image:
       registry: ghcr.io/openkcm
       repository: images/registry
-      digest: sha256:f0950e5f45ab48512d2b2bb93c71e4d033bd5eb4c515751d7cf61eaa2589957e
+      tag: v1.8.0
+      digest: sha256:e05c7d528e4875d463584247cae83d493929c6cbf933adad18e525dee25a4480
     service:
       port: 9092
     config:
