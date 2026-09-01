@@ -380,4 +380,5 @@ spec:
     podAnnotations:
       linkerd.io/inject: disabled
     image:
-      tag: v0.7.0
+      tag: v0.9.0
+      digest: sha256:678f88a2fd796aeee52638a2b68ba76fd80629c2baac44a21ca2b6dc806e9c5e
