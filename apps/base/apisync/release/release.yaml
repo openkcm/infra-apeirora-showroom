@@ -10,7 +10,7 @@ spec:
       sourceRef:
         kind: HelmRepository
         name: kcp
-      version: 0.4.2
+      version: 0.6.2
   install:
     createNamespace: false
     remediation:
