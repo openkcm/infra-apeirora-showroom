@@ -42,6 +42,8 @@ spec:
           isCA: true
           commonName: root.linkerd.cluster.local
           secretName: linkerd-identity-trust-roots
+          duration: 8760h
+          renewBefore: 2160h
           privateKey:
             algorithm: ECDSA
             size: 256
