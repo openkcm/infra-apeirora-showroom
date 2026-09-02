@@ -9,7 +9,7 @@ spec:
     global:
       images:
         envoyGateway:
-          image: "envoyproxy/gateway:v1.5.0"
+          image: "envoyproxy/gateway:v1.9.1"
     podDisruptionBudget:
       minAvailable: 1
       # maxUnavailable: 1
