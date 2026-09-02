@@ -6,3 +6,9 @@ metadata:
 spec:
   targetNamespace: services
   storageNamespace: services
+  values:
+    image:
+      registry: ghcr.io/openkcm
+      repository: krypton/images/root
+      tag: "v0.1.0"
+      pullSecrets: []
