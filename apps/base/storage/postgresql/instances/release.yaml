@@ -99,3 +99,27 @@ spec:
             keycloak: keycloak
           postgresql:
             version: "16"
+      krypton-postgresql:
+        apiVersion: "acid.zalan.do/v1"
+        kind: postgresql
+        metadata:
+          name: krypton-postgresql
+          namespace: services
+        spec:
+          teamId: "acid"
+          volume:
+            size: 5Gi
+          numberOfInstances: 1
+          users:
+            krypton: []
+          databases:
+            krypton: krypton
+          patroni:
+            pg_hba:
+              - local   all             all                                     trust
+              - host    all             all             127.0.0.1/32            md5
+              - host    all             all             ::1/128                 md5
+              - host    all             all             0.0.0.0/0               md5
+              - host    all             all             ::0/0                   md5
+          postgresql:
+            version: "16"
