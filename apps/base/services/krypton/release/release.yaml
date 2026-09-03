@@ -22,3 +22,4 @@ spec:
       remediateLastFailure: true
   dependsOn:
     - name: postgresql--post-release
+    - name: krypton-local-secret-sync

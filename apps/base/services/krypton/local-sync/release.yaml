@@ -1,0 +1,107 @@
+---
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: krypton-local-secret-sync
+spec:
+  interval: 10m
+  releaseName: krypton-local-secret-sync
+  chart:
+    spec:
+      chart: ./tools/charts/generic
+      sourceRef:
+        kind: GitRepository
+        name: flux-system
+        namespace: flux-system
+  install:
+    createNamespace: false
+    remediation:
+      retries: -1
+      remediateLastFailure: true
+  upgrade:
+    remediation:
+      retries: -1
+      remediateLastFailure: true
+  targetNamespace: services
+  storageNamespace: services
+  values:
+    resources:
+      serviceAccount:
+        apiVersion: v1
+        kind: ServiceAccount
+        metadata:
+          name: krypton-local-secret-sync
+          namespace: services
+      role:
+        apiVersion: rbac.authorization.k8s.io/v1
+        kind: Role
+        metadata:
+          name: secrets-reader-krypton-sync
+          namespace: services
+        rules:
+          - apiGroups: [""]
+            resources:
+              - secrets
+            verbs:
+              - get
+              - list
+              - watch
+      rolebinding:
+        apiVersion: rbac.authorization.k8s.io/v1
+        kind: RoleBinding
+        metadata:
+          name: secrets-reader-krypton-sync
+          namespace: services
+        subjects:
+          - kind: ServiceAccount
+            name: krypton-local-secret-sync
+            namespace: services
+        roleRef:
+          kind: Role
+          name: secrets-reader-krypton-sync
+          apiGroup: rbac.authorization.k8s.io
+      secretStore:
+        apiVersion: external-secrets.io/v1
+        kind: ClusterSecretStore
+        metadata:
+          name: krypton-local-secret-sync
+        spec:
+          provider:
+            kubernetes:
+              server:
+                url: "https://kubernetes.default"
+                caProvider:
+                  type: "ConfigMap"
+                  name: "kube-root-ca.crt"
+                  key: "ca.crt"
+                  namespace: services
+              remoteNamespace: services
+              auth:
+                serviceAccount:
+                  name: krypton-local-secret-sync
+                  namespace: services
+      externalSecret:
+        apiVersion: external-secrets.io/v1
+        kind: ExternalSecret
+        metadata:
+          name: krypton-db-secret-sync
+          namespace: services
+        spec:
+          secretStoreRef:
+            kind: ClusterSecretStore
+            name: krypton-local-secret-sync
+          target:
+            name: krypton-secret
+            creationPolicy: Merge
+            template:
+              data:
+                database-url: "postgres://{{ .username }}:{{ .password }}@krypton-postgresql.services.svc.cluster.local:5432/krypton?sslmode=disable"
+          data:
+            - secretKey: username
+              remoteRef:
+                key: krypton.krypton-postgresql.credentials.postgresql.acid.zalan.do
+                property: username
+            - secretKey: password
+              remoteRef:
+                key: krypton.krypton-postgresql.credentials.postgresql.acid.zalan.do
+                property: password
