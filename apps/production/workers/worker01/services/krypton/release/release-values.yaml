@@ -11,5 +11,5 @@ spec:
       registry: ghcr.io/openkcm
       repository: krypton/images/root
       tag: "v0.1.0"
-      command: []
+      command: ["/root/root.linux-amd64"]
       pullSecrets: []
