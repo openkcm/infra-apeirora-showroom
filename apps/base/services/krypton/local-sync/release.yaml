@@ -92,7 +92,7 @@ spec:
             name: krypton-local-secret-sync
           target:
             name: krypton-secret
-            creationPolicy: Merge
+            creationPolicy: Owner
             template:
               data:
                 database-url: "postgres://{{ .username }}:{{ .password }}@krypton-postgresql.services.svc.cluster.local:5432/krypton?sslmode=disable"

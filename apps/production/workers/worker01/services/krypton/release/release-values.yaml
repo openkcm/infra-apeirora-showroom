@@ -19,8 +19,3 @@ spec:
           secretKeyRef:
             name: krypton-secret
             key: database-url
-      - name: KRYPTON_ROOT_KEY
-        valueFrom:
-          secretKeyRef:
-            name: krypton-secret
-            key: root-key
