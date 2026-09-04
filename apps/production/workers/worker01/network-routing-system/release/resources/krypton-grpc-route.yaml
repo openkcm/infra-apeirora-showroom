@@ -1,0 +1,20 @@
+resources:
+  krypton-grpc-route:
+    apiVersion: gateway.networking.k8s.io/v1
+    kind: GRPCRoute
+    metadata:
+      name: krypton-grpc-route
+    spec:
+      parentRefs:
+        - name: ingress-gateway
+          namespace: envoy-gateway-system
+      hostnames:
+        - "ing.worker01.kms.shoot.gardener.cc-one.showroom.apeirora.eu"
+      rules:
+        - backendRefs:
+            - group: ""
+              kind: Service
+              name: krypton-root
+              namespace: services
+              port: 8080
+              weight: 1

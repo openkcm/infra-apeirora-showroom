@@ -105,3 +105,18 @@ spec:
               remoteRef:
                 key: krypton.krypton-postgresql.credentials.postgresql.acid.zalan.do
                 property: password
+      referenceGrant:
+        apiVersion: gateway.networking.k8s.io/v1beta1
+        kind: ReferenceGrant
+        metadata:
+          name: krypton-routeref
+          namespace: services
+        spec:
+          from:
+            - group: gateway.networking.k8s.io
+              kind: GRPCRoute
+              namespace: envoy-gateway-system
+          to:
+            - group: ""
+              kind: Service
+              name: krypton-root
