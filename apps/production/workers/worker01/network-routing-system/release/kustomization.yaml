@@ -17,3 +17,5 @@ configMapGenerator:
       - ./resources/cmk-http-route.yaml
       - ./resources/cmk-security-policy.yaml
       - ./resources/session-manager-http-route.yaml
+      - ./resources/krypton-grpc-route.yaml
+      - ./resources/krypton-security-policy.yaml
