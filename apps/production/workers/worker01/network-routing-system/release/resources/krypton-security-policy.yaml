@@ -1,0 +1,36 @@
+resources:
+  krypton-security-policy:
+    apiVersion: gateway.envoyproxy.io/v1alpha1
+    kind: SecurityPolicy
+    metadata:
+      name: krypton-security-policy
+      namespace: envoy-gateway-system
+    spec:
+      targetRefs:
+        - group: gateway.networking.k8s.io
+          kind: GRPCRoute
+          name: krypton-grpc-route
+      extAuth:
+        grpc:
+          backendRefs:
+            - group: ""
+              kind: Service
+              name: extauthz
+              port: 9092
+      cors:
+        allowHeaders:
+        - '*'
+        allowMethods:
+        - '*'
+        allowOrigins:
+        - https://ui.worker01.kms.shoot.gardener.cc-one.showroom.apeirora.eu
+        exposeHeaders:
+        - '*'
+        allowCredentials: true
+      authorization:
+        defaultAction: Deny
+        rules:
+          - action: Allow
+            principal:
+              clientCIDRs:
+                - 0.0.0.0/0
