@@ -124,6 +124,7 @@ spec:
                 openTelemetry:
                   host: otel-collector-dns.monitoring.svc.cluster.local
                   port: 4317
+                  protocol: grpc
                   exportInterval: 15s
                   exportTimeout: 30s
             prometheus:
