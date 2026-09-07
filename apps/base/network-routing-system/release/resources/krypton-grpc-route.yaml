@@ -9,7 +9,7 @@ resources:
         - name: ingress-gateway
           namespace: envoy-gateway-system
       hostnames:
-        - "ing.worker01.kms.shoot.gardener.cc-one.showroom.apeirora.eu"
+        - "ing.<replace>.<replace>.kms.cloud.sap"
       rules:
         - backendRefs:
             - group: ""
