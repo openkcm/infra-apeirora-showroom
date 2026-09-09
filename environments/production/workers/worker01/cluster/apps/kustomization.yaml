@@ -5,6 +5,7 @@ resources:
   - apisync-secrets.yaml
   - apisync.yaml
   - cert-manager.yaml
+  - cert-manager-kmip-pki.yaml
   - envoy-gateway-crds.yaml
   - envoy-gateway-secrets.yaml
   - envoy-gateway.yaml
