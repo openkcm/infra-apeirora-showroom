@@ -33,3 +33,9 @@ resources:
               - kind: Secret
                 group: ""
                 name: ingress-gateway-secret
+        - name: kmip
+          protocol: TCP
+          port: 5697
+          allowedRoutes:
+            namespaces:
+              from: Same

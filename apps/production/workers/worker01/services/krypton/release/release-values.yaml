@@ -24,3 +24,24 @@ spec:
           secretKeyRef:
             name: krypton-secret
             key: root-key
+    extraVolumes:
+      - name: kmip-server-tls
+        secret:
+          secretName: kmip-server-tls
+    extraVolumeMounts:
+      - name: kmip-server-tls
+        mountPath: /etc/kmip/tls
+        readOnly: true
+    extraPorts:
+      - name: kmip
+        containerPort: 5697
+        servicePort: 5697
+        protocol: TCP
+    config:
+      kmip:
+        bind_addr: "0.0.0.0"
+        port: 5697
+        tls:
+          cert_path: /etc/kmip/tls/tls.crt
+          key_path: /etc/kmip/tls/tls.key
+          ca_path: /etc/kmip/tls/ca.crt

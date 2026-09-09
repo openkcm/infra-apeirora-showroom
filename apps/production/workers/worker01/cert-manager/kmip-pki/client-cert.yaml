@@ -1,0 +1,20 @@
+# CN must equal the krypton tenant UUID used by MongoDB.
+# Update commonName to the actual tenant UUID after tenant creation.
+# Current first-tenant: 38365813-5657-48b5-8c0e-a35fd375d8ae
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: kmip-client-cert
+  namespace: services
+spec:
+  secretName: kmip-client-tls
+  commonName: "38365813-5657-48b5-8c0e-a35fd375d8ae"
+  duration: 8760h
+  renewBefore: 720h
+  usages:
+    - client auth
+    - key encipherment
+    - digital signature
+  issuerRef:
+    name: kmip-ca-issuer
+    kind: Issuer
