@@ -1,0 +1,20 @@
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: kmip-server-cert
+  namespace: services
+spec:
+  secretName: kmip-server-tls
+  commonName: krypton-root
+  dnsNames:
+    - krypton-root.services.svc.cluster.local
+    - kmip.worker01.kms.shoot.gardener.cc-one.showroom.apeirora.eu
+  duration: 8760h  # 1 year
+  renewBefore: 720h  # 30 days
+  usages:
+    - server auth
+    - key encipherment
+    - digital signature
+  issuerRef:
+    name: kmip-ca-issuer
+    kind: Issuer

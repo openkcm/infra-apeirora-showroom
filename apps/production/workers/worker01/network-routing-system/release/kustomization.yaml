@@ -19,3 +19,4 @@ configMapGenerator:
       - ./resources/session-manager-http-route.yaml
       - ./resources/krypton-grpc-route.yaml
       - ./resources/krypton-security-policy.yaml
+      - ./resources/krypton-kmip-tcp-route.yaml

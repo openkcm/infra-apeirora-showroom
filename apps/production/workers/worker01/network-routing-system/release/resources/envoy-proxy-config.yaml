@@ -12,6 +12,15 @@ resources:
               dns.gardener.cloud/dnsnames: ing.worker01.kms.shoot.gardener.cc-one.showroom.apeirora.eu
               cert.gardener.cloud/dnsnames: ing.worker01.kms.shoot.gardener.cc-one.showroom.apeirora.eu
               cloud.google.com/load-balancer-type: "External"
+            ports:
+              - name: https
+                port: 443
+                targetPort: 10443
+                protocol: TCP
+              - name: kmip
+                port: 5697
+                targetPort: 5697
+                protocol: TCP
           envoyHpa:
             minReplicas: 3
             maxReplicas: 5
