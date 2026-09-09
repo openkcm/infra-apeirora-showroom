@@ -14,7 +14,6 @@ configMapGenerator:
       - ./resources/service-envoy-proxy-ingress-gateway.yaml
       - ./resources/registry-grpc-route.yaml
       - ./resources/krypton-grpc-route.yaml
-      - ./resources/krypton-kmip-tcp-route.yaml
       - ./resources/registry-security-policy.yaml
       - ./resources/registry-reference-grant.yaml
       - ./resources/keycloak-http-route.yaml
