@@ -42,6 +42,6 @@ spec:
         bind_addr: "0.0.0.0"
         port: 5697
         tls:
-          cert_path: /etc/kmip/tls/tls.crt
-          key_path: /etc/kmip/tls/tls.key
-          ca_path: /etc/kmip/tls/ca.crt
+          server_cert: /etc/kmip/tls/tls.crt
+          server_key: /etc/kmip/tls/tls.key
+          client_ca: /etc/kmip/tls/ca.crt
