@@ -211,3 +211,14 @@ patches:
       - op: add
         path: /metadata/namespace
         value: services
+
+  - target:
+      kind: Kustomization
+      group: kustomize.toolkit.fluxcd.io
+      version: v1
+      name: cert-manager-kmip-pki
+    patch: |
+      - op: remove
+        path: /spec/targetNamespace
+      - op: remove
+        path: /spec/patches
