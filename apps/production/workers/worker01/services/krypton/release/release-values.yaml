@@ -24,6 +24,9 @@ spec:
           secretKeyRef:
             name: krypton-secret
             key: root-key
+    pod:
+      securityContext:
+        fsGroup: 2102
     extraVolumes:
       - name: kmip-server-tls
         secret:
