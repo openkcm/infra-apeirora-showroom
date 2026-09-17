@@ -37,6 +37,16 @@ spec:
         containerPort: 5697
         servicePort: 5697
         protocol: TCP
+    service:
+      ports:
+        - name: grpc
+          protocol: TCP
+          port: 8080
+          targetPort: 8080
+        - name: kmip
+          protocol: TCP
+          port: 5697
+          targetPort: 5697
     config:
       kmip:
         bind_addr: "0.0.0.0"
