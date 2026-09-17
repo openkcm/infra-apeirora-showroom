@@ -1,6 +1,6 @@
 resources:
   krypton-kmip-tcp-route:
-    apiVersion: gateway.networking.k8s.io/v1alpha2
+    apiVersion: gateway.networking.k8s.io/v1
     kind: TCPRoute
     metadata:
       name: krypton-kmip-tcp-route
