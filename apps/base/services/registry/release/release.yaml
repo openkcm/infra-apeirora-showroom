@@ -73,6 +73,23 @@ spec:
           enabled: false
         logs:
           enabled: false
+      validations:
+        - id: Tenant.OwnerType
+          constraints:
+            - type: list
+              spec:
+                allowlist:
+                  - type1
+                  - type2
+                  - ownerType1
+        - id: Tenant.Region
+          constraints:
+            - type: list
+              spec:
+                allowlist:
+                  - region1
+                  - region2
+                  - cf-eu10
     extraVolumes:
       - name: db-credentials
         secret:
