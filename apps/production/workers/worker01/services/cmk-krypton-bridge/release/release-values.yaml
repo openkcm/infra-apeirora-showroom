@@ -1,0 +1,12 @@
+---
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: cmk-krypton-bridge
+spec:
+  targetNamespace: services
+  storageNamespace: services
+  values:
+    image:
+      repository: ghcr.io/openkcm/cmk-krypton-bridge/images/cmk-krypton-bridge
+      tag: "demo-latest"
