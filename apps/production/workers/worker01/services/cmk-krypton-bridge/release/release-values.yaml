@@ -10,3 +10,5 @@ spec:
     image:
       repository: ghcr.io/openkcm/cmk-krypton-bridge/images/cmk-krypton-bridge
       tag: "demo-latest"
+    imagePullSecrets:
+      - name: ghcr-pull-secret
