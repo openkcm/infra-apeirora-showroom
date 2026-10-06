@@ -71,6 +71,7 @@ spec:
             registry: kms_user
             session_manager: kms_user
             cmk: kms_user
+            cmk_krypton_bridge: kms_user
           patroni:
             pg_hba:
               - local   all             all                                     trust
