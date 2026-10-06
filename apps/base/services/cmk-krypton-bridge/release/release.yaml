@@ -23,7 +23,6 @@ spec:
   dependsOn:
     - name: postgresql--post-release
     - name: rabbitmq
-    - name: cmk-krypton-bridge-secrets
   values:
     config:
       kryptonClient:
