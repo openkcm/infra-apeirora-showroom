@@ -29,7 +29,6 @@ resources:
   - keycloak.yaml
   - keycloak-secrets.yaml
   - echoserver-secrets.yaml
-  - cmk-krypton-bridge-secrets.yaml
 
 #patches:
 
