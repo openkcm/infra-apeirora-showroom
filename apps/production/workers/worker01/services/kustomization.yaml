@@ -7,3 +7,4 @@ resources:
   - ./session-manager
   - ./ui
   - ./krypton
+  - ./cmk-krypton-bridge
