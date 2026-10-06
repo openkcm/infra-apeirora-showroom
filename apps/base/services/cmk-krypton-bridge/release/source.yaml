@@ -1,0 +1,10 @@
+---
+apiVersion: source.toolkit.fluxcd.io/v1
+kind: OCIRepository
+metadata:
+  name: cmk-krypton-bridge
+spec:
+  interval: 5m0s
+  url: oci://ghcr.io/openkcm/charts/cmkkryptonbridge
+  ref:
+    tag: 0.1.0-demo.7

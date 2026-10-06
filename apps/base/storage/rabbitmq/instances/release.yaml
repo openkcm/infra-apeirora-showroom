@@ -51,6 +51,11 @@ spec:
                     "name": "kms-rabbitmqcluster.services.svc.cluster.local",
                     "password": "not-used-with-external",
                     "tags": ""
+                  },
+                  {
+                    "name": "krypton-bridge",
+                    "password": "not-used-with-external",
+                    "tags": ""
                   }
                 ],
                 "vhosts": [
@@ -117,6 +122,13 @@ spec:
                     "durable": true,
                     "auto_delete": false,
                     "arguments": {}
+                  },
+                  {
+                    "name": "krypton-bridge.cf-eu10.requests",
+                    "vhost": "/",
+                    "durable": true,
+                    "auto_delete": false,
+                    "arguments": {}
                   }
                 ],
                 "bindings": [
@@ -143,6 +155,14 @@ spec:
                     "destination_type": "queue",
                     "routing_key": "cf-eu10.tenants",
                     "arguments": {}
+                  },
+                  {
+                    "source": "cmk",
+                    "vhost": "/",
+                    "destination": "krypton-bridge.cf-eu10.requests",
+                    "destination_type": "queue",
+                    "routing_key": "cf-eu10.krypton-bridge.requests",
+                    "arguments": {}
                   }
                 ],
                 "permissions": [
@@ -162,6 +182,13 @@ spec:
                   },
                   {
                     "user": "kms-rabbitmqcluster.services.svc.cluster.local",
+                    "vhost": "/",
+                    "configure": ".*",
+                    "write": ".*",
+                    "read": ".*"
+                  },
+                  {
+                    "user": "krypton-bridge",
                     "vhost": "/",
                     "configure": ".*",
                     "write": ".*",
