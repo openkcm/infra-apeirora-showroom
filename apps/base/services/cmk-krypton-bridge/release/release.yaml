@@ -1,0 +1,57 @@
+---
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: cmk-krypton-bridge
+spec:
+  targetNamespace: services
+  storageNamespace: services
+  chartRef:
+    kind: OCIRepository
+    name: cmk-krypton-bridge
+  interval: 10m
+  timeout: 10m
+  install:
+    createNamespace: false
+    remediation:
+      retries: 5
+      remediateLastFailure: true
+  upgrade:
+    remediation:
+      retries: 5
+      remediateLastFailure: true
+  dependsOn:
+    - name: postgresql--post-release
+    - name: rabbitmq
+    - name: cmk-krypton-bridge-secrets
+  values:
+    config:
+      kryptonClient:
+        address: "krypton-root.services.svc.cluster.local:8080"
+        mockMode: false
+        secretRef:
+          type: insecure
+      orbital:
+        enabled: true
+        amqp:
+          url: "amqps://kms-rabbitmqcluster.services.svc.cluster.local:5671"
+          target: "/exchanges/cmk/cf-eu10.krypton-bridge.replies"
+          source: "/queues/krypton-bridge.cf-eu10.requests"
+          auth:
+            type: mtls
+            mtls:
+              certFile: /etc/credentials/rabbitmq/tls.crt
+              keyFile:  /etc/credentials/rabbitmq/tls.key
+              caFile:   /etc/credentials/rabbitmq/ca.crt
+      registry:
+        enabled: true
+        address: "registry.services.svc.cluster.local:9092"
+        insecure: true
+        region: "cf-eu10"
+        ownerType: "ownerType1"
+        role: "ROLE_TRIAL"
+    database:
+      secretName: cmk-krypton-bridge-db
+    orbital:
+      rabbitmq:
+        secretName: cmk-krypton-bridge-rabbitmq-tls
