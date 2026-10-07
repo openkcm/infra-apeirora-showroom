@@ -47,6 +47,7 @@ spec:
         address: "registry.services.svc.cluster.local:9092"
         insecure: true
         region: "cf-eu10"
+        ownerId: "krypton-bridge"
         ownerType: "ownerType1"
         role: "ROLE_TRIAL"
     database:
