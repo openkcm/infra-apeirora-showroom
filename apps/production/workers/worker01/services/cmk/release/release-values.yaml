@@ -292,8 +292,8 @@ spec:
           - region: cf-eu10
             amqp:
               url: "amqps://kms-rabbitmqcluster.services.svc.cluster.local:5671"
-              source: "/queues/cmk.test.keys"
-              target: "/exchanges/ks/cf-eu10"
+              source: "/queues/cmk.krypton-bridge.cf-eu10.replies"
+              target: "/exchanges/cmk/cf-eu10.krypton-bridge.requests"
       clientData:
         signingKeysPath: /etc/signing-keys
         authContextFields:
