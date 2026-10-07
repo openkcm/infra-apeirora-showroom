@@ -49,6 +49,7 @@ spec:
         region: "cf-eu10"
         ownerId: "krypton-bridge"
         ownerType: "ownerType1"
+        systemType: "krypton-bridge"
         role: "ROLE_TRIAL"
     database:
       secretName: cmk-krypton-bridge-db
