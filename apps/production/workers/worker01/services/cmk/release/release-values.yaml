@@ -385,4 +385,4 @@ spec:
     image:
       repository: cmk/images/cmk-full-plugins
       tag: v0.10.0
-      digest: sha256:55a4b6060eadcf220ee57281ca9ef166ae2fc71ada31e77f6799bb5858b61813
+      digest: sha256:497c6c1c1cd576281ea11c0ea2dd9e553315a966f3d774f95307460b2f76cca8
