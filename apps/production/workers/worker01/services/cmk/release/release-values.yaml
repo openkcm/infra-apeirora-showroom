@@ -21,6 +21,8 @@ spec:
                 value:
                   linkerd.io/inject: enabled
   values:
+    logger:
+      level: debug
     eventReconciler:
       image:
         command: "/cmkd"
