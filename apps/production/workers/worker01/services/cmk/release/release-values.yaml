@@ -230,8 +230,6 @@ spec:
           type: CertificateIssuerService
           logLevel: debug
           tags: ["cert_issuer"]
-          yamlConfiguration: |
-            {}
         - name: AWS
           path: /etc/plugins/keystore/keystoreop-aws
           type: KeystoreInstanceKeyOperation
