@@ -23,7 +23,6 @@ spec:
   values:
     logger:
       level: debug
-      format: json
     eventReconciler:
       image:
         command: "/cmkd"
@@ -72,6 +71,17 @@ spec:
       image:
         command: "/cmkd"
         args: ["task-scheduler"]
+      resources:
+        requests:
+          cpu: "150m"
+          memory: "64Mi"
+        limits:
+          cpu: "200m"
+          memory: "378Mi"
+    taskWorker:
+      image:
+        command: "/cmkd"
+        args: ["task-worker"]
       resources:
         requests:
           cpu: "150m"
