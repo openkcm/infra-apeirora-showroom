@@ -23,12 +23,15 @@ spec:
   values:
     eventReconciler:
       image:
-        command: "./event-reconciler"
-        args: []
+        command: "/cmkd"
+        args: ["event-reconciler"]
       deploy: true
       service:
         enabled: true
     apiServer:
+      image:
+        command: "/cmkd"
+        args: ["api-server"]
       resources:
         requests:
           cpu: "200m"
@@ -39,14 +42,14 @@ spec:
     taskCLI:
       deploy: true
       image:
-        command: "/task-cli"
-        args: ["--sleep"]
+        command: "/cmkctl"
+        args: ["task", "--sleep"]
       service:
         enabled: true
     tenantManager:
       image:
-        command: "./tenant-manager"
-        args: []
+        command: "/cmkd"
+        args: ["tenant-manager"]
       deploy: true
       service:
         enabled: true
@@ -63,6 +66,9 @@ spec:
           cpu: "300m"
           memory: "256Mi"
     taskScheduler:
+      image:
+        command: "/cmkd"
+        args: ["task-scheduler"]
       resources:
         requests:
           cpu: "150m"
@@ -72,17 +78,14 @@ spec:
           memory: "378Mi"
     tenantManagerCLI:
       image:
-        command: "./tenant-manager-cli"
-        args: ["--sleep"]
+        command: "/cmkctl"
+        args: ["tenant", "--sleep"]
       deploy: true
       service:
         enabled: true
     dbMigrator:
       image:
-        command: "./db-migrator"
-        args:
-          - --target=all
-          - --type=schema
+        command: "/cmkd"
       deploy: true
       service:
         enabled: false
@@ -216,22 +219,19 @@ spec:
         - name: noop
           type: SystemInformationService
           tags: ["system_information"]
-        - name: noop
+        - name: scim
+          path: /etc/plugins/identity-management/scim
           type: IdentityManagementService
           logLevel: debug
           tags: ["identity_management"]
-          yamlConfiguration: |
-            staticJsonContent:
-              source: embedded
-              value: |
-                {"groups": []}
         - name: noop
           type: CertificateIssuerService
           logLevel: debug
           tags: ["cert_issuer"]
           yamlConfiguration: |
             {}
-        - name: noop
+        - name: keystoreop-aws
+          path: /etc/plugins/keystore/keystoreop-aws
           type: KeystoreInstanceKeyOperation
           logLevel: debug
           tags: ['hyok']
@@ -380,5 +380,6 @@ spec:
     podAnnotations:
       linkerd.io/inject: disabled
     image:
+      repository: ghcr.io/openkcm/cmk/images/cmk-full-plugins
       tag: v0.10.0
-      digest: sha256:497c6c1c1cd576281ea11c0ea2dd9e553315a966f3d774f95307460b2f76cca8
+      digest: sha256:1b90e3667bbf7de14fc812e80ddbc43030f0a0240d26ebcfefb771452d8f127a
