@@ -23,6 +23,7 @@ spec:
   values:
     logger:
       level: debug
+      format: json
     eventReconciler:
       image:
         command: "/cmkd"
