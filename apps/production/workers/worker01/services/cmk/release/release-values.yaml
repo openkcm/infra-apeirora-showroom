@@ -380,6 +380,6 @@ spec:
     podAnnotations:
       linkerd.io/inject: disabled
     image:
-      repository: ghcr.io/openkcm/cmk/images/cmk-full-plugins
+      repository: cmk/images/cmk-full-plugins
       tag: v0.10.0
       digest: sha256:1b90e3667bbf7de14fc812e80ddbc43030f0a0240d26ebcfefb771452d8f127a
