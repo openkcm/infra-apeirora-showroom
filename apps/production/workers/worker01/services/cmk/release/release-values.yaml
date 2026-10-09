@@ -223,7 +223,6 @@ spec:
           type: SystemInformationService
           tags: ["system_information"]
         - name: noop
-#          path: /etc/plugins/identity-management/scim
           type: IdentityManagementService
           logLevel: debug
           tags: ["identity_management"]
@@ -233,7 +232,7 @@ spec:
           tags: ["cert_issuer"]
           yamlConfiguration: |
             {}
-        - name: keystoreop-aws
+        - name: AWS
           path: /etc/plugins/keystore/keystoreop-aws
           type: KeystoreInstanceKeyOperation
           logLevel: debug
