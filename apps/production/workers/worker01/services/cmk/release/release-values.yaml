@@ -21,6 +21,8 @@ spec:
                 value:
                   linkerd.io/inject: enabled
   values:
+    logger:
+      level: debug
     eventReconciler:
       image:
         command: "/cmkd"
@@ -69,6 +71,17 @@ spec:
       image:
         command: "/cmkd"
         args: ["task-scheduler"]
+      resources:
+        requests:
+          cpu: "150m"
+          memory: "64Mi"
+        limits:
+          cpu: "200m"
+          memory: "378Mi"
+    taskWorker:
+      image:
+        command: "/cmkd"
+        args: ["task-worker"]
       resources:
         requests:
           cpu: "150m"
@@ -222,8 +235,7 @@ spec:
         - name: noop
           type: SystemInformationService
           tags: ["system_information"]
-        - name: scim
-          path: /etc/plugins/identity-management/scim
+        - name: noop
           type: IdentityManagementService
           logLevel: debug
           tags: ["identity_management"]
@@ -231,9 +243,7 @@ spec:
           type: CertificateIssuerService
           logLevel: debug
           tags: ["cert_issuer"]
-          yamlConfiguration: |
-            {}
-        - name: keystoreop-aws
+        - name: AWS
           path: /etc/plugins/keystore/keystoreop-aws
           type: KeystoreInstanceKeyOperation
           logLevel: debug
@@ -385,4 +395,4 @@ spec:
     image:
       repository: cmk/images/cmk-full-plugins
       tag: v0.10.0
-      digest: sha256:55a4b6060eadcf220ee57281ca9ef166ae2fc71ada31e77f6799bb5858b61813
+      digest: sha256:497c6c1c1cd576281ea11c0ea2dd9e553315a966f3d774f95307460b2f76cca8
