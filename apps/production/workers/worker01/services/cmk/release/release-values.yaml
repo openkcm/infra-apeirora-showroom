@@ -235,10 +235,21 @@ spec:
         - name: noop
           type: SystemInformationService
           tags: ["system_information"]
-        - name: noop
+        - name: IDENTITY_MANAGEMENT
+          path: /etc/plugins/identity-management/scim-static
           type: IdentityManagementService
           logLevel: debug
           tags: ["identity_management"]
+          yamlConfiguration: |
+            json_data: |
+              {
+                "users":  [
+                  {"id": "u1", "userName": "alice", "emails": [{"value": "alice@example.com", "primary": true}]}
+                ],
+                "groups": [
+                  {"id": "g1", "displayName": "KeyAdmin", "members": [{"value": "u1"}]}
+                ]
+              }
         - name: noop
           type: CertificateIssuerService
           logLevel: debug
@@ -248,6 +259,20 @@ spec:
           type: KeystoreInstanceKeyOperation
           logLevel: debug
           tags: ['hyok']
+          yamlConfiguration: |
+            auth:
+              method: accessKey
+              accessKey:
+                accessKeyId:
+                  source: env
+                  value: AWS_ACCESS_KEY_ID
+                secretAccessKey:
+                  source: file
+                  file:
+                    path: /etc/aws/secret-access-key
+                sessionToken:
+                  source: env
+                  value: AWS_SESSION_TOKEN
         - name: noop
           type: NotificationService
           logLevel: debug
@@ -259,6 +284,7 @@ spec:
         rootCertURL: https://openbao.openbao.svc.cluster.local:8200/v1/pki/ca/pem
         validityDays: 30
         rotationThresholdDays: 7
+        disableHYOKCertAuth: true
       cryptoLayer:
         certX509Trusts:
           source: embedded
@@ -394,5 +420,5 @@ spec:
       linkerd.io/inject: disabled
     image:
       repository: cmk/images/cmk-full-plugins
-      tag: v0.10.0
-      digest: sha256:497c6c1c1cd576281ea11c0ea2dd9e553315a966f3d774f95307460b2f76cca8
+      tag: v0.11.0
+      digest: sha256:df3c5eea2812c6e0690b6d9dd37500a6dc5edb7ea2be2faa266679a6741c48c1
