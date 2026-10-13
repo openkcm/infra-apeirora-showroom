@@ -261,18 +261,7 @@ spec:
           tags: ['hyok']
           yamlConfiguration: |
             auth:
-              method: accessKey
-              accessKey:
-                accessKeyId:
-                  source: env
-                  value: AWS_ACCESS_KEY_ID
-                secretAccessKey:
-                  source: file
-                  file:
-                    path: /etc/aws/secret-access-key
-                sessionToken:
-                  source: env
-                  value: AWS_SESSION_TOKEN
+              method: ambient
         - name: noop
           type: NotificationService
           logLevel: debug
