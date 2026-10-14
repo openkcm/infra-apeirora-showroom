@@ -88,8 +88,10 @@ spec:
       sessionManager:
         sessionDuration: 12h
         idleSessionTimeout: 15m
+        allowedRedirectBaseURLs:
+          # always add the trailing / to avoid open redirect attacks to https://<knownDomain>.<evilDomain>/
+          - https://ui.worker01.kms.shoot.gardener.cc-one.showroom.apeirora.eu/ # post login redirect
 #        callbackURL: https://ing.worker01.kms.shoot.gardener.cc-one.showroom.apeirora.eu/sm/callback
-#        postLogoutRedirectURL: https://github.com/openkcm
 #        additionalQueryParametersAuthorize: ["app_tid"]
 #        additionalQueryParametersToken: ["app_tid"]
 #        additionalQueryParametersIntrospect: ["app_tid"]
