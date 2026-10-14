@@ -21,8 +21,6 @@ spec:
                 value:
                   linkerd.io/inject: enabled
   values:
-    logger:
-      level: debug
     eventReconciler:
       image:
         command: "/cmkd"
@@ -104,6 +102,9 @@ spec:
         enabled: false
     namespace: services
     config:
+      environment: showroom-dev
+      logger:
+        level: debug
       database:
         parameters:
           ssl:
