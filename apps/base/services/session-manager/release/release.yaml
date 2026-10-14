@@ -11,9 +11,6 @@ spec:
   storageNamespace: services
   targetNamespace: services
   values:
-    extraEnvs:
-      - name: DEBUGFEATURES
-        value: smdumptransport=1
     pod:
       disruptionBudget:
         enabled: true
