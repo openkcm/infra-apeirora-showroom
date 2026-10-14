@@ -97,7 +97,7 @@ spec:
         #additionalQueryParametersLogout: ["app_tid"]
        # additionalAuthContextKeys: ["app_tid"]
         trust:
-          module: trust.module.ias
+          module: trust.module.oidc
           dbModule: database.module.pgxpool
         credentials:
           module: credentials.module.oauth2
@@ -109,7 +109,7 @@ spec:
             module: app.module.grpcserver
             services:
               - module: service.module.grpc.session
-                trust: trust.module.ias
+                trust: trust.module.oidc
                 sessionStore: sessionstore.module.valkey
                 credentials: credentials.module.oauth2
               - module: service.module.grpc.trustmapping
@@ -126,7 +126,7 @@ spec:
           name: "CSRF"
           path: "/"
           secure: true
-          sameSite: Strict
+          sameSite: Lax
           domain: "worker01.kms.shoot.gardener.cc-one.showroom.apeirora.eu"
         clientAuth:
           clientID: test
