@@ -199,12 +199,6 @@ spec:
                 path: /etc/credentials/keycloak/client-secret
                 format: binary
 
-        k8sProviders:
-          enabled: true
-          apiGroup: gateway.extensions.envoyproxy.io
-          apiVersion: v1alpha1
-          name: jwtproviders
-          namespace: envoy-gateway-system
       sessionPathPrefixes: ["/cmk/v1/"]
       sessionManager:
         enabled: true
