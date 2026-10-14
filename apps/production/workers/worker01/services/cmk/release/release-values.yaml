@@ -67,12 +67,6 @@ spec:
         limits:
           cpu: "300m"
           memory: "256Mi"
-      extraEnvs:
-        - name: AWS_ACCESS_KEY_ID
-          valueFrom:
-            secretKeyRef:
-              name: awskeystore
-              key: AWS_ACCESS_KEY_ID
     taskScheduler:
       image:
         command: "/cmkd"
@@ -440,3 +434,18 @@ spec:
       repository: cmk/images/cmk-full-plugins
       tag: v0.11.0
       digest: sha256:df3c5eea2812c6e0690b6d9dd37500a6dc5edb7ea2be2faa266679a6741c48c1
+  postRenderers:
+    - kustomize:
+        patches:
+          - target:
+              kind: Deployment
+              name: cmk-tenant-manager
+            patch: |
+              - op: add
+                path: /spec/template/spec/containers/0/env/-
+                value:
+                  name: AWS_ACCESS_KEY_ID
+                  valueFrom:
+                    secretKeyRef:
+                      name: awskeystore
+                      key: AWS_ACCESS_KEY_ID
