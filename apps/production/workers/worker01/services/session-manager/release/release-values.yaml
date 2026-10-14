@@ -86,6 +86,7 @@ spec:
                 path: /etc/credentials/valkey/ca.crt
                 format: binary
       sessionManager:
+        callbackURL: https://ing.worker01.kms.shoot.gardener.cc-one.showroom.apeirora.eu/sm/callback
         sessionDuration: 12h
         idleSessionTimeout: 15m
         allowedRedirectBaseURLs:
