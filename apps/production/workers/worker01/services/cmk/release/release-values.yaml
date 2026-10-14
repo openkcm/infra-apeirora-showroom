@@ -261,7 +261,15 @@ spec:
           tags: ['hyok']
           yamlConfiguration: |
             auth:
-              method: ambient
+              method: accessKey
+              accessKey:
+                accessKeyId:
+                  source: env
+                  value: AWS_ACCESS_KEY_ID
+                secretAccessKey:
+                  source: file
+                  file:
+                    path: /etc/aws/secret-access-key
         - name: noop
           type: NotificationService
           logLevel: debug
@@ -381,6 +389,12 @@ spec:
       - name: extauthz-signing-keys-secret
         secret:
           secretName: extauthz-signing-keys-secret
+      - name: awskeystore
+        secret:
+          secretName: awskeystore
+          items:
+            - key: AWS_SECRET_ACCESS_KEY
+              path: secret-access-key
     extraVolumeMounts:
     - name: db-credentials
       mountPath: /etc/credentials/database
@@ -400,6 +414,15 @@ spec:
     - name: extauthz-signing-keys-secret
       mountPath: /etc/signing-keys
       readOnly: true
+    - name: awskeystore
+      mountPath: /etc/aws
+      readOnly: true
+    extraEnvs:
+      - name: AWS_ACCESS_KEY_ID
+        valueFrom:
+          secretKeyRef:
+            name: awskeystore
+            key: AWS_ACCESS_KEY_ID
     #  - name: SIS_PLUGINS_CLD_ENDPOINT
     #    valueFrom:
     #      secretKeyRef:
