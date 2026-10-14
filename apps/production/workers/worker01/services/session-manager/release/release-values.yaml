@@ -88,14 +88,13 @@ spec:
       sessionManager:
         sessionDuration: 12h
         idleSessionTimeout: 15m
-        callbackURL: https://ing.worker01.kms.shoot.gardener.cc-one.showroom.apeirora.eu/sm/callback
-        # TODO: Update to the correct logout URL once a landing page is available
-        postLogoutRedirectURL: https://github.com/openkcm
-        #additionalQueryParametersAuthorize: ["app_tid"]
-        #additionalQueryParametersToken: ["app_tid"]
-        #additionalQueryParametersIntrospect: ["app_tid"]
-        #additionalQueryParametersLogout: ["app_tid"]
-       # additionalAuthContextKeys: ["app_tid"]
+#        callbackURL: https://ing.worker01.kms.shoot.gardener.cc-one.showroom.apeirora.eu/sm/callback
+#        postLogoutRedirectURL: https://github.com/openkcm
+#        additionalQueryParametersAuthorize: ["app_tid"]
+#        additionalQueryParametersToken: ["app_tid"]
+#        additionalQueryParametersIntrospect: ["app_tid"]
+#        additionalQueryParametersLogout: ["app_tid"]
+#        additionalAuthContextKeys: ["app_tid"]
         trust:
           module: trust.module.oidc
           dbModule: database.module.pgxpool
