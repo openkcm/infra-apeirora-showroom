@@ -90,13 +90,8 @@ spec:
         idleSessionTimeout: 15m
         allowedRedirectBaseURLs:
           # always add the trailing / to avoid open redirect attacks to https://<knownDomain>.<evilDomain>/
-          - https://ui.worker01.kms.shoot.gardener.cc-one.showroom.apeirora.eu/ # post login redirect
-#        callbackURL: https://ing.worker01.kms.shoot.gardener.cc-one.showroom.apeirora.eu/sm/callback
-#        additionalQueryParametersAuthorize: ["app_tid"]
-#        additionalQueryParametersToken: ["app_tid"]
-#        additionalQueryParametersIntrospect: ["app_tid"]
-#        additionalQueryParametersLogout: ["app_tid"]
-#        additionalAuthContextKeys: ["app_tid"]
+          - https://ui.worker01.kms.shoot.gardener.cc-one.showroom.apeirora.eu/
+          - https://ing.worker01.kms.shoot.gardener.cc-one.showroom.apeirora.eu/
         trust:
           module: trust.module.oidc
           dbModule: database.module.pgxpool
