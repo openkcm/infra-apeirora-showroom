@@ -18,6 +18,9 @@ spec:
       remediateLastFailure: true
   releaseName: extauthz
   values:
+    extraEnvs:
+      - name: DEBUGFEATURES
+        value: smdumptransport=1
     fullnameOverride: extauthz
     image:
       registry: ghcr.io/openkcm
