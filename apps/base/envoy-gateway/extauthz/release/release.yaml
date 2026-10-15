@@ -22,7 +22,7 @@ spec:
     image:
       registry: ghcr.io/openkcm
       repository: extauthz/images/extauthz
-      digest: sha256:ca348afcac11b8c06127622534e6c86f7a5b6c0f7d31f6c9cfb732e2de3eb92c
+      digest: sha256:4485ddaff440a25dfbb33e14cb9567973c3522548ee917ac3e1793942852900e
     hpa:
       enabled: true
       minReplicas: 1
