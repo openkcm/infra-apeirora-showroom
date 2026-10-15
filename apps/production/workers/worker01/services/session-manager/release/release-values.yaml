@@ -118,12 +118,12 @@ spec:
           path: "/"
           secure: true
           sameSite: None
-          httpOnly: true
+          httpOnly: false
         csrfCookieTemplate:
           name: "CSRF"
           path: "/"
           secure: true
-          sameSite: Lax
+          sameSite: Strict
           domain: "worker01.kms.shoot.gardener.cc-one.showroom.apeirora.eu"
         clientAuth:
           clientID: test
