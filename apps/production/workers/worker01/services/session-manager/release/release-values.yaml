@@ -119,6 +119,11 @@ spec:
           secure: true
           sameSite: None
           httpOnly: true
+        loginCSRFCookieTemplate:
+          path: "/"
+          secure: true
+          sameSite: Lax
+          httpOnly: false
         csrfCookieTemplate:
           name: "CSRF"
           path: "/"
