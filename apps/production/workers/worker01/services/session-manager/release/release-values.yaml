@@ -118,7 +118,7 @@ spec:
           path: "/"
           secure: true
           sameSite: None
-          httpOnly: false
+          httpOnly: true
         csrfCookieTemplate:
           name: "CSRF"
           path: "/"
