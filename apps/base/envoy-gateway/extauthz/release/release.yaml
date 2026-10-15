@@ -116,6 +116,12 @@ spec:
       - name: keycloak-volume
         secret:
           secretName: oidc-proxy
+      - name: csrf-secret
+        secret:
+          secretName: csrf-secret
+          items:
+            - key: csrf_secret
+              path: csrf_secret
     extraVolumeMounts:
       - name: extauthz-trusted-subjects-vol
         mountPath: /etc/extauthz-mtls
@@ -128,6 +134,9 @@ spec:
         readOnly: true
       - mountPath: /etc/credentials/keycloak
         name: keycloak-volume
+        readOnly: true
+      - name: csrf-secret
+        mountPath: /etc/credentials/csrf-secret
         readOnly: true
     livenessProbe:
       httpGet:
@@ -210,3 +219,8 @@ spec:
           type: insecure
       clientData:
         signingKeyIDFilePath: /etc/extauthz-signing/keyId
+      csrfSecret:
+        source: file
+        file:
+          format: binary
+          path: /etc/credentials/csrf-secret/csrf_secret
