@@ -24,8 +24,8 @@ spec:
     fullnameOverride: extauthz
     image:
       registry: ghcr.io/openkcm
-      repository: extauthz/images/extauthz
-      digest: sha256:4485ddaff440a25dfbb33e14cb9567973c3522548ee917ac3e1793942852900e
+      repository: images/extauthz
+      digest: sha256:5918d421c6e72e3d9d6b16a629a58031505531fe84d222367110f6de5525e9de
     hpa:
       enabled: true
       minReplicas: 1

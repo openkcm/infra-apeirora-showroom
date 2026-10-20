@@ -25,9 +25,9 @@ spec:
     imagePullSecrets: []
     image:
       registry: ghcr.io/openkcm
-      repository: registry/images/registry
-      tag: v1.9.0
-      digest: sha256:9e3b7318079971cec0d5928603388fa780a61ed0e9117e6014f888d93411ed29
+      repository: images/registry
+      tag: v1.10.0
+      digest: sha256:569e68bcd370bf0d3097bbbed0a12296d95986ae0857d6f6c15d45a6e0b93b8d
     service:
       port: 9092
     config:

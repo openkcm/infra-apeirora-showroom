@@ -8,7 +8,7 @@ spec:
   storageNamespace: services
   values:
     image:
-      registry: ghcr.io/openkcm
+
       repository: krypton/images/root
       tag: "v0.1.0"
       command: ["/root/root.linux-amd64"]
