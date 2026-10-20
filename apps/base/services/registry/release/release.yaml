@@ -34,6 +34,7 @@ spec:
       application:
         environment: development
       orbital:
+        maxPendingReconciles: 10
         targets:
           - region: cf-eu10
             connection:
