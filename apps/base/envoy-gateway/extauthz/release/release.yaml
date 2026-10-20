@@ -79,9 +79,6 @@ spec:
       - name: http-status
         protocol: TCP
         containerPort: 8888
-      - name: http-cdks
-        protocol: TCP
-        containerPort: 5555
     service:
       type: ClusterIP
       ports:
@@ -93,10 +90,6 @@ spec:
           protocol: TCP
           port: 8888
           targetPort: 8888
-        - name: http-cdks
-          protocol: TCP
-          port: 5555
-          targetPort: 5555
     extraVolumes:
       - name: extauthz-trusted-subjects-vol
         configMap:
@@ -175,11 +168,6 @@ spec:
         address: :9092
         flags:
           health: true
-
-      # Client Data Key Set handling
-      cdksServer:
-        address: :5555
-        signingKeyRefreshInterval: 6h
 
       cedar:
         policyPath: /etc/extauthz-policies
