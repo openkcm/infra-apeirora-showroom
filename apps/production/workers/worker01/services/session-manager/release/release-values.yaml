@@ -69,7 +69,7 @@ spec:
         prefix: session-manager
         secretRef:
           type: mtls
-          mTLS:
+          mtls:
             cert:
               source: file
               file:
@@ -80,7 +80,7 @@ spec:
               file:
                 path: /etc/credentials/valkey/tls.key
                 format: binary
-            serverCA:
+            serverCa:
               source: file
               file:
                 path: /etc/credentials/valkey/ca.crt
