@@ -25,7 +25,7 @@ spec:
     imagePullSecrets: []
     image:
       registry: ghcr.io/openkcm
-      repository: images/registry
+      repository: registry/images/registry
       tag: v1.9.0
       digest: sha256:9e3b7318079971cec0d5928603388fa780a61ed0e9117e6014f888d93411ed29
     service:
