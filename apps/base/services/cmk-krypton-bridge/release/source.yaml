@@ -7,6 +7,6 @@ spec:
   interval: 5m0s
   url: oci://ghcr.io/openkcm/charts/cmkkryptonbridge
   ref:
-    tag: 0.1.0-demo.8
+    tag: "${CMK_KRYPTON_BRIDGE_CHART_VERSION}"
   secretRef:
     name: ghcr-pull-secret

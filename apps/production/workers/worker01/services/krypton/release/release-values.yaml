@@ -10,7 +10,7 @@ spec:
     image:
 
       repository: krypton/images/root
-      tag: "v0.1.0"
+      tag: "${KRYPTON_IMAGE_TAG}"
       command: ["/root/root.linux-amd64"]
       pullSecrets: []
     extraEnvs:

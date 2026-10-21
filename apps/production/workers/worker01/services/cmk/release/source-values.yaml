@@ -4,4 +4,4 @@ metadata:
   name: cmk
 spec:
   ref:
-    tag: 0.2.0
+    tag: "${CMK_CHART_VERSION}"

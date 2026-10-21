@@ -13,6 +13,7 @@ resources:
   - linkerd.yaml
   - namespaces.yaml
   - network-routing-system.yaml
+  - release-vars.yaml
   - reloader.yaml
   - services.yaml
   - valkey.yaml
