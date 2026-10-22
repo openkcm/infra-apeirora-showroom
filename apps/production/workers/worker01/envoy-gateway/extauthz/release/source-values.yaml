@@ -4,4 +4,4 @@ metadata:
   name: extauthz
 spec:
   ref:
-    tag: 0.15.0
+    tag: "${EXTAUTHZ_CHART_VERSION}"

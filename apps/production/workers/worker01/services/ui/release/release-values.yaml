@@ -43,7 +43,7 @@ spec:
     namespace: services
     ui:
       image:
-        tag: v0.5.0
+        tag: "${UI_IMAGE_TAG}"
       service:
         annotations:
           dns.gardener.cloud/dnsnames: ui.worker01.kms.shoot.gardener.cc-one.showroom.apeirora.eu

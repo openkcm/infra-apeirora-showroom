@@ -433,5 +433,5 @@ spec:
       linkerd.io/inject: disabled
     image:
       repository: images/cmk/cmk-full-plugins
-      tag: v0.12.1
-      digest: sha256:d887f344110926f5575b4eaea2264ee7d654cf9a318f2c032fd74d29ec4ffc6b
+      tag: "${CMK_IMAGE_TAG}"
+      digest: "${CMK_IMAGE_DIGEST}"

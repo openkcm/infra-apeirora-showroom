@@ -9,6 +9,6 @@ spec:
   values:
     image:
       repository: ghcr.io/openkcm/cmk-krypton-bridge/images/cmk-krypton-bridge
-      tag: "demo-e784835"
+      tag: "${CMK_KRYPTON_BRIDGE_IMAGE_TAG}"
     imagePullSecrets:
       - name: ghcr-pull-secret
