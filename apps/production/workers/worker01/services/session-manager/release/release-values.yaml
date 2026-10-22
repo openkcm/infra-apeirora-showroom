@@ -196,5 +196,5 @@ spec:
     image:
       registry: ghcr.io/openkcm
       repository: images/session-manager
-      tag: v0.20.2
-      digest: sha256:5e50373da4d95ca3a8ec1e31c5b491f50dd955ccf258d3405a427852f3e95a12
+      tag: "${SESSION_MANAGER_IMAGE_TAG}"
+      digest: "${SESSION_MANAGER_IMAGE_DIGEST}"
