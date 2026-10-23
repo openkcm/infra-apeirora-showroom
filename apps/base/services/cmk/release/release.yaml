@@ -57,6 +57,20 @@ spec:
     config:
       telemetry:
         metrics:
-          enabled: false
+          enabled: true
+          protocol: http
+          host:
+            source: embedded
+            value: otel-collector-dns.monitoring.svc.cluster.local:4318
+          url: /v1/metrics
+          secretRef:
+            type: insecure
         traces:
-          enabled: false
+          enabled: true
+          protocol: http
+          host:
+            source: embedded
+            value: otel-collector-dns.monitoring.svc.cluster.local:4318
+          url: /v1/traces
+          secretRef:
+            type: insecure

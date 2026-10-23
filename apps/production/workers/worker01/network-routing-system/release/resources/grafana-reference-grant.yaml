@@ -1,0 +1,16 @@
+resources:
+  grafana-reference-grant:
+    apiVersion: gateway.networking.k8s.io/v1beta1
+    kind: ReferenceGrant
+    metadata:
+      name: grafana-routeref
+      namespace: monitoring
+    spec:
+      from:
+        - group: gateway.networking.k8s.io
+          kind: HTTPRoute
+          namespace: envoy-gateway-system
+      to:
+        - group: ""
+          kind: Service
+          name: kube-prometheus-stack-grafana

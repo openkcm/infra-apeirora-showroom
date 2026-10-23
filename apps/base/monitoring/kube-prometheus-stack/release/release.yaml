@@ -1,0 +1,62 @@
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: kube-prometheus-stack
+spec:
+  interval: 10m
+  timeout: 10m
+  chart:
+    spec:
+      chart: kube-prometheus-stack
+      reconcileStrategy: ChartVersion
+      sourceRef:
+        kind: HelmRepository
+        name: prometheus-community
+        namespace: flux-system
+      version: 72.3.0
+  install:
+    createNamespace: false
+    crds: CreateReplace
+    remediation:
+      retries: -1
+      remediateLastFailure: true
+  upgrade:
+    crds: CreateReplace
+    remediation:
+      retries: -1
+      remediateLastFailure: true
+  releaseName: kube-prometheus-stack
+  values:
+    defaultRules:
+      create: true
+    alertmanager:
+      enabled: true
+    grafana:
+      enabled: true
+      adminPassword: admin
+      ingress:
+        enabled: false
+      persistence:
+        enabled: false
+      sidecar:
+        datasources:
+          enabled: true
+        dashboards:
+          enabled: true
+    prometheus:
+      prometheusSpec:
+        serviceMonitorSelectorNilUsesHelmValues: false
+        podMonitorSelectorNilUsesHelmValues: false
+        ruleSelectorNilUsesHelmValues: false
+        retention: 30d
+        storageSpec:
+          volumeClaimTemplate:
+            spec:
+              accessModes:
+                - ReadWriteOnce
+              resources:
+                requests:
+                  storage: 20Gi
+    prometheusOperator:
+      admissionWebhooks:
+        enabled: true

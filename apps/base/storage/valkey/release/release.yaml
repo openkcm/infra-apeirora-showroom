@@ -138,6 +138,6 @@ spec:
       quorum: 2
 
     metrics:
-      enabled: false  # Enable Prometheus metrics
+      enabled: true  # Enable Prometheus metrics
       serviceMonitor:
-        enabled: false
+        enabled: true
