@@ -60,20 +60,20 @@ resources:
                     path: /dev/stdout
                   type: File
       #  Enable once the open-telemetry will be o the cluster
-      #    tracing:
-      #      samplingRate: 100
-      #      provider:
-      #        host: otel-collector-dns.monitoring.svc.cluster.local
-      #        port: 4317
-      #        type: OpenTelemetry
-      #    metrics:
-      #      sinks:
-      #        - type: OpenTelemetry
-      #          openTelemetry:
-      #            host: otel-collector-dns.monitoring.svc.cluster.local
-      #            port: 4317
-      #      prometheus:
-      #        disable: true
+      tracing:
+        samplingRate: 100
+        provider:
+          host: otel-collector-dns.monitoring.svc.cluster.local
+          port: 4317
+          type: OpenTelemetry
+      metrics:
+        sinks:
+          - type: OpenTelemetry
+            openTelemetry:
+              host: otel-collector-dns.monitoring.svc.cluster.local
+              port: 4317
+        prometheus:
+          disable: true
       provider:
         type: Kubernetes
         kubernetes:

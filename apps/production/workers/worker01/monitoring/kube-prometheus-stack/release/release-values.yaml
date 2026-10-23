@@ -1,0 +1,12 @@
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: kube-prometheus-stack
+spec:
+  targetNamespace: monitoring
+  storageNamespace: monitoring
+  values:
+    grafana:
+      persistence:
+        enabled: true
+        size: 5Gi
