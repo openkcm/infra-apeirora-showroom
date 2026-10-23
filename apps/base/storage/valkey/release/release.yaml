@@ -138,6 +138,10 @@ spec:
       quorum: 2
 
     metrics:
-      enabled: true  # Enable Prometheus metrics
+      enabled: true
+      image:
+        registry: docker.io
+        repository: oliver006/redis_exporter
+        tag: v1.62.0
       serviceMonitor:
         enabled: true
