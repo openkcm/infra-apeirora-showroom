@@ -10,6 +10,7 @@ spec:
     namespace: flux-system
   path: ./apps/production/workers/worker01/monitoring
   prune: true
+  wait: true
   timeout: 10m0s
   dependsOn:
     - name: namespaces
