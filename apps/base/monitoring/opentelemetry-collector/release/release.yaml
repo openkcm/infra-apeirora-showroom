@@ -12,7 +12,6 @@ spec:
       sourceRef:
         kind: HelmRepository
         name: opentelemetry
-        namespace: flux-system
       version: 0.140.1
   install:
     createNamespace: false
@@ -25,9 +24,10 @@ spec:
       remediateLastFailure: true
   releaseName: opentelemetry-collector
   values:
-    # fullnameOverride ensures service DNS = otel-collector-dns.monitoring.svc.cluster.local
     fullnameOverride: otel-collector-dns
     mode: deployment
+    image:
+      repository: otel/opentelemetry-collector-contrib
     replicaCount: 1
     service:
       type: ClusterIP
@@ -61,8 +61,8 @@ spec:
           endpoint: http://kube-prometheus-stack-prometheus.monitoring.svc.cluster.local:9090/api/v1/write
           tls:
             insecure: true
-        loki:
-          endpoint: http://loki-gateway.monitoring.svc.cluster.local/loki/api/v1/push
+        otlphttp:
+          endpoint: http://loki-gateway.monitoring.svc.cluster.local/otlp
           tls:
             insecure: true
         debug:
@@ -92,4 +92,4 @@ spec:
               - memory_limiter
               - batch
             exporters:
-              - loki
+              - otlphttp
