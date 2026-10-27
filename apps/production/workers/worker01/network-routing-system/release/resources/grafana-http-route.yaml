@@ -9,7 +9,7 @@ resources:
         - name: ingress-gateway
           namespace: envoy-gateway-system
       hostnames:
-        - "grafana.worker01.kms.shoot.gardener.cc-one.showroom.apeirora.eu"
+        - "ing.worker01.kms.shoot.gardener.cc-one.showroom.apeirora.eu"
       rules:
         - backendRefs:
             - group: ""
@@ -21,4 +21,4 @@ resources:
           matches:
             - path:
                 type: PathPrefix
-                value: /
+                value: /grafana
