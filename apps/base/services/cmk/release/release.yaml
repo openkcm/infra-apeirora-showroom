@@ -55,6 +55,8 @@ spec:
       pullPolicy: IfNotPresent
     imagePullSecrets: []
     config:
+      certificates:
+        disableHYOKCertAuth: true
       telemetry:
         metrics:
           enabled: true
