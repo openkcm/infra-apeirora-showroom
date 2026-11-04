@@ -53,8 +53,8 @@ spec:
       image:
         registry: ghcr.io/openkcm
         repository: images/cmk-ui
-        digest: sha256:dc216a5485b710cb8f54eda7c71c1308f588bae2724ebb5acaa22ab8c3eb6d06
-        tag: v0.1.5
+        digest: sha256:e15e099ddad61f664de3ebd9b3f55ca2b827c64fa1e0068bb2ec8ed5ff311133
+        tag: v0.1.6
       service:
         type: LoadBalancer
         port: 443
