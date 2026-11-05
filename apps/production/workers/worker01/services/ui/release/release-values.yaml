@@ -44,6 +44,7 @@ spec:
     ui:
       image:
         tag: "${UI_IMAGE_TAG}"
+        digest: "${UI_IMAGE_DIGEST}"
       service:
         annotations:
           dns.gardener.cloud/dnsnames: ui.worker01.kms.shoot.gardener.cc-one.showroom.apeirora.eu
