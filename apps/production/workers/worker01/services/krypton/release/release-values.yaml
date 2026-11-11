@@ -9,7 +9,7 @@ spec:
   values:
     image:
 
-      repository: krypton/images/root
+      repository: images/krypton/root
       tag: "${KRYPTON_IMAGE_TAG}"
       command: ["/root/root.linux-amd64"]
       pullSecrets: []
