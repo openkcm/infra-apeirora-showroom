@@ -8,9 +8,9 @@ spec:
   storageNamespace: services
   values:
     image:
-
       repository: images/krypton/root
-      tag: "${KRYPTON_IMAGE_TAG}"
+      tag: "${KRYPTON_ROOT_IMAGE_TAG}"
+      digest: "${KRYPTON_ROOT_IMAGE_DIGEST}"
       command: ["/root/root.linux-amd64"]
       pullSecrets: []
     extraEnvs:
