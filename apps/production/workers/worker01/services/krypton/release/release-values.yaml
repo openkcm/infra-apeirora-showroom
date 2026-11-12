@@ -40,7 +40,7 @@ spec:
         readOnly: true
       - name: vault-data
         mountPath: /vault-data
-    extraPorts:
+    ports:
       - name: kmip
         containerPort: 5697
         servicePort: 5697
