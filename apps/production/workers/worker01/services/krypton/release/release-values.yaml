@@ -12,7 +12,6 @@ spec:
       repository: images/krypton/root
       tag: "${KRYPTON_ROOT_IMAGE_TAG}"
       digest: "${KRYPTON_ROOT_IMAGE_DIGEST}"
-      command: ["/root/root.linux-amd64"]
     extraEnvs:
       - name: DATABASE_URL
         valueFrom:
