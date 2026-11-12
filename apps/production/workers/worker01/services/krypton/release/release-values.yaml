@@ -7,12 +7,12 @@ spec:
   targetNamespace: services
   storageNamespace: services
   values:
+    imagePullSecrets: []
     image:
       repository: images/krypton/root
       tag: "${KRYPTON_ROOT_IMAGE_TAG}"
       digest: "${KRYPTON_ROOT_IMAGE_DIGEST}"
       command: ["/root/root.linux-amd64"]
-      pullSecrets: []
     extraEnvs:
       - name: DATABASE_URL
         valueFrom:
@@ -43,7 +43,6 @@ spec:
     ports:
       - name: kmip
         containerPort: 5697
-        servicePort: 5697
         protocol: TCP
     service:
       ports:
