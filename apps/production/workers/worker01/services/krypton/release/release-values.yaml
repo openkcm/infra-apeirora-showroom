@@ -63,6 +63,35 @@ spec:
           server_cert: /etc/kmip/tls/tls.crt
           server_key: /etc/kmip/tls/tls.key
           client_ca: /etc/kmip/tls/ca.crt
+      role: root
+      segment:
+        end_kind: L4
+        start_kind: L1
+      selector_labels:
+        environment: local
+      hierarchy:
+        key_specs:
+          - algorithm: AES256
+            kind: L1
+            labels_spec:
+              allow_user_labels: true
+            role: root
+          - algorithm: AES256
+            kind: L2
+            labels_spec:
+              allow_user_labels: true
+            role: kek
+          - algorithm: AES256
+            kind: L3
+            labels_spec:
+              allow_user_labels: true
+            role: kek
+          - algorithm: AES256
+            kind: L4
+            labels_spec:
+              allow_user_labels: true
+            role: dek
+        name: demo-hierarchy
       key_bindings:
         L1:
           sealer:
