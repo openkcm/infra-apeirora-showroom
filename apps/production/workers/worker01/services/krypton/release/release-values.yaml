@@ -64,7 +64,7 @@ spec:
           server_key: /etc/kmip/tls/tls.key
           client_ca: /etc/kmip/tls/ca.crt
       key_bindings:
-        K0:
+        L1:
           sealer:
             config:
               secret:
@@ -73,7 +73,7 @@ spec:
                 type: envvar
             name: root-key-sealer
             type: aes256gcm-staticsecret
-        K1:
+        L2:
           crypto:
             name: kek-crypto
             type: aes256gcm
@@ -82,7 +82,16 @@ spec:
             type: unsafe-sqlite
             config:
               path: /vault-data/kek.db
-        K2:
+        L3:
+          crypto:
+            name: kek-crypto
+            type: aes256gcm
+          vault:
+            name: kek-vault
+            type: unsafe-sqlite
+            config:
+              path: /vault-data/kek.db
+        L4:
           crypto:
             name: dek-crypto
             type: aes256gcm
