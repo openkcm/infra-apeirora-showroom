@@ -38,6 +38,9 @@ spec:
       - name: vault-data
         mountPath: /vault-data
     ports:
+      - name: grpc
+        containerPort: 8080
+        protocol: TCP
       - name: kmip
         containerPort: 5697
         protocol: TCP
@@ -46,11 +49,11 @@ spec:
         - name: grpc
           protocol: TCP
           port: 8080
-          targetPort: 8080
+          targetPort: grpc
         - name: kmip
           protocol: TCP
           port: 5697
-          targetPort: 5697
+          targetPort: kmip
     config:
       kmip:
         bind_addr: "0.0.0.0"
