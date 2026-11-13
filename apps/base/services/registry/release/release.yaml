@@ -26,16 +26,15 @@ spec:
     image:
       registry: ghcr.io/openkcm
       repository: images/registry
-      tag: v1.8.0
-      digest: sha256:e05c7d528e4875d463584247cae83d493929c6cbf933adad18e525dee25a4480
+      tag: v1.10.0
+      digest: sha256:569e68bcd370bf0d3097bbbed0a12296d95986ae0857d6f6c15d45a6e0b93b8d
     service:
       port: 9092
     config:
       application:
         environment: development
       orbital:
-        maxPendingReconciles: ~
-        maxReconcileCount: 10
+        maxPendingReconciles: 10
         targets:
           - region: cf-eu10
             connection:
@@ -67,10 +66,24 @@ spec:
             path: /etc/registry/credentials/database/password
             format: binary
       telemetry:
-        traces:
-          enabled: false
         metrics:
-          enabled: false
+          enabled: true
+          protocol: http
+          host:
+            source: embedded
+            value: otel-collector-dns.monitoring.svc.cluster.local:4318
+          url: /v1/metrics
+          secretRef:
+            type: insecure
+        traces:
+          enabled: true
+          protocol: http
+          host:
+            source: embedded
+            value: otel-collector-dns.monitoring.svc.cluster.local:4318
+          url: /v1/traces
+          secretRef:
+            type: insecure
         logs:
           enabled: false
       validations:

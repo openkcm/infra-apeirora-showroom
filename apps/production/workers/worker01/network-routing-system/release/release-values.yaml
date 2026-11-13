@@ -64,3 +64,9 @@ spec:
     - kind: ConfigMap
       name: network-routing-system-overlay-values
       valuesKey: session-manager-http-route.yaml
+    - kind: ConfigMap
+      name: network-routing-system-overlay-values
+      valuesKey: grafana-http-route.yaml
+    - kind: ConfigMap
+      name: network-routing-system-overlay-values
+      valuesKey: grafana-reference-grant.yaml

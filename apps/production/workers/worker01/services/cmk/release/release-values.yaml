@@ -21,8 +21,6 @@ spec:
                 value:
                   linkerd.io/inject: enabled
   values:
-    logger:
-      level: debug
     eventReconciler:
       image:
         command: "/cmkd"
@@ -104,6 +102,9 @@ spec:
         enabled: false
     namespace: services
     config:
+      environment: showroom-dev
+      logger:
+        level: debug
       database:
         parameters:
           ssl:
@@ -235,10 +236,21 @@ spec:
         - name: noop
           type: SystemInformationService
           tags: ["system_information"]
-        - name: noop
+        - name: IDENTITY_MANAGEMENT
+          path: /etc/plugins/identity-management/scim-static
           type: IdentityManagementService
           logLevel: debug
           tags: ["identity_management"]
+          yamlConfiguration: |
+            json_data: |
+              {
+                "users":  [
+                  {"id": "u1", "userName": "alice", "emails": [{"value": "alice@example.com", "primary": true}]}
+                ],
+                "groups": [
+                  {"id": "g1", "displayName": "KeyAdmin", "members": [{"value": "u1"}]}
+                ]
+              }
         - name: noop
           type: CertificateIssuerService
           logLevel: debug
@@ -248,6 +260,17 @@ spec:
           type: KeystoreInstanceKeyOperation
           logLevel: debug
           tags: ['hyok']
+          yamlConfiguration: |
+            auth:
+              method: accessKey
+              accessKey:
+                accessKeyId:
+                  source: env
+                  value: AWS_ACCESS_KEY_ID
+                secretAccessKey:
+                  source: file
+                  file:
+                    path: /etc/aws/secret-access-key
         - name: noop
           type: NotificationService
           logLevel: debug
@@ -259,6 +282,7 @@ spec:
         rootCertURL: https://openbao.openbao.svc.cluster.local:8200/v1/pki/ca/pem
         validityDays: 30
         rotationThresholdDays: 7
+        disableHYOKCertAuth: true
       cryptoLayer:
         certX509Trusts:
           source: embedded
@@ -366,6 +390,12 @@ spec:
       - name: extauthz-signing-keys-secret
         secret:
           secretName: extauthz-signing-keys-secret
+      - name: awskeystore
+        secret:
+          secretName: awskeystore
+          items:
+            - key: AWS_SECRET_ACCESS_KEY
+              path: secret-access-key
     extraVolumeMounts:
     - name: db-credentials
       mountPath: /etc/credentials/database
@@ -385,6 +415,15 @@ spec:
     - name: extauthz-signing-keys-secret
       mountPath: /etc/signing-keys
       readOnly: true
+    - name: awskeystore
+      mountPath: /etc/aws
+      readOnly: true
+    extraEnvs:
+      - name: AWS_ACCESS_KEY_ID
+        valueFrom:
+          secretKeyRef:
+            name: awskeystore
+            key: AWS_ACCESS_KEY_ID
     #  - name: SIS_PLUGINS_CLD_ENDPOINT
     #    valueFrom:
     #      secretKeyRef:
@@ -393,6 +432,6 @@ spec:
     podAnnotations:
       linkerd.io/inject: disabled
     image:
-      repository: cmk/images/cmk-full-plugins
-      tag: v0.10.0
-      digest: sha256:497c6c1c1cd576281ea11c0ea2dd9e553315a966f3d774f95307460b2f76cca8
+      repository: images/cmk/cmk-full-plugins
+      tag: "${CMK_IMAGE_TAG}"
+      digest: "${CMK_IMAGE_DIGEST}"

@@ -42,6 +42,8 @@ resources:
                   value: "xforwarded"
                 - name: KC_HTTP_ENABLED
                   value: "true"
+                - name: KC_SPI_LOGIN_PROTOCOL__OPENID_CONNECT__ALLOW_TOKEN_INTROSPECTION_WITHOUT_AUDIENCE_CHECK
+                  value: "true"
                 - name: KC_HTTP_RELATIVE_PATH
                   value: "/auth"
                 # In this explorative setup, no strict hostname is set.

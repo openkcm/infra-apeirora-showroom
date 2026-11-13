@@ -50,6 +50,14 @@ spec:
             operator: NotIn
             values:
               - kube-system
+      objectSelector:
+        matchExpressions:
+          - key: linkerd.io/control-plane-component
+            operator: DoesNotExist
+          - key: linkerd.io/cni-resource
+            operator: DoesNotExist
+          - key: job-name
+            operator: DoesNotExist
     # -- Create PodDisruptionBudget resources for each control plane workload
     enablePodDisruptionBudget: true
     controller:

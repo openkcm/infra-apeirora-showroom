@@ -9,7 +9,7 @@ spec:
     - name: extauthz--pre-release
   values:
     image:
-      tag: v0.13.0
-      digest: sha256:b369229b806b822787ed7ff3e9ed832f797377a84b47d99c5d37ddf40a66264f
+      tag: "${EXTAUTHZ_IMAGE_TAG}"
+      digest: "${EXTAUTHZ_IMAGE_DIGEST}"
     hpa:
       minReplicas: 1

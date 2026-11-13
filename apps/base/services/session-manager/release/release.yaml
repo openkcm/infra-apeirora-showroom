@@ -11,9 +11,6 @@ spec:
   storageNamespace: services
   targetNamespace: services
   values:
-    extraEnvs:
-      - name: DEBUGFEATURES
-        value: smdumptransport=1
     pod:
       disruptionBudget:
         enabled: true
@@ -39,13 +36,27 @@ spec:
             app.kubernetes.io/name: session-manager
     image:
       registry: ghcr.io/openkcm
-      repository: session-manager/images/session-manager
+      repository: images/session-manager
       pullPolicy: IfNotPresent
-      digest: sha256:20c879eac5eadc0fabc83e163905e3f9e517e0d4ac0620471bd3ebe5f12c6f4b
+      digest: sha256:5e50373da4d95ca3a8ec1e31c5b491f50dd955ccf258d3405a427852f3e95a12
     imagePullSecrets: []
     config:
       telemetry:
         metrics:
-          enabled: false
+          enabled: true
+          protocol: http
+          host:
+            source: embedded
+            value: otel-collector-dns.monitoring.svc.cluster.local:4318
+          url: /v1/metrics
+          secretRef:
+            type: insecure
         traces:
-          enabled: false
+          enabled: true
+          protocol: http
+          host:
+            source: embedded
+            value: otel-collector-dns.monitoring.svc.cluster.local:4318
+          url: /v1/traces
+          secretRef:
+            type: insecure

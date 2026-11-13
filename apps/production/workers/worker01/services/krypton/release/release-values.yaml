@@ -7,12 +7,12 @@ spec:
   targetNamespace: services
   storageNamespace: services
   values:
+    imagePullSecrets: []
     image:
-      registry: ghcr.io/openkcm
-      repository: krypton/images/root
-      tag: "v0.1.0"
-      command: ["/root/root.linux-amd64"]
-      pullSecrets: []
+      repository: images/krypton/root
+      tag: "${KRYPTON_ROOT_IMAGE_TAG}"
+      digest: "${KRYPTON_ROOT_IMAGE_DIGEST}"
+      command: ["/app/root"]
     extraEnvs:
       - name: DATABASE_URL
         valueFrom:
@@ -24,9 +24,6 @@ spec:
           secretKeyRef:
             name: krypton-secret
             key: root-key
-    pod:
-      securityContext:
-        fsGroup: 2102
     extraVolumes:
       - name: kmip-server-tls
         secret:
@@ -40,10 +37,9 @@ spec:
         readOnly: true
       - name: vault-data
         mountPath: /vault-data
-    extraPorts:
+    ports:
       - name: kmip
         containerPort: 5697
-        servicePort: 5697
         protocol: TCP
     service:
       ports:
@@ -60,11 +56,40 @@ spec:
         bind_addr: "0.0.0.0"
         port: 5697
         tls:
-          server_cert: /etc/kmip/tls/tls.crt
-          server_key: /etc/kmip/tls/tls.key
-          client_ca: /etc/kmip/tls/ca.crt
+          cert_path: /etc/kmip/tls/tls.crt
+          key_path: /etc/kmip/tls/tls.key
+          ca_path: /etc/kmip/tls/ca.crt
+      role: root
+      segment:
+        end_kind: L4
+        start_kind: L1
+      selector_labels:
+        environment: local
+      hierarchy:
+        key_specs:
+          - algorithm: AES256
+            kind: L1
+            labels_spec:
+              allow_user_labels: true
+            role: root
+          - algorithm: AES256
+            kind: L2
+            labels_spec:
+              allow_user_labels: true
+            role: kek
+          - algorithm: AES256
+            kind: L3
+            labels_spec:
+              allow_user_labels: true
+            role: kek
+          - algorithm: AES256
+            kind: L4
+            labels_spec:
+              allow_user_labels: true
+            role: dek
+        name: demo-hierarchy
       key_bindings:
-        K0:
+        L1:
           sealer:
             config:
               secret:
@@ -73,7 +98,7 @@ spec:
                 type: envvar
             name: root-key-sealer
             type: aes256gcm-staticsecret
-        K1:
+        L2:
           crypto:
             name: kek-crypto
             type: aes256gcm
@@ -82,7 +107,16 @@ spec:
             type: unsafe-sqlite
             config:
               path: /vault-data/kek.db
-        K2:
+        L3:
+          crypto:
+            name: kek-crypto
+            type: aes256gcm
+          vault:
+            name: kek-vault
+            type: unsafe-sqlite
+            config:
+              path: /vault-data/kek.db
+        L4:
           crypto:
             name: dek-crypto
             type: aes256gcm

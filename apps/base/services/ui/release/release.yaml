@@ -52,9 +52,9 @@ spec:
         targetMemoryUtilizationPercentage: 80
       image:
         registry: ghcr.io/openkcm
-        repository: cmk-ui/images/cmk-ui
-        digest: sha256:26d7af9d9857023a33a33c7b2b42a1e0c5bf73f24610a7b196595e98e4296425
-        tag: v0.5.0
+        repository: images/cmk-ui
+        digest: sha256:e15e099ddad61f664de3ebd9b3f55ca2b827c64fa1e0068bb2ec8ed5ff311133
+        tag: v0.1.6
       service:
         type: LoadBalancer
         port: 443

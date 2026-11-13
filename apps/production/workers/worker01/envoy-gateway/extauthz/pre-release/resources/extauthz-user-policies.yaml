@@ -27,3 +27,13 @@ resources:
           context.path like "/kms.api.cmk.registry.*.v1.Service/*" &&
           context.issuer like "*"
         };
+        // Users based on session cookie accessing the CMK Backend via the CMK UI
+        permit (
+          principal is Subject,
+          action in [Action::"GET", Action::"POST", Action::"PUT", Action::"PATCH", Action::"DELETE"],
+          resource
+        ) when {
+          context.type == "session" &&
+          context.path like "/cmk/*" &&
+          context.issuer like "*"
+        };

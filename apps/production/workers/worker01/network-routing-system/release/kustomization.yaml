@@ -20,3 +20,5 @@ configMapGenerator:
       - ./resources/krypton-grpc-route.yaml
       - ./resources/krypton-security-policy.yaml
       - ./resources/krypton-kmip-tcp-route.yaml
+      - ./resources/grafana-http-route.yaml
+      - ./resources/grafana-reference-grant.yaml

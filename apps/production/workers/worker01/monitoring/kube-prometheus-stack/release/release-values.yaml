@@ -1,0 +1,22 @@
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: kube-prometheus-stack
+spec:
+  targetNamespace: monitoring
+  storageNamespace: monitoring
+  values:
+    grafana:
+      persistence:
+        enabled: true
+        size: 5Gi
+      grafana.ini:
+        server:
+          root_url: "%(protocol)s://%(domain)s/grafana"
+          serve_from_sub_path: true
+      additionalDataSources:
+        - name: Loki
+          type: loki
+          url: http://loki-gateway.monitoring.svc.cluster.local
+          access: proxy
+          isDefault: false

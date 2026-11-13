@@ -13,10 +13,15 @@ spec:
     namespace: flux-system
   path: ./apps/production/workers/worker01/envoy-gateway
   prune: true
+  postBuild:
+    substituteFrom:
+      - kind: ConfigMap
+        name: release-vars-worker01
   dependsOn:
     - name: envoy-gateway-secrets
     - name: envoy-gateway-crds
     - name: namespaces
+    - name: release-vars
   decryption:
     provider: sops
     secretRef:

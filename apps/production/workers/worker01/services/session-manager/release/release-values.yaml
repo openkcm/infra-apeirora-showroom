@@ -69,7 +69,7 @@ spec:
         prefix: session-manager
         secretRef:
           type: mtls
-          mTLS:
+          mtls:
             cert:
               source: file
               file:
@@ -80,24 +80,21 @@ spec:
               file:
                 path: /etc/credentials/valkey/tls.key
                 format: binary
-            serverCA:
+            serverCa:
               source: file
               file:
                 path: /etc/credentials/valkey/ca.crt
                 format: binary
       sessionManager:
+        callbackURL: https://ing.worker01.kms.shoot.gardener.cc-one.showroom.apeirora.eu/sm/callback
         sessionDuration: 12h
         idleSessionTimeout: 15m
-        callbackURL: https://ing.worker01.kms.shoot.gardener.cc-one.showroom.apeirora.eu/sm/callback
-        # TODO: Update to the correct logout URL once a landing page is available
-        postLogoutRedirectURL: https://github.com/openkcm
-        #additionalQueryParametersAuthorize: ["app_tid"]
-        #additionalQueryParametersToken: ["app_tid"]
-        #additionalQueryParametersIntrospect: ["app_tid"]
-        #additionalQueryParametersLogout: ["app_tid"]
-       # additionalAuthContextKeys: ["app_tid"]
+        allowedRedirectBaseURLs:
+          # always add the trailing / to avoid open redirect attacks to https://<knownDomain>.<evilDomain>/
+          - https://ui.worker01.kms.shoot.gardener.cc-one.showroom.apeirora.eu/
+          - https://ing.worker01.kms.shoot.gardener.cc-one.showroom.apeirora.eu/
         trust:
-          module: trust.module.ias
+          module: trust.module.oidc
           dbModule: database.module.pgxpool
         credentials:
           module: credentials.module.oauth2
@@ -109,7 +106,7 @@ spec:
             module: app.module.grpcserver
             services:
               - module: service.module.grpc.session
-                trust: trust.module.ias
+                trust: trust.module.oidc
                 sessionStore: sessionstore.module.valkey
                 credentials: credentials.module.oauth2
               - module: service.module.grpc.trustmapping
@@ -122,6 +119,11 @@ spec:
           secure: true
           sameSite: None
           httpOnly: true
+        loginCSRFCookieTemplate:
+          path: "/"
+          secure: true
+          sameSite: Lax
+          httpOnly: false
         csrfCookieTemplate:
           name: "CSRF"
           path: "/"
@@ -193,5 +195,6 @@ spec:
       linkerd.io/inject: disabled
     image:
       registry: ghcr.io/openkcm
-      repository: session-manager/images/session-manager
-      digest: sha256:ebf9495bac0ebb1ab93edb8e278e56956c370d3472c56ed19ac819aeca19df38
+      repository: images/session-manager
+      tag: "${SESSION_MANAGER_IMAGE_TAG}"
+      digest: "${SESSION_MANAGER_IMAGE_DIGEST}"

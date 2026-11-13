@@ -5,4 +5,4 @@ metadata:
   name: session-manager
 spec:
   ref:
-    tag: 0.10.1
+    tag: "${SESSION_MANAGER_CHART_VERSION}"

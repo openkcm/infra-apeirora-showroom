@@ -18,11 +18,14 @@ spec:
       remediateLastFailure: true
   releaseName: extauthz
   values:
+    extraEnvs:
+      - name: DEBUGFEATURES
+        value: smdumptransport=1
     fullnameOverride: extauthz
     image:
       registry: ghcr.io/openkcm
-      repository: extauthz/images/extauthz
-      digest: sha256:ca348afcac11b8c06127622534e6c86f7a5b6c0f7d31f6c9cfb732e2de3eb92c
+      repository: images/extauthz
+      digest: sha256:5918d421c6e72e3d9d6b16a629a58031505531fe84d222367110f6de5525e9de
     hpa:
       enabled: true
       minReplicas: 1
@@ -76,9 +79,6 @@ spec:
       - name: http-status
         protocol: TCP
         containerPort: 8888
-      - name: http-cdks
-        protocol: TCP
-        containerPort: 5555
     service:
       type: ClusterIP
       ports:
@@ -90,10 +90,6 @@ spec:
           protocol: TCP
           port: 8888
           targetPort: 8888
-        - name: http-cdks
-          protocol: TCP
-          port: 5555
-          targetPort: 5555
     extraVolumes:
       - name: extauthz-trusted-subjects-vol
         configMap:
@@ -113,6 +109,12 @@ spec:
       - name: keycloak-volume
         secret:
           secretName: oidc-proxy
+      - name: csrf-secret
+        secret:
+          secretName: csrf-secret
+          items:
+            - key: csrf_secret
+              path: csrf_secret
     extraVolumeMounts:
       - name: extauthz-trusted-subjects-vol
         mountPath: /etc/extauthz-mtls
@@ -125,6 +127,9 @@ spec:
         readOnly: true
       - mountPath: /etc/credentials/keycloak
         name: keycloak-volume
+        readOnly: true
+      - name: csrf-secret
+        mountPath: /etc/credentials/csrf-secret
         readOnly: true
     livenessProbe:
       httpGet:
@@ -164,11 +169,6 @@ spec:
         flags:
           health: true
 
-      # Client Data Key Set handling
-      cdksServer:
-        address: :5555
-        signingKeyRefreshInterval: 6h
-
       cedar:
         policyPath: /etc/extauthz-policies
 
@@ -199,12 +199,6 @@ spec:
                 path: /etc/credentials/keycloak/client-secret
                 format: binary
 
-        k8sProviders:
-          enabled: true
-          apiGroup: gateway.extensions.envoyproxy.io
-          apiVersion: v1alpha1
-          name: jwtproviders
-          namespace: envoy-gateway-system
       sessionPathPrefixes: ["/cmk/v1/"]
       sessionManager:
         enabled: true
@@ -213,3 +207,8 @@ spec:
           type: insecure
       clientData:
         signingKeyIDFilePath: /etc/extauthz-signing/keyId
+      csrfSecret:
+        source: file
+        file:
+          format: binary
+          path: /etc/credentials/csrf-secret/csrf_secret

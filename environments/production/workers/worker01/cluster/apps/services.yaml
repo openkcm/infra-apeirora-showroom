@@ -12,7 +12,12 @@ spec:
   prune: true
   force: true
   timeout: 5m0s
+  postBuild:
+    substituteFrom:
+      - kind: ConfigMap
+        name: release-vars-worker01
   dependsOn:
     - name: linkerd
     - name: network-routing-system
     - name: namespaces
+    - name: release-vars
