@@ -109,7 +109,7 @@ spec:
         spec:
           teamId: "acid"
           volume:
-            size: 5Gi
+            size: 10Gi
           numberOfInstances: 1
           users:
             krypton: []
