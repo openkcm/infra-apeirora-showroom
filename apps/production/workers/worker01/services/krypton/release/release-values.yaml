@@ -87,7 +87,7 @@ spec:
             role: dek
         name: demo-hierarchy
       key_bindings:
-        L1:
+        L2:
           sealer:
             config:
               secret:
@@ -96,7 +96,6 @@ spec:
                 type: envvar
             name: root-key-sealer
             type: aes256gcm-staticsecret
-        L2:
           crypto:
             name: kek-crypto
             type: aes256gcm
