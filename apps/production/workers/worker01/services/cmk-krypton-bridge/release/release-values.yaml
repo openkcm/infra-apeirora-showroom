@@ -8,7 +8,7 @@ spec:
   storageNamespace: services
   values:
     image:
-      repository: ghcr.io/openkcm/cmk-krypton-bridge/images/cmk-krypton-bridge
+      repository: ghcr.io/openkcm/images/cmk-krypton-bridge
       tag: "${CMK_KRYPTON_BRIDGE_IMAGE_TAG}"
     imagePullSecrets:
       - name: ghcr-pull-secret
