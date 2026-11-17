@@ -74,7 +74,7 @@ spec:
             kind: L2
             labels_spec:
               allow_user_labels: true
-            role: tek
+            role: root
           - algorithm: AES256
             kind: L3
             labels_spec:
