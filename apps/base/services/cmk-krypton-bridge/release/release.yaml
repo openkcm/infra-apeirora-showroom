@@ -53,6 +53,5 @@ spec:
         role: "ROLE_TRIAL"
     database:
       existingSecret: cmk-krypton-bridge-db
-    orbital:
-      rabbitmq:
-        existingSecret: cmk-krypton-bridge-rabbitmq-tls
+    rabbitmq:
+      existingSecret: cmk-krypton-bridge-rabbitmq-tls
