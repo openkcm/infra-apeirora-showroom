@@ -52,7 +52,7 @@ spec:
         systemType: "krypton-bridge"
         role: "ROLE_TRIAL"
     database:
-      secretName: cmk-krypton-bridge-db
+      existingSecret: cmk-krypton-bridge-db
     orbital:
       rabbitmq:
-        secretName: cmk-krypton-bridge-rabbitmq-tls
+        existingSecret: cmk-krypton-bridge-rabbitmq-tls
