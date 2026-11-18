@@ -65,16 +65,21 @@ spec:
       role: root
       segment:
         end_kind: L4
-        start_kind: L2
+        start_kind: L1
       selector_labels:
         environment: local
       hierarchy:
         key_specs:
           - algorithm: AES256
-            kind: L2
+            kind: L1
             labels_spec:
               allow_user_labels: true
             role: root
+          - algorithm: AES256
+            kind: L2
+            labels_spec:
+              allow_user_labels: true
+            role: tek
           - algorithm: AES256
             kind: L3
             labels_spec:
@@ -88,14 +93,6 @@ spec:
         name: demo-hierarchy
       key_bindings:
         L2:
-          sealer:
-            config:
-              secret:
-                config:
-                  name: KRYPTON_ROOT_KEY
-                type: envvar
-            name: root-key-sealer
-            type: aes256gcm-staticsecret
           crypto:
             name: kek-crypto
             type: aes256gcm
