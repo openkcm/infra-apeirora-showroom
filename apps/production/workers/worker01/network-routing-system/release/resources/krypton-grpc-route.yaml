@@ -54,3 +54,12 @@ resources:
             - method:
                 service: "krypton.v1.admin.keys.KeyService"
                 method: "ListKeys"
+            - method:
+                service: "krypton.v1.admin.keys.KeyService"
+                method: "DeactivateKey"
+            - method:
+                service: "krypton.v1.admin.keys.KeyService"
+                method: "SuspendKey"
+            - method:
+                service: "krypton.v1.admin.rootkey.Service"
+                method: "CreateProvider"

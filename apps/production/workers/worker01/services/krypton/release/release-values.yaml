@@ -91,7 +91,17 @@ spec:
               allow_user_labels: true
             role: dek
         name: demo-hierarchy
+      root_key:
+        allowed_providers:
+          - awskms
+        vault:
+          name: credentials-vault
+          type: unsafe-sqlite
+          config:
+            path: /vault-data/credentials.db
       key_bindings:
+        K1: null
+        K2: null
         L2:
           crypto:
             name: kek-crypto
